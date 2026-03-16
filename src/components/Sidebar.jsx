@@ -1,8 +1,9 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
-import { LayoutDashboard, Building2, Settings, Shield, Map } from 'lucide-react';
+import { LayoutDashboard, Building2, Settings, Shield, Map, Users } from 'lucide-react';
 import { clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
+import { useAuth } from '../App';
 
 function cn(...inputs) {
     return twMerge(clsx(inputs));
@@ -15,7 +16,12 @@ const navItems = [
     { icon: Settings, label: 'Paramètres', id: 'settings', path: '/settings' },
 ];
 
+const adminNavItems = [
+    { icon: Users, label: 'Administration', id: 'admin', path: '/administration' },
+];
+
 export const Sidebar = () => {
+    const { isAdmin } = useAuth();
     return (
         <aside className="w-64 h-screen glass border-r border-white/5 flex flex-col">
             <div className="p-6 flex items-center gap-3">
@@ -40,6 +46,31 @@ export const Sidebar = () => {
                         {item.label}
                     </NavLink>
                 ))}
+                
+                {/* Section Administration - Visible uniquement pour les admins */}
+                {isAdmin && (
+                    <>
+                        <div className="pt-4 pb-2">
+                            <div className="px-3 text-xs font-semibold text-accent-steel uppercase tracking-wider">
+                                Administration
+                            </div>
+                        </div>
+                        {adminNavItems.map((item) => (
+                            <NavLink
+                                key={item.id}
+                                to={item.path}
+                                className={({ isActive }) => cn(
+                                    "w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200",
+                                    "text-accent-steel hover:text-white hover:bg-white/5",
+                                    isActive && "text-white bg-white/10 border-l-2 border-accent shadow-[0_0_15px_rgba(59,130,246,0.1)]"
+                                )}
+                            >
+                                <item.icon className="w-5 h-5" />
+                                {item.label}
+                            </NavLink>
+                        ))}
+                    </>
+                )}
             </nav>
 
             <div className="p-6 border-t border-white/5">
