@@ -6,8 +6,8 @@ export const Header = () => {
 
     return (
         <header className="h-16 glass border-b border-white/5 flex items-center px-8 sticky top-0 z-10">
-            <div className="flex items-center gap-6">
-                <div className="flex items-center gap-3 pl-2 border-l border-white/10">
+            <div className="flex items-center gap-6 bg-red-500/20"> {/* Test color */}
+                <div className="flex items-center gap-3 pl-2 border-l-2 border-red-500"> {/* Test border */}
                     <div className="text-right hidden md:block">
                         <p className="text-xs font-bold text-white">Agent Immobilier</p>
                         <p className="text-[10px] text-accent-steel uppercase tracking-widest">Secteur Paris</p>
