@@ -1,16 +1,31 @@
 import React from 'react';
-import { Bell, Search, User } from 'lucide-react';
+import { Bell, Search, User, LogOut, Shield, UserCheck } from 'lucide-react';
+import { useAuth } from '../App';
 
 export const Header = () => {
     const [isOnline, setIsOnline] = React.useState(true);
+    const { user, logout, isAdmin } = useAuth();
+
+    const handleLogout = () => {
+        logout();
+    };
 
     return (
         <header className="h-16 glass border-b border-white/5 flex items-center px-8 sticky top-0 z-10">
-            <div className="flex items-center gap-6 bg-red-500/20"> {/* Test color */}
-                <div className="flex items-center gap-3 pl-2 border-l-2 border-red-500"> {/* Test border */}
+            <div className="flex items-center gap-6">
+                <div className="flex items-center gap-3 pl-2 border-l-2 border-accent/50">
                     <div className="text-right hidden md:block">
-                        <p className="text-xs font-bold text-white">Agent Immobilier</p>
-                        <p className="text-[10px] text-accent-steel uppercase tracking-widest">Secteur Paris</p>
+                        <div className="flex items-center gap-2 justify-end">
+                            <p className="text-xs font-bold text-white">{user?.username}</p>
+                            {isAdmin ? (
+                                <Shield className="w-3 h-3 text-accent" />
+                            ) : (
+                                <UserCheck className="w-3 h-3 text-blue-400" />
+                            )}
+                        </div>
+                        <p className="text-[10px] text-accent-steel uppercase tracking-widest">
+                            Rôle: {user?.role} • Secteur Paris
+                        </p>
                     </div>
                     <div className="w-8 h-8 rounded-full bg-accent/20 border border-accent/40 flex items-center justify-center">
                         <User className="w-5 h-5 text-accent" />
@@ -39,6 +54,15 @@ export const Header = () => {
                     <div className={`w-2 h-2 rounded-full animate-pulse ${isOnline ? 'bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.6)]' : 'bg-red-500'}`} />
                     <span className="text-[10px] font-bold text-accent-steel uppercase tracking-widest">Status: {isOnline ? 'Online' : 'Offline'}</span>
                 </div>
+
+                <button
+                    onClick={handleLogout}
+                    className="flex items-center gap-2 px-3 py-1.5 text-accent-steel hover:text-white hover:bg-white/5 rounded-lg transition-all duration-200"
+                    title="Se déconnecter"
+                >
+                    <LogOut className="w-4 h-4" />
+                    <span className="text-xs font-medium hidden sm:block">Déconnexion</span>
+                </button>
             </div>
         </header>
     );
