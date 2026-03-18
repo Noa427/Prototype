@@ -1,46 +1,73 @@
 import React from 'react';
-import { Users, Shield, Plus, Trash2, UserCheck, AlertTriangle, Activity, Server, Bell, Eye } from 'lucide-react';
+import { Users, Shield, Plus, Trash2, UserCheck, AlertTriangle, Activity, Server, Bell, Eye, ChevronRight } from 'lucide-react';
 
 export const AdminPanel = () => {
-    // Données simulées des utilisateurs
-    const users = [
-        { 
-            id: 1, 
-            username: 'admin', 
-            fullName: 'Administrateur Système',
-            email: 'admin@sol-invictus.io',
-            role: 'admin', 
-            status: 'active', 
-            lastLogin: '2024-01-15 14:30' 
+    const [selectedAgency, setSelectedAgency] = React.useState(null);
+    const [expandedAgencies, setExpandedAgencies] = React.useState(new Set());
+
+    // Données simulées des agences et leurs clients
+    const agencies = [
+        {
+            id: 1,
+            name: 'Sol Invictus Paris Centre',
+            location: 'Paris 1er',
+            status: 'active',
+            clientsCount: 12,
+            lastActivity: '2024-01-15 14:30',
+            clients: [
+                { id: 1, username: 'agent_paris_1', fullName: 'Marie Dubois', email: 'marie.dubois@sol-invictus.io', status: 'active', lastLogin: '2024-01-15 09:15', role: 'agent' },
+                { id: 2, username: 'agent_paris_2', fullName: 'Pierre Martin', email: 'pierre.martin@sol-invictus.io', status: 'active', lastLogin: '2024-01-15 08:45', role: 'agent' },
+                { id: 3, username: 'manager_paris', fullName: 'Sophie Laurent', email: 'sophie.laurent@sol-invictus.io', status: 'active', lastLogin: '2024-01-15 10:20', role: 'manager' }
+            ]
         },
-        { 
-            id: 2, 
-            username: 'client', 
-            fullName: 'Agent Commercial',
-            email: 'agent@sol-invictus.io',
-            role: 'client', 
-            status: 'active', 
-            lastLogin: '2024-01-15 09:15' 
+        {
+            id: 2,
+            name: 'Sol Invictus Lyon Presqu\'île',
+            location: 'Lyon 2ème',
+            status: 'active',
+            clientsCount: 8,
+            lastActivity: '2024-01-14 16:45',
+            clients: [
+                { id: 4, username: 'agent_lyon_1', fullName: 'Thomas Rousseau', email: 'thomas.rousseau@sol-invictus.io', status: 'active', lastLogin: '2024-01-14 16:45', role: 'agent' },
+                { id: 5, username: 'agent_lyon_2', fullName: 'Julie Moreau', email: 'julie.moreau@sol-invictus.io', status: 'inactive', lastLogin: '2024-01-10 14:20', role: 'agent' },
+                { id: 6, username: 'manager_lyon', fullName: 'Antoine Leroy', email: 'antoine.leroy@sol-invictus.io', status: 'active', lastLogin: '2024-01-14 11:20', role: 'manager' }
+            ]
         },
-        { 
-            id: 3, 
-            username: 'agent_paris', 
-            fullName: 'Agent Paris Nord',
-            email: 'paris@sol-invictus.io',
-            role: 'client', 
-            status: 'inactive', 
-            lastLogin: '2024-01-10 16:45' 
+        {
+            id: 3,
+            name: 'Sol Invictus Marseille Vieux-Port',
+            location: 'Marseille 1er',
+            status: 'active',
+            clientsCount: 6,
+            lastActivity: '2024-01-13 12:30',
+            clients: [
+                { id: 7, username: 'agent_marseille_1', fullName: 'Camille Blanc', email: 'camille.blanc@sol-invictus.io', status: 'active', lastLogin: '2024-01-13 12:30', role: 'agent' },
+                { id: 8, username: 'manager_marseille', fullName: 'Nicolas Fabre', email: 'nicolas.fabre@sol-invictus.io', status: 'active', lastLogin: '2024-01-13 09:15', role: 'manager' }
+            ]
         },
-        { 
-            id: 4, 
-            username: 'manager_lyon', 
-            fullName: 'Manager Lyon',
-            email: 'lyon@sol-invictus.io',
-            role: 'client', 
-            status: 'active', 
-            lastLogin: '2024-01-14 11:20' 
+        {
+            id: 4,
+            name: 'Sol Invictus Bordeaux Centre',
+            location: 'Bordeaux',
+            status: 'inactive',
+            clientsCount: 4,
+            lastActivity: '2024-01-08 15:20',
+            clients: [
+                { id: 9, username: 'agent_bordeaux_1', fullName: 'Émilie Girard', email: 'emilie.girard@sol-invictus.io', status: 'inactive', lastLogin: '2024-01-08 15:20', role: 'agent' },
+                { id: 10, username: 'manager_bordeaux', fullName: 'Julien Roux', email: 'julien.roux@sol-invictus.io', status: 'inactive', lastLogin: '2024-01-08 10:45', role: 'manager' }
+            ]
         }
     ];
+
+    const toggleAgencyExpansion = (agencyId) => {
+        const newExpanded = new Set(expandedAgencies);
+        if (newExpanded.has(agencyId)) {
+            newExpanded.delete(agencyId);
+        } else {
+            newExpanded.add(agencyId);
+        }
+        setExpandedAgencies(newExpanded);
+    };
 
     // Statistiques système simulées
     const systemStats = [
@@ -113,105 +140,149 @@ export const AdminPanel = () => {
                 ))}
             </div>
 
-            {/* Section Gestion des Utilisateurs */}
+            {/* Section Gestion des Agences */}
             <div className="glass rounded-xl border border-white/10 p-6">
                 <div className="flex items-center justify-between mb-6">
                     <div className="flex items-center gap-3">
                         <Users className="w-5 h-5 text-accent" />
-                        <h2 className="text-xl font-bold text-white">Gestion des Utilisateurs</h2>
+                        <h2 className="text-xl font-bold text-white">Gestion des Agences</h2>
                     </div>
-                    <button className="flex items-center gap-2 px-4 py-2 bg-accent hover:bg-accent/90 text-white rounded-lg transition-all duration-200">
-                        <Plus className="w-4 h-4" />
-                        Créer Utilisateur
-                    </button>
+                    <div className="flex gap-2">
+                        <button className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-all duration-200">
+                            <Plus className="w-4 h-4" />
+                            Nouvelle Agence
+                        </button>
+                        <button className="flex items-center gap-2 px-4 py-2 bg-accent hover:bg-accent/90 text-white rounded-lg transition-all duration-200">
+                            <Plus className="w-4 h-4" />
+                            Nouvel Utilisateur
+                        </button>
+                    </div>
                 </div>
 
-                {/* Tableau des utilisateurs */}
-                <div className="overflow-x-auto">
-                    <table className="w-full">
-                        <thead>
-                            <tr className="border-b border-white/10">
-                                <th className="text-left py-3 px-4 text-sm font-medium text-accent-steel uppercase tracking-wider">
-                                    Utilisateur
-                                </th>
-                                <th className="text-left py-3 px-4 text-sm font-medium text-accent-steel uppercase tracking-wider">
-                                    Rôle
-                                </th>
-                                <th className="text-left py-3 px-4 text-sm font-medium text-accent-steel uppercase tracking-wider">
-                                    Statut
-                                </th>
-                                <th className="text-left py-3 px-4 text-sm font-medium text-accent-steel uppercase tracking-wider">
-                                    Dernière Connexion
-                                </th>
-                                <th className="text-left py-3 px-4 text-sm font-medium text-accent-steel uppercase tracking-wider">
-                                    Actions
-                                </th>
-                            </tr>
-                        </thead>
-                        <tbody className="divide-y divide-white/5">
-                            {users.map((user) => (
-                                <tr key={user.id} className="hover:bg-white/5 transition-colors">
-                                    <td className="py-4 px-4">
-                                        <div className="flex items-center gap-3">
-                                            <div className="w-8 h-8 rounded-full bg-accent/20 border border-accent/40 flex items-center justify-center">
-                                                {user.role === 'admin' ? (
-                                                    <Shield className="w-4 h-4 text-accent" />
-                                                ) : (
-                                                    <UserCheck className="w-4 h-4 text-blue-400" />
-                                                )}
-                                            </div>
-                                            <div>
-                                                <p className="text-white font-medium">{user.fullName}</p>
-                                                <p className="text-xs text-accent-steel">{user.email}</p>
-                                            </div>
+                {/* Liste des agences */}
+                <div className="space-y-4">
+                    {agencies.map((agency) => (
+                        <div key={agency.id} className="border border-white/10 rounded-lg overflow-hidden">
+                            {/* En-tête de l'agence */}
+                            <div 
+                                className="p-4 bg-white/5 hover:bg-white/10 cursor-pointer transition-all duration-200"
+                                onClick={() => toggleAgencyExpansion(agency.id)}
+                            >
+                                <div className="flex items-center justify-between">
+                                    <div className="flex items-center gap-4">
+                                        <div className={`w-3 h-3 rounded-full ${
+                                            agency.status === 'active' ? 'bg-green-500' : 'bg-red-500'
+                                        }`} />
+                                        <div>
+                                            <h3 className="text-white font-semibold">{agency.name}</h3>
+                                            <p className="text-xs text-accent-steel">{agency.location}</p>
                                         </div>
-                                    </td>
-                                    <td className="py-4 px-4">
-                                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                                            user.role === 'admin' 
-                                                ? 'bg-accent/20 text-accent border border-accent/30' 
-                                                : 'bg-blue-500/20 text-blue-400 border border-blue-500/30'
+                                    </div>
+                                    <div className="flex items-center gap-6">
+                                        <div className="text-right">
+                                            <p className="text-sm text-white font-medium">{agency.clientsCount} utilisateurs</p>
+                                            <p className="text-xs text-accent-steel">Dernière activité: {agency.lastActivity}</p>
+                                        </div>
+                                        <div className={`transform transition-transform duration-200 ${
+                                            expandedAgencies.has(agency.id) ? 'rotate-90' : ''
                                         }`}>
-                                            {user.role === 'admin' ? 'Administrateur' : 'Client'}
-                                        </span>
-                                    </td>
-                                    <td className="py-4 px-4">
-                                        <div className="flex items-center gap-2">
-                                            <div className={`w-2 h-2 rounded-full ${
-                                                user.status === 'active' ? 'bg-green-500' : 'bg-red-500'
-                                            }`} />
-                                            <span className={`text-xs font-medium ${
-                                                user.status === 'active' ? 'text-green-400' : 'text-red-400'
-                                            }`}>
-                                                {user.status === 'active' ? 'Actif' : 'Inactif'}
-                                            </span>
+                                            <ChevronRight className="w-5 h-5 text-accent-steel" />
                                         </div>
-                                    </td>
-                                    <td className="py-4 px-4">
-                                        <span className="text-sm text-accent-steel">{user.lastLogin}</span>
-                                    </td>
-                                    <td className="py-4 px-4">
-                                        <div className="flex items-center gap-2">
-                                            <button 
-                                                className="p-2 text-accent-steel hover:text-white hover:bg-white/10 rounded-lg transition-all"
-                                                title="Voir détails"
-                                            >
-                                                <Eye className="w-4 h-4" />
-                                            </button>
-                                            {user.role !== 'admin' && (
-                                                <button 
-                                                    className="p-2 text-red-400 hover:text-red-300 hover:bg-red-500/10 rounded-lg transition-all"
-                                                    title="Supprimer (Admin uniquement)"
-                                                >
-                                                    <Trash2 className="w-4 h-4" />
-                                                </button>
-                                            )}
-                                        </div>
-                                    </td>
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Liste des clients de l'agence */}
+                            {expandedAgencies.has(agency.id) && (
+                                <div className="border-t border-white/10">
+                                    <div className="overflow-x-auto">
+                                        <table className="w-full">
+                                            <thead>
+                                                <tr className="border-b border-white/5 bg-white/5">
+                                                    <th className="text-left py-2 px-4 text-xs font-medium text-accent-steel uppercase tracking-wider">
+                                                        Utilisateur
+                                                    </th>
+                                                    <th className="text-left py-2 px-4 text-xs font-medium text-accent-steel uppercase tracking-wider">
+                                                        Rôle
+                                                    </th>
+                                                    <th className="text-left py-2 px-4 text-xs font-medium text-accent-steel uppercase tracking-wider">
+                                                        Statut
+                                                    </th>
+                                                    <th className="text-left py-2 px-4 text-xs font-medium text-accent-steel uppercase tracking-wider">
+                                                        Dernière Connexion
+                                                    </th>
+                                                    <th className="text-left py-2 px-4 text-xs font-medium text-accent-steel uppercase tracking-wider">
+                                                        Actions
+                                                    </th>
+                                                </tr>
+                                            </thead>
+                                            <tbody className="divide-y divide-white/5">
+                                                {agency.clients.map((client) => (
+                                                    <tr key={client.id} className="hover:bg-white/5 transition-colors">
+                                                        <td className="py-3 px-4">
+                                                            <div className="flex items-center gap-3">
+                                                                <div className="w-6 h-6 rounded-full bg-accent/20 border border-accent/40 flex items-center justify-center">
+                                                                    {client.role === 'manager' ? (
+                                                                        <Shield className="w-3 h-3 text-accent" />
+                                                                    ) : (
+                                                                        <UserCheck className="w-3 h-3 text-blue-400" />
+                                                                    )}
+                                                                </div>
+                                                                <div>
+                                                                    <p className="text-white text-sm font-medium">{client.fullName}</p>
+                                                                    <p className="text-xs text-accent-steel">{client.email}</p>
+                                                                </div>
+                                                            </div>
+                                                        </td>
+                                                        <td className="py-3 px-4">
+                                                            <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                                                                client.role === 'manager' 
+                                                                    ? 'bg-accent/20 text-accent border border-accent/30' 
+                                                                    : 'bg-blue-500/20 text-blue-400 border border-blue-500/30'
+                                                            }`}>
+                                                                {client.role === 'manager' ? 'Manager' : 'Agent'}
+                                                            </span>
+                                                        </td>
+                                                        <td className="py-3 px-4">
+                                                            <div className="flex items-center gap-2">
+                                                                <div className={`w-2 h-2 rounded-full ${
+                                                                    client.status === 'active' ? 'bg-green-500' : 'bg-red-500'
+                                                                }`} />
+                                                                <span className={`text-xs font-medium ${
+                                                                    client.status === 'active' ? 'text-green-400' : 'text-red-400'
+                                                                }`}>
+                                                                    {client.status === 'active' ? 'Actif' : 'Inactif'}
+                                                                </span>
+                                                            </div>
+                                                        </td>
+                                                        <td className="py-3 px-4">
+                                                            <span className="text-xs text-accent-steel">{client.lastLogin}</span>
+                                                        </td>
+                                                        <td className="py-3 px-4">
+                                                            <div className="flex items-center gap-1">
+                                                                <button 
+                                                                    className="p-1.5 text-accent-steel hover:text-white hover:bg-white/10 rounded-lg transition-all"
+                                                                    title="Voir détails"
+                                                                >
+                                                                    <Eye className="w-3 h-3" />
+                                                                </button>
+                                                                <button 
+                                                                    className="p-1.5 text-red-400 hover:text-red-300 hover:bg-red-500/10 rounded-lg transition-all"
+                                                                    title="Supprimer"
+                                                                >
+                                                                    <Trash2 className="w-3 h-3" />
+                                                                </button>
+                                                            </div>
+                                                        </td>
+                                                    </tr>
+                                                ))}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                    ))}
                 </div>
             </div>
 
