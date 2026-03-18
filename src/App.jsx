@@ -2,6 +2,7 @@ import React, { useState, createContext, useContext } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { Layout } from './components/Layout';
 import { Login } from './components/Login';
+import { AdminPanel } from './components/AdminPanel';
 import Dashboard from './pages/Dashboard';
 import Immobilier from './pages/Immobilier';
 import AnalyseZone from './pages/AnalyseZone';
@@ -48,6 +49,18 @@ function App() {
     return savedUser ? JSON.parse(savedUser) : null;
   });
 
+  const [userSettings, setUserSettings] = useState(() => {
+    // Restaurer les paramètres utilisateur depuis localStorage
+    const savedSettings = localStorage.getItem('sol_invictus_settings');
+    return savedSettings ? JSON.parse(savedSettings) : {
+      notifications: {
+        newProperties: true,
+        zoneReports: true,
+        securityAlerts: true
+      }
+    };
+  });
+
   const login = (userData) => {
     setUser(userData);
     // Sauvegarder la session dans localStorage
@@ -58,12 +71,27 @@ function App() {
     setUser(null);
     // Vider complètement le localStorage
     localStorage.removeItem('sol_invictus_user');
+    localStorage.removeItem('sol_invictus_settings');
+  };
+
+  const updateUserProfile = (profileData) => {
+    const updatedUser = { ...user, ...profileData };
+    setUser(updatedUser);
+    localStorage.setItem('sol_invictus_user', JSON.stringify(updatedUser));
+  };
+
+  const updateUserSettings = (newSettings) => {
+    setUserSettings(newSettings);
+    localStorage.setItem('sol_invictus_settings', JSON.stringify(newSettings));
   };
 
   const authValue = {
     user,
+    userSettings,
     login,
     logout,
+    updateUserProfile,
+    updateUserSettings,
     isAuthenticated: !!user,
     isAdmin: user?.role === 'admin',
     isClient: user?.role === 'client'
@@ -106,7 +134,7 @@ function App() {
               </ProtectedRoute>
             }
           >
-            <Route index element={<div className="p-8"><h1 className="text-2xl font-bold text-white">Panneau d'Administration</h1></div>} />
+            <Route index element={<AdminPanel />} />
           </Route>
           
           {/* Route Dashboard - Réservée aux clients */}

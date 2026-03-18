@@ -15,9 +15,19 @@ export const Login = ({ onLogin }) => {
         // Simulation d'une authentification avec 2 comptes hardcodés
         setTimeout(() => {
             if (credentials.username === 'admin' && credentials.password === '1234') {
-                onLogin({ username: 'admin', role: 'admin' });
+                onLogin({ 
+                    username: 'admin', 
+                    role: 'admin',
+                    fullName: 'Administrateur Système',
+                    email: 'admin@sol-invictus.io'
+                });
             } else if (credentials.username === 'client' && credentials.password === 'client123') {
-                onLogin({ username: 'client', role: 'client' });
+                onLogin({ 
+                    username: 'client', 
+                    role: 'client',
+                    fullName: 'Agent Commercial',
+                    email: 'agent@sol-invictus.io'
+                });
             } else {
                 setError('Identifiants incorrects');
             }

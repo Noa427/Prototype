@@ -16,7 +16,7 @@ export const Header = () => {
                 <div className="flex items-center gap-3 pl-2 border-l-2 border-accent/50">
                     <div className="text-right hidden md:block">
                         <div className="flex items-center gap-2 justify-end">
-                            <p className="text-xs font-bold text-white">{user?.username}</p>
+                            <p className="text-xs font-bold text-white">{user?.fullName || user?.username}</p>
                             {isAdmin ? (
                                 <Shield className="w-3 h-3 text-accent" />
                             ) : (
