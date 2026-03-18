@@ -52,7 +52,7 @@ export const Header = () => {
 
                 <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-white/5 border border-white/10">
                     <div className={`w-2 h-2 rounded-full animate-pulse ${isOnline ? 'bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.6)]' : 'bg-red-500'}`} />
-                    <span className="text-[10px] font-bold text-accent-steel uppercase tracking-widest">Status: {isOnline ? 'Online' : 'Offline'}</span>
+                    <span className="text-[10px] font-bold text-accent-steel uppercase tracking-widest">Statut: {isOnline ? 'En ligne' : 'Hors ligne'}</span>
                 </div>
 
                 <button

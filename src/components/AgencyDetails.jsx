@@ -254,7 +254,7 @@ export const AgencyDetails = ({ agency, onBack }) => {
                                     {log.status === 'error' ? 'Erreur' :
                                      log.status === 'warning' ? 'Attention' :
                                      log.status === 'success' ? 'Succès' :
-                                     'Info'}
+                                     'Information'}
                                 </div>
                             </div>
                         ))}
