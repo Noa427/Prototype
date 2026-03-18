@@ -12,6 +12,7 @@ export const Dashboard = () => {
     const [deals, setDeals] = useState([]);
     const [isScanning, setIsScanning] = useState(true);
     const [flashingDeal, setFlashingDeal] = useState(null);
+    const [sortBy, setSortBy] = useState('score-desc'); // score-desc, score-asc, price-asc, price-desc
 
     // Génération automatique de nouveaux biens toutes les 10 secondes
     useEffect(() => {
@@ -51,6 +52,33 @@ export const Dashboard = () => {
             currency: 'EUR',
             maximumFractionDigits: 0
         }).format(price);
+    };
+
+    // Fonction de tri des biens
+    const sortDeals = (dealsToSort) => {
+        const sorted = [...dealsToSort];
+        switch (sortBy) {
+            case 'score-desc':
+                return sorted.sort((a, b) => b.aevumScore - a.aevumScore);
+            case 'score-asc':
+                return sorted.sort((a, b) => a.aevumScore - b.aevumScore);
+            case 'price-asc':
+                return sorted.sort((a, b) => a.price - b.price);
+            case 'price-desc':
+                return sorted.sort((a, b) => b.price - a.price);
+            default:
+                return sorted;
+        }
+    };
+
+    const getSortLabel = (sortValue) => {
+        switch (sortValue) {
+            case 'score-desc': return 'Score AEVUM (meilleur → moins bon)';
+            case 'score-asc': return 'Score AEVUM (moins bon → meilleur)';
+            case 'price-asc': return 'Prix (moins cher → plus cher)';
+            case 'price-desc': return 'Prix (plus cher → moins cher)';
+            default: return 'Tri par défaut';
+        }
     };
 
     return (
@@ -99,14 +127,37 @@ export const Dashboard = () => {
                         <Activity className="w-5 h-5 text-accent" />
                         Flux AEVUM - Opportunités Détectées
                     </h2>
-                    <div className="flex items-center gap-2 text-sm text-accent-steel">
-                        <Clock className="w-4 h-4" />
-                        <span>Mise à jour toutes les 10s</span>
+                    <div className="flex items-center gap-4">
+                        <div className="flex items-center gap-2 text-sm text-accent-steel">
+                            <Clock className="w-4 h-4" />
+                            <span>Mise à jour toutes les 10s</span>
+                        </div>
+                        
+                        {/* Sélecteur de tri */}
+                        <div className="flex items-center gap-2">
+                            <span className="text-sm text-accent-steel">Trier par :</span>
+                            <select 
+                                value={sortBy}
+                                onChange={(e) => setSortBy(e.target.value)}
+                                className="bg-white/5 border border-white/10 rounded-lg px-3 py-1.5 text-sm text-white focus:outline-none focus:border-accent/50 cursor-pointer"
+                            >
+                                <option value="score-desc" className="bg-background text-white">Score AEVUM ↓</option>
+                                <option value="score-asc" className="bg-background text-white">Score AEVUM ↑</option>
+                                <option value="price-asc" className="bg-background text-white">Prix ↑</option>
+                                <option value="price-desc" className="bg-background text-white">Prix ↓</option>
+                            </select>
+                        </div>
                     </div>
                 </div>
 
+                {/* Indicateur de tri actuel */}
+                <div className="flex items-center gap-2 px-3 py-2 bg-accent/5 border border-accent/10 rounded-lg">
+                    <TrendingUp className="w-4 h-4 text-accent" />
+                    <span className="text-sm text-accent">Tri actuel : {getSortLabel(sortBy)}</span>
+                </div>
+
                 <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4">
-                    {deals.map((deal) => {
+                    {sortDeals(deals).map((deal) => {
                         const scoreColors = getScoreColor(deal.aevumScore);
                         const isFlashing = flashingDeal === deal.id;
                         
