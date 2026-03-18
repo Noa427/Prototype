@@ -35,7 +35,7 @@ export const Sidebar = () => {
                 <div className="w-8 h-8 bg-accent rounded flex items-center justify-center">
                     <Shield className="w-5 h-5 text-white" />
                 </div>
-                <span className="font-bold tracking-tight text-xl text-white">SOL INVICTUS</span>
+                <span className="font-bold tracking-tight text-xl text-white">AEVUM</span>
             </div>
 
             <nav className="flex-1 px-4 py-4 space-y-2">

@@ -7,59 +7,59 @@ export const AdminPanel = () => {
     const [notifications, setNotifications] = React.useState([
         { id: 1, type: 'error', message: 'Agence Bordeaux Centre: 3 tentatives de connexion échouées', timestamp: '14:45', agency: 'Bordeaux Centre' },
         { id: 2, type: 'warning', message: 'Agence Lyon: Serveur de sauvegarde en maintenance', timestamp: '12:30', agency: 'Lyon Presqu\'île' },
-        { id: 3, type: 'info', message: 'Nouvelle agence créée: Sol Invictus Nice', timestamp: '09:15', agency: 'Système' }
+        { id: 3, type: 'info', message: 'Nouvelle agence créée: AEVUM Nice', timestamp: '09:15', agency: 'Système' }
     ]);
 
     // Données simulées des agences et leurs clients
     const agencies = [
         {
             id: 1,
-            name: 'Sol Invictus Paris Centre',
+            name: 'AEVUM Paris Centre',
             location: 'Paris 1er',
             status: 'active',
             clientsCount: 12,
             lastActivity: '2024-01-15 14:30',
             clients: [
-                { id: 1, username: 'agent_paris_1', fullName: 'Marie Dubois', email: 'marie.dubois@sol-invictus.io', status: 'active', lastLogin: '2024-01-15 09:15', role: 'agent' },
-                { id: 2, username: 'agent_paris_2', fullName: 'Pierre Martin', email: 'pierre.martin@sol-invictus.io', status: 'active', lastLogin: '2024-01-15 08:45', role: 'agent' },
-                { id: 3, username: 'manager_paris', fullName: 'Sophie Laurent', email: 'sophie.laurent@sol-invictus.io', status: 'active', lastLogin: '2024-01-15 10:20', role: 'manager' }
+                { id: 1, username: 'agent_paris_1', fullName: 'Marie Dubois', email: 'marie.dubois@aevum.io', status: 'active', lastLogin: '2024-01-15 09:15', role: 'agent' },
+                { id: 2, username: 'agent_paris_2', fullName: 'Pierre Martin', email: 'pierre.martin@aevum.io', status: 'active', lastLogin: '2024-01-15 08:45', role: 'agent' },
+                { id: 3, username: 'manager_paris', fullName: 'Sophie Laurent', email: 'sophie.laurent@aevum.io', status: 'active', lastLogin: '2024-01-15 10:20', role: 'manager' }
             ]
         },
         {
             id: 2,
-            name: 'Sol Invictus Lyon Presqu\'île',
+            name: 'AEVUM Lyon Presqu\'île',
             location: 'Lyon 2ème',
             status: 'active',
             clientsCount: 8,
             lastActivity: '2024-01-14 16:45',
             clients: [
-                { id: 4, username: 'agent_lyon_1', fullName: 'Thomas Rousseau', email: 'thomas.rousseau@sol-invictus.io', status: 'active', lastLogin: '2024-01-14 16:45', role: 'agent' },
-                { id: 5, username: 'agent_lyon_2', fullName: 'Julie Moreau', email: 'julie.moreau@sol-invictus.io', status: 'inactive', lastLogin: '2024-01-10 14:20', role: 'agent' },
-                { id: 6, username: 'manager_lyon', fullName: 'Antoine Leroy', email: 'antoine.leroy@sol-invictus.io', status: 'active', lastLogin: '2024-01-14 11:20', role: 'manager' }
+                { id: 4, username: 'agent_lyon_1', fullName: 'Thomas Rousseau', email: 'thomas.rousseau@aevum.io', status: 'active', lastLogin: '2024-01-14 16:45', role: 'agent' },
+                { id: 5, username: 'agent_lyon_2', fullName: 'Julie Moreau', email: 'julie.moreau@aevum.io', status: 'inactive', lastLogin: '2024-01-10 14:20', role: 'agent' },
+                { id: 6, username: 'manager_lyon', fullName: 'Antoine Leroy', email: 'antoine.leroy@aevum.io', status: 'active', lastLogin: '2024-01-14 11:20', role: 'manager' }
             ]
         },
         {
             id: 3,
-            name: 'Sol Invictus Marseille Vieux-Port',
+            name: 'AEVUM Marseille Vieux-Port',
             location: 'Marseille 1er',
             status: 'active',
             clientsCount: 6,
             lastActivity: '2024-01-13 12:30',
             clients: [
-                { id: 7, username: 'agent_marseille_1', fullName: 'Camille Blanc', email: 'camille.blanc@sol-invictus.io', status: 'active', lastLogin: '2024-01-13 12:30', role: 'agent' },
-                { id: 8, username: 'manager_marseille', fullName: 'Nicolas Fabre', email: 'nicolas.fabre@sol-invictus.io', status: 'active', lastLogin: '2024-01-13 09:15', role: 'manager' }
+                { id: 7, username: 'agent_marseille_1', fullName: 'Camille Blanc', email: 'camille.blanc@aevum.io', status: 'active', lastLogin: '2024-01-13 12:30', role: 'agent' },
+                { id: 8, username: 'manager_marseille', fullName: 'Nicolas Fabre', email: 'nicolas.fabre@aevum.io', status: 'active', lastLogin: '2024-01-13 09:15', role: 'manager' }
             ]
         },
         {
             id: 4,
-            name: 'Sol Invictus Bordeaux Centre',
+            name: 'AEVUM Bordeaux Centre',
             location: 'Bordeaux',
             status: 'inactive',
             clientsCount: 4,
             lastActivity: '2024-01-08 15:20',
             clients: [
-                { id: 9, username: 'agent_bordeaux_1', fullName: 'Émilie Girard', email: 'emilie.girard@sol-invictus.io', status: 'inactive', lastLogin: '2024-01-08 15:20', role: 'agent' },
-                { id: 10, username: 'manager_bordeaux', fullName: 'Julien Roux', email: 'julien.roux@sol-invictus.io', status: 'inactive', lastLogin: '2024-01-08 10:45', role: 'manager' }
+                { id: 9, username: 'agent_bordeaux_1', fullName: 'Émilie Girard', email: 'emilie.girard@aevum.io', status: 'inactive', lastLogin: '2024-01-08 15:20', role: 'agent' },
+                { id: 10, username: 'manager_bordeaux', fullName: 'Julien Roux', email: 'julien.roux@aevum.io', status: 'inactive', lastLogin: '2024-01-08 10:45', role: 'manager' }
             ]
         }
     ];

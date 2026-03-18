@@ -19,14 +19,14 @@ export const Login = ({ onLogin }) => {
                     username: 'admin', 
                     role: 'admin',
                     fullName: 'Administrateur Système',
-                    email: 'admin@sol-invictus.io'
+                    email: 'admin@aevum.io'
                 });
             } else if (credentials.username === 'client' && credentials.password === 'client123') {
                 onLogin({ 
                     username: 'client', 
                     role: 'client',
                     fullName: 'Agent Commercial',
-                    email: 'agent@sol-invictus.io'
+                    email: 'agent@aevum.io'
                 });
             } else {
                 setError('Identifiants incorrects');
@@ -57,7 +57,7 @@ export const Login = ({ onLogin }) => {
                         <div className="w-16 h-16 bg-accent rounded-2xl flex items-center justify-center mx-auto mb-4">
                             <Shield className="w-8 h-8 text-white" />
                         </div>
-                        <h1 className="text-2xl font-bold tracking-tight text-white mb-2">SOL INVICTUS</h1>
+                        <h1 className="text-2xl font-bold tracking-tight text-white mb-2">AEVUM</h1>
                         <p className="text-accent-steel text-sm">Accès Agent Immobilier</p>
                     </div>
 

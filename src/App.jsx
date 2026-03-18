@@ -45,13 +45,13 @@ const ProtectedRoute = ({ children, requiredRole = null }) => {
 function App() {
   const [user, setUser] = useState(() => {
     // Restaurer la session depuis localStorage au démarrage
-    const savedUser = localStorage.getItem('sol_invictus_user');
+    const savedUser = localStorage.getItem('aevum_user');
     return savedUser ? JSON.parse(savedUser) : null;
   });
 
   const [userSettings, setUserSettings] = useState(() => {
     // Restaurer les paramètres utilisateur depuis localStorage
-    const savedSettings = localStorage.getItem('sol_invictus_settings');
+    const savedSettings = localStorage.getItem('aevum_settings');
     return savedSettings ? JSON.parse(savedSettings) : {
       notifications: {
         newProperties: true,
@@ -64,25 +64,25 @@ function App() {
   const login = (userData) => {
     setUser(userData);
     // Sauvegarder la session dans localStorage
-    localStorage.setItem('sol_invictus_user', JSON.stringify(userData));
+    localStorage.setItem('aevum_user', JSON.stringify(userData));
   };
 
   const logout = () => {
     setUser(null);
     // Vider complètement le localStorage
-    localStorage.removeItem('sol_invictus_user');
-    localStorage.removeItem('sol_invictus_settings');
+    localStorage.removeItem('aevum_user');
+    localStorage.removeItem('aevum_settings');
   };
 
   const updateUserProfile = (profileData) => {
     const updatedUser = { ...user, ...profileData };
     setUser(updatedUser);
-    localStorage.setItem('sol_invictus_user', JSON.stringify(updatedUser));
+    localStorage.setItem('aevum_user', JSON.stringify(updatedUser));
   };
 
   const updateUserSettings = (newSettings) => {
     setUserSettings(newSettings);
-    localStorage.setItem('sol_invictus_settings', JSON.stringify(newSettings));
+    localStorage.setItem('aevum_settings', JSON.stringify(newSettings));
   };
 
   const authValue = {
