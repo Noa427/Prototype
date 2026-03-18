@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Building2, AlertCircle, TrendingUp, ArrowUpRight, Clock, MapPin, Zap, Activity } from 'lucide-react';
-import { generateRandomDeal, getScoreColor, getScoreLabel } from '../services/dealService';
+import { Building2, AlertCircle, TrendingUp, ArrowUpRight, Clock, MapPin, Zap, Activity, Wifi, WifiOff } from 'lucide-react';
+import { generateRandomDeal, getScoreColor, getScoreLabel, getNextDeal } from '../services/dealService';
 
 const metrics = [
     { label: "Nouveaux Biens", value: "14", sub: "Dernières 24h", icon: Building2, color: "text-accent" },
@@ -13,18 +13,36 @@ export const Dashboard = () => {
     const [isScanning, setIsScanning] = useState(true);
     const [flashingDeal, setFlashingDeal] = useState(null);
     const [sortBy, setSortBy] = useState('score-desc'); // score-desc, score-asc, price-asc, price-desc
+    const [apiStatus, setApiStatus] = useState('checking'); // 'online', 'offline', 'checking'
 
     // Génération automatique de nouveaux biens toutes les 10 secondes
     useEffect(() => {
         // Générer quelques biens initiaux
-        const initialDeals = Array.from({ length: 3 }, () => ({
-            ...generateRandomDeal(),
-            isNew: false
-        }));
-        setDeals(initialDeals);
+        const initializeDeals = async () => {
+            const result = await getNextDeal();
+            setApiStatus(result.source === 'api' ? 'online' : 'offline');
+            
+            const initialDeals = result.deals.map(deal => ({
+                ...deal,
+                isNew: false
+            }));
+            
+            // Ajouter quelques biens supplémentaires pour la démo
+            const additionalDeals = Array.from({ length: 2 }, () => ({
+                ...generateRandomDeal(),
+                isNew: false
+            }));
+            
+            setDeals([...initialDeals, ...additionalDeals]);
+        };
 
-        const interval = setInterval(() => {
-            const newDeal = generateRandomDeal();
+        initializeDeals();
+
+        const interval = setInterval(async () => {
+            const result = await getNextDeal();
+            setApiStatus(result.source === 'api' ? 'online' : 'offline');
+            
+            const newDeal = result.deals[0]; // Prendre le premier bien du résultat
             
             setDeals(prevDeals => {
                 const updatedDeals = [newDeal, ...prevDeals.slice(0, 9)]; // Limite à 10 éléments
@@ -94,12 +112,23 @@ export const Dashboard = () => {
                     {/* Indicateur de flux en direct */}
                     <div className="flex items-center gap-3 px-4 py-2 bg-accent/10 border border-accent/20 rounded-lg">
                         <div className="flex items-center gap-2">
-                            <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-                            <Zap className="w-4 h-4 text-accent" />
+                            <div className={`w-2 h-2 rounded-full animate-pulse ${
+                                apiStatus === 'online' ? 'bg-green-500' : 'bg-yellow-500'
+                            }`}></div>
+                            {apiStatus === 'online' ? (
+                                <Wifi className="w-4 h-4 text-accent" />
+                            ) : (
+                                <WifiOff className="w-4 h-4 text-yellow-500" />
+                            )}
                         </div>
                         <div className="text-right">
                             <p className="text-sm font-bold text-accent">AEVUM ENGINE</p>
-                            <p className="text-xs text-accent-steel">Flux en direct : SCAN EN COURS...</p>
+                            <p className="text-xs text-accent-steel">
+                                {apiStatus === 'online' 
+                                    ? 'Flux en direct : API CONNECTÉE' 
+                                    : 'MODE SIMULATION - API HORS LIGNE'
+                                }
+                            </p>
                         </div>
                     </div>
                 </div>
@@ -120,12 +149,30 @@ export const Dashboard = () => {
                 ))}
             </div>
 
+            {/* Notification de mode simulation */}
+            {apiStatus === 'offline' && (
+                <div className="flex items-center gap-3 p-4 bg-yellow-500/10 border border-yellow-500/20 rounded-lg">
+                    <WifiOff className="w-5 h-5 text-yellow-400" />
+                    <div>
+                        <p className="text-sm font-medium text-yellow-400">Mode Simulation Activé</p>
+                        <p className="text-xs text-accent-steel">
+                            L'API AEVUM n'est pas disponible. Utilisation du générateur de données simulées.
+                        </p>
+                    </div>
+                </div>
+            )}
+
             {/* Section des biens en temps réel */}
             <div className="glass p-6 rounded-xl space-y-6">
                 <div className="flex items-center justify-between">
                     <h2 className="font-bold text-lg text-white flex items-center gap-2">
                         <Activity className="w-5 h-5 text-accent" />
                         Flux AEVUM - Opportunités Détectées
+                        {apiStatus === 'online' && (
+                            <span className="px-2 py-1 bg-green-500/20 text-green-400 text-xs font-medium rounded-full border border-green-500/30">
+                                LIVE
+                            </span>
+                        )}
                     </h2>
                     <div className="flex items-center gap-4">
                         <div className="flex items-center gap-2 text-sm text-accent-steel">

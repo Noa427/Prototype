@@ -1,3 +1,7 @@
+// Configuration de l'API
+const API_BASE_URL = 'http://localhost:8000';
+const API_TIMEOUT = 5000; // 5 secondes
+
 // Service de génération de biens immobiliers pour AEVUM ENGINE
 export const generateRandomDeal = () => {
     const cities = [
@@ -99,4 +103,103 @@ export const getScoreLabel = (score) => {
     if (score >= 80) return 'PÉPITE';
     if (score >= 60) return 'INTÉRESSANT';
     return 'À ÉVITER';
+};
+
+// Fonction pour récupérer les biens depuis l'API réelle
+export const fetchRealDeals = async () => {
+    try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), API_TIMEOUT);
+
+        const response = await fetch(`${API_BASE_URL}/deals`, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            signal: controller.signal
+        });
+
+        clearTimeout(timeoutId);
+
+        if (!response.ok) {
+            throw new Error(`Erreur API: ${response.status} ${response.statusText}`);
+        }
+
+        const data = await response.json();
+        
+        // Transformer les données de l'API au format attendu par l'application
+        const transformedDeals = data.map(deal => ({
+            id: deal.id || Date.now() + Math.random().toString(36).substr(2, 9),
+            city: deal.city || 'Paris',
+            district: deal.district || '1er',
+            propertyType: deal.propertyType || 'Appartement',
+            surface: deal.surface || 50,
+            price: deal.price || 300000,
+            pricePerM2: deal.pricePerM2 || Math.round(deal.price / deal.surface),
+            monthlyRent: deal.monthlyRent || 1500,
+            dpe: deal.dpe || 'D',
+            grossYield: deal.grossYield || Math.round(((deal.monthlyRent * 12) / deal.price) * 100 * 100) / 100,
+            netCashFlow: deal.netCashFlow || Math.round(deal.monthlyRent * 0.85),
+            aevumScore: deal.aevumScore || calculateAevumScore(deal),
+            timestamp: new Date(deal.timestamp) || new Date(),
+            isNew: true
+        }));
+
+        return {
+            success: true,
+            deals: transformedDeals,
+            source: 'api'
+        };
+
+    } catch (error) {
+        console.warn('API AEVUM non disponible:', error.message);
+        
+        // Fallback vers le générateur aléatoire
+        const fallbackDeal = generateRandomDeal();
+        
+        return {
+            success: false,
+            deals: [fallbackDeal],
+            source: 'simulation',
+            error: error.message
+        };
+    }
+};
+
+// Fonction pour calculer le score AEVUM à partir des données API
+const calculateAevumScore = (deal) => {
+    let score = 0;
+    
+    // Rendement (40% du score)
+    const grossYield = ((deal.monthlyRent * 12) / deal.price) * 100;
+    if (grossYield >= 6) score += 40;
+    else if (grossYield >= 4.5) score += 30;
+    else if (grossYield >= 3.5) score += 20;
+    else score += 10;
+    
+    // DPE (20% du score)
+    const dpeScores = { 'A': 20, 'B': 18, 'C': 15, 'D': 12, 'E': 8, 'F': 5, 'G': 2 };
+    score += dpeScores[deal.dpe] || 10;
+    
+    // Prix par m² (20% du score) - estimation basique
+    const pricePerM2 = deal.price / deal.surface;
+    if (pricePerM2 < 5000) score += 20;
+    else if (pricePerM2 < 7000) score += 15;
+    else if (pricePerM2 < 10000) score += 10;
+    else score += 5;
+    
+    // Cash-flow (20% du score)
+    const netCashFlow = deal.netCashFlow || (deal.monthlyRent * 0.85);
+    if (netCashFlow > 500) score += 20;
+    else if (netCashFlow > 200) score += 15;
+    else if (netCashFlow > 0) score += 10;
+    else score += 0;
+    
+    return Math.round(score);
+};
+
+// Fonction hybride qui essaie l'API puis fallback
+export const getNextDeal = async () => {
+    const result = await fetchRealDeals();
+    return result;
 };
