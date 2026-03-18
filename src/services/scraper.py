@@ -482,3 +482,44 @@ def main():
 
 if __name__ == "__main__":
     main()
+import asyncio
+import json
+import os
+from playwright.async_api import async_playwright
+
+async def scrape_pap():
+    async with async_playwright() as p:
+        browser = await p.chromium.launch(headless=True)
+        page = await browser.new_page()
+        print("🔍 Connexion à PAP.fr...")
+        await page.goto("https://www.pap.fr/annonce/vente-appartements-maisons-paris-75-g439")
+        
+        deals = []
+        listings = await page.query_selector_all(".search-list-item")
+        
+        for i, item in enumerate(listings[:5]):
+            title = await (await item.query_selector(".h1")).inner_text()
+            price = await (await item.query_selector(".price")).inner_text()
+            # Nettoyage basique du prix
+            clean_price = int(''.join(filter(str.isdigit, price)))
+            
+            deals.append({
+                "id": f"real-{i}",
+                "villes": "Paris",
+                "type": title,
+                "prix": clean_price,
+                "surface": 45, # Valeur par défaut pour le test
+                "rendement": 5.2,
+                "score": 85,
+                "source": "LIVE"
+            })
+        
+        os.makedirs('src/data', exist_ok=True)
+        with open('src/data/real_deals.json', 'w') as f:
+            json.dump(deals, f, indent=4)
+        
+        print(f"✅ EXTRACTION TERMINÉE : {len(deals)} annonces sauvegardées.")
+        await browser.close()
+
+if __name__ == "__main__":
+    asyncio.run(scrape_pap())
