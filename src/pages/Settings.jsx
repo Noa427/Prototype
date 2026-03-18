@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { User, Lock, Bell, Shield, ChevronRight, LogOut, Save } from 'lucide-react';
 import { useAuth } from '../App';
+import { ChangePasswordModal } from '../components/ChangePasswordModal';
 
 export const Settings = () => {
     const { user, userSettings, updateUserProfile, updateUserSettings, logout } = useAuth();
@@ -10,6 +11,8 @@ export const Settings = () => {
     });
     const [notifications, setNotifications] = useState(userSettings.notifications);
     const [isSaving, setIsSaving] = useState(false);
+    const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
+    const [passwordChangeSuccess, setPasswordChangeSuccess] = useState(false);
 
     const handleProfileSave = async () => {
         setIsSaving(true);
@@ -27,6 +30,14 @@ export const Settings = () => {
         };
         setNotifications(newNotifications);
         updateUserSettings({ notifications: newNotifications });
+    };
+
+    const handlePasswordChange = (passwords) => {
+        // Ici vous pourriez valider le mot de passe actuel avec le serveur
+        // Pour la démo, on simule juste le succès
+        console.log('Changement de mot de passe:', passwords);
+        setPasswordChangeSuccess(true);
+        setTimeout(() => setPasswordChangeSuccess(false), 3000);
     };
 
     const handleLogout = () => {
@@ -107,7 +118,18 @@ export const Settings = () => {
                         <Lock className="w-5 h-5 text-accent" />
                         <h2 className="font-bold text-white">Sécurité</h2>
                     </div>
-                    <button className="w-full flex items-center justify-between p-4 bg-white/5 border border-white/10 rounded-lg hover:bg-white/10 transition-all group text-left">
+                    
+                    {/* Message de succès */}
+                    {passwordChangeSuccess && (
+                        <div className="mb-4 p-3 bg-green-500/10 border border-green-500/20 rounded-lg">
+                            <p className="text-green-400 text-sm">Mot de passe modifié avec succès !</p>
+                        </div>
+                    )}
+                    
+                    <button 
+                        onClick={() => setIsPasswordModalOpen(true)}
+                        className="w-full flex items-center justify-between p-4 bg-white/5 border border-white/10 rounded-lg hover:bg-white/10 transition-all group text-left"
+                    >
                         <div>
                             <p className="text-sm font-bold text-white">Changer le mot de passe</p>
                             <p className="text-xs text-accent-steel mt-1">Dernière modification il y a 3 mois</p>
@@ -157,6 +179,13 @@ export const Settings = () => {
                     </button>
                 </div>
             </div>
+
+            {/* Modal de changement de mot de passe */}
+            <ChangePasswordModal
+                isOpen={isPasswordModalOpen}
+                onClose={() => setIsPasswordModalOpen(false)}
+                onSave={handlePasswordChange}
+            />
         </div>
     );
 };
