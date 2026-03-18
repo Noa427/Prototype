@@ -12,10 +12,12 @@ export const Login = ({ onLogin }) => {
         setIsLoading(true);
         setError('');
 
-        // Simulation d'une authentification
+        // Simulation d'une authentification avec 2 comptes hardcodés
         setTimeout(() => {
             if (credentials.username === 'admin' && credentials.password === '1234') {
                 onLogin({ username: 'admin', role: 'admin' });
+            } else if (credentials.username === 'client' && credentials.password === 'client123') {
+                onLogin({ username: 'client', role: 'client' });
             } else {
                 setError('Identifiants incorrects');
             }
@@ -117,10 +119,14 @@ export const Login = ({ onLogin }) => {
                     </form>
 
                     {/* Demo Info */}
-                    <div className="mt-8 p-4 bg-accent/5 border border-accent/10 rounded-lg">
+                    <div className="mt-8 p-4 bg-accent/5 border border-accent/10 rounded-lg space-y-2">
                         <p className="text-xs text-accent-steel text-center">
-                            <strong className="text-accent">Demo:</strong> admin / 1234
+                            <strong className="text-accent">Comptes de démonstration :</strong>
                         </p>
+                        <div className="text-xs text-accent-steel text-center space-y-1">
+                            <div><strong>Admin:</strong> admin / 1234</div>
+                            <div><strong>Client:</strong> client / client123</div>
+                        </div>
                     </div>
                 </div>
             </div>

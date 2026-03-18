@@ -24,7 +24,7 @@ export const Header = () => {
                             )}
                         </div>
                         <p className="text-[10px] text-accent-steel uppercase tracking-widest">
-                            Rôle: {user?.role} • Secteur Paris
+                            Rôle: {user?.role === 'admin' ? 'Administrateur' : 'Client'} • Secteur Paris
                         </p>
                     </div>
                     <div className="w-8 h-8 rounded-full bg-accent/20 border border-accent/40 flex items-center justify-center">
