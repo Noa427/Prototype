@@ -1,10 +1,9 @@
 import React from 'react';
 import { Users, Shield, Plus, Trash2, UserCheck, AlertTriangle, Activity, Server, Bell, Eye, ChevronRight, X, AlertCircle, Info } from 'lucide-react';
+import { AgencyDetails } from './AgencyDetails';
 
 export const AdminPanel = () => {
-    const [selectedAgency, setSelectedAgency] = React.useState(null);
-    const [expandedAgencies, setExpandedAgencies] = React.useState(new Set());
-    const [selectedAgencyLogs, setSelectedAgencyLogs] = React.useState(1); // Par défaut Paris Centre
+    const [selectedAgencyDetails, setSelectedAgencyDetails] = React.useState(null);
     const [notifications, setNotifications] = React.useState([
         { id: 1, type: 'error', message: 'Agence Bordeaux Centre: 3 tentatives de connexion échouées', timestamp: '14:45', agency: 'Bordeaux Centre' },
         { id: 2, type: 'warning', message: 'Agence Lyon: Serveur de sauvegarde en maintenance', timestamp: '12:30', agency: 'Lyon Presqu\'île' },
@@ -65,14 +64,33 @@ export const AdminPanel = () => {
         }
     ];
 
-    const toggleAgencyExpansion = (agencyId) => {
-        const newExpanded = new Set(expandedAgencies);
-        if (newExpanded.has(agencyId)) {
-            newExpanded.delete(agencyId);
-        } else {
-            newExpanded.add(agencyId);
+    // Fonction pour calculer la santé d'une agence
+    const getAgencyHealth = (agency) => {
+        const errorLogs = agencyLogs[agency.id]?.filter(log => log.type === 'error').length || 0;
+        const totalLogs = agencyLogs[agency.id]?.length || 0;
+        
+        if (agency.status === 'inactive') return 'critical';
+        if (errorLogs >= 3) return 'critical';
+        if (errorLogs >= 1) return 'warning';
+        return 'healthy';
+    };
+
+    const getHealthColor = (health) => {
+        switch (health) {
+            case 'healthy': return 'bg-green-500';
+            case 'warning': return 'bg-yellow-500';
+            case 'critical': return 'bg-red-500';
+            default: return 'bg-gray-500';
         }
-        setExpandedAgencies(newExpanded);
+    };
+
+    const getHealthText = (health) => {
+        switch (health) {
+            case 'healthy': return 'Excellent';
+            case 'warning': return 'Attention';
+            case 'critical': return 'Critique';
+            default: return 'Inconnu';
+        }
     };
 
     // Statistiques système simulées
@@ -141,6 +159,16 @@ export const AdminPanel = () => {
     const dismissNotification = (notificationId) => {
         setNotifications(notifications.filter(notif => notif.id !== notificationId));
     };
+
+    // Si une agence est sélectionnée pour les détails, afficher le composant AgencyDetails
+    if (selectedAgencyDetails) {
+        return (
+            <AgencyDetails 
+                agency={selectedAgencyDetails} 
+                onBack={() => setSelectedAgencyDetails(null)} 
+            />
+        );
+    }
 
     return (
         <div className="p-8 space-y-8">
@@ -212,241 +240,74 @@ export const AdminPanel = () => {
                 ))}
             </div>
 
-            {/* Section Gestion des Agences */}
+            {/* Section Gestion des Agences avec indicateurs de santé */}
             <div className="glass rounded-xl border border-white/10 p-6">
                 <div className="flex items-center justify-between mb-6">
                     <div className="flex items-center gap-3">
                         <Users className="w-5 h-5 text-accent" />
                         <h2 className="text-xl font-bold text-white">Gestion des Agences</h2>
                     </div>
-                    <div className="flex gap-2">
-                        <button className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-all duration-200">
-                            <Plus className="w-4 h-4" />
-                            Nouvelle Agence
-                        </button>
-                        <button className="flex items-center gap-2 px-4 py-2 bg-accent hover:bg-accent/90 text-white rounded-lg transition-all duration-200">
-                            <Plus className="w-4 h-4" />
-                            Nouvel Utilisateur
-                        </button>
-                    </div>
+                    <button className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-all duration-200">
+                        <Plus className="w-4 h-4" />
+                        Nouvelle Agence
+                    </button>
                 </div>
 
-                {/* Liste des agences */}
-                <div className="space-y-4">
-                    {agencies.map((agency) => (
-                        <div key={agency.id} className="border border-white/10 rounded-lg overflow-hidden">
-                            {/* En-tête de l'agence */}
-                            <div 
-                                className="p-4 bg-white/5 hover:bg-white/10 cursor-pointer transition-all duration-200"
-                                onClick={() => toggleAgencyExpansion(agency.id)}
-                            >
-                                <div className="flex items-center justify-between">
-                                    <div className="flex items-center gap-4">
-                                        <div className={`w-3 h-3 rounded-full ${
-                                            agency.status === 'active' ? 'bg-green-500' : 'bg-red-500'
-                                        }`} />
+                {/* Grille des agences avec indicateurs de santé */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {agencies.map((agency) => {
+                        const health = getAgencyHealth(agency);
+                        return (
+                            <div key={agency.id} className="border border-white/10 rounded-lg p-6 bg-white/5 hover:bg-white/10 transition-all">
+                                <div className="flex items-start justify-between mb-4">
+                                    <div className="flex items-center gap-3">
+                                        <div className={`w-4 h-4 rounded-full ${getHealthColor(health)} animate-pulse`} />
                                         <div>
                                             <h3 className="text-white font-semibold">{agency.name}</h3>
                                             <p className="text-xs text-accent-steel">{agency.location}</p>
                                         </div>
                                     </div>
-                                    <div className="flex items-center gap-6">
-                                        <div className="text-right">
-                                            <p className="text-sm text-white font-medium">{agency.clientsCount} utilisateurs</p>
-                                            <p className="text-xs text-accent-steel">Dernière activité: {agency.lastActivity}</p>
-                                        </div>
-                                        <div className={`transform transition-transform duration-200 ${
-                                            expandedAgencies.has(agency.id) ? 'rotate-90' : ''
+                                    <div className={`px-2 py-1 rounded-full text-xs font-medium ${
+                                        health === 'healthy' ? 'bg-green-500/20 text-green-400' :
+                                        health === 'warning' ? 'bg-yellow-500/20 text-yellow-400' :
+                                        'bg-red-500/20 text-red-400'
+                                    }`}>
+                                        {getHealthText(health)}
+                                    </div>
+                                </div>
+
+                                <div className="space-y-3 mb-4">
+                                    <div className="flex justify-between text-sm">
+                                        <span className="text-accent-steel">Utilisateurs</span>
+                                        <span className="text-white font-medium">{agency.clientsCount}</span>
+                                    </div>
+                                    <div className="flex justify-between text-sm">
+                                        <span className="text-accent-steel">Statut</span>
+                                        <span className={`font-medium ${
+                                            agency.status === 'active' ? 'text-green-400' : 'text-red-400'
                                         }`}>
-                                            <ChevronRight className="w-5 h-5 text-accent-steel" />
-                                        </div>
+                                            {agency.status === 'active' ? 'Actif' : 'Inactif'}
+                                        </span>
+                                    </div>
+                                    <div className="flex justify-between text-sm">
+                                        <span className="text-accent-steel">Dernière activité</span>
+                                        <span className="text-white font-medium">{agency.lastActivity}</span>
+                                    </div>
+                                    <div className="flex justify-between text-sm">
+                                        <span className="text-accent-steel">Activités aujourd'hui</span>
+                                        <span className="text-white font-medium">{agencyLogs[agency.id]?.length || 0}</span>
                                     </div>
                                 </div>
-                            </div>
 
-                            {/* Liste des clients de l'agence */}
-                            {expandedAgencies.has(agency.id) && (
-                                <div className="border-t border-white/10">
-                                    <div className="overflow-x-auto">
-                                        <table className="w-full">
-                                            <thead>
-                                                <tr className="border-b border-white/5 bg-white/5">
-                                                    <th className="text-left py-2 px-4 text-xs font-medium text-accent-steel uppercase tracking-wider">
-                                                        Utilisateur
-                                                    </th>
-                                                    <th className="text-left py-2 px-4 text-xs font-medium text-accent-steel uppercase tracking-wider">
-                                                        Rôle
-                                                    </th>
-                                                    <th className="text-left py-2 px-4 text-xs font-medium text-accent-steel uppercase tracking-wider">
-                                                        Statut
-                                                    </th>
-                                                    <th className="text-left py-2 px-4 text-xs font-medium text-accent-steel uppercase tracking-wider">
-                                                        Dernière Connexion
-                                                    </th>
-                                                    <th className="text-left py-2 px-4 text-xs font-medium text-accent-steel uppercase tracking-wider">
-                                                        Actions
-                                                    </th>
-                                                </tr>
-                                            </thead>
-                                            <tbody className="divide-y divide-white/5">
-                                                {agency.clients.map((client) => (
-                                                    <tr key={client.id} className="hover:bg-white/5 transition-colors">
-                                                        <td className="py-3 px-4">
-                                                            <div className="flex items-center gap-3">
-                                                                <div className="w-6 h-6 rounded-full bg-accent/20 border border-accent/40 flex items-center justify-center">
-                                                                    {client.role === 'manager' ? (
-                                                                        <Shield className="w-3 h-3 text-accent" />
-                                                                    ) : (
-                                                                        <UserCheck className="w-3 h-3 text-blue-400" />
-                                                                    )}
-                                                                </div>
-                                                                <div>
-                                                                    <p className="text-white text-sm font-medium">{client.fullName}</p>
-                                                                    <p className="text-xs text-accent-steel">{client.email}</p>
-                                                                </div>
-                                                            </div>
-                                                        </td>
-                                                        <td className="py-3 px-4">
-                                                            <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                                                                client.role === 'manager' 
-                                                                    ? 'bg-accent/20 text-accent border border-accent/30' 
-                                                                    : 'bg-blue-500/20 text-blue-400 border border-blue-500/30'
-                                                            }`}>
-                                                                {client.role === 'manager' ? 'Manager' : 'Agent'}
-                                                            </span>
-                                                        </td>
-                                                        <td className="py-3 px-4">
-                                                            <div className="flex items-center gap-2">
-                                                                <div className={`w-2 h-2 rounded-full ${
-                                                                    client.status === 'active' ? 'bg-green-500' : 'bg-red-500'
-                                                                }`} />
-                                                                <span className={`text-xs font-medium ${
-                                                                    client.status === 'active' ? 'text-green-400' : 'text-red-400'
-                                                                }`}>
-                                                                    {client.status === 'active' ? 'Actif' : 'Inactif'}
-                                                                </span>
-                                                            </div>
-                                                        </td>
-                                                        <td className="py-3 px-4">
-                                                            <span className="text-xs text-accent-steel">{client.lastLogin}</span>
-                                                        </td>
-                                                        <td className="py-3 px-4">
-                                                            <div className="flex items-center gap-1">
-                                                                <button 
-                                                                    className="p-1.5 text-accent-steel hover:text-white hover:bg-white/10 rounded-lg transition-all"
-                                                                    title="Voir détails"
-                                                                >
-                                                                    <Eye className="w-3 h-3" />
-                                                                </button>
-                                                                <button 
-                                                                    className="p-1.5 text-red-400 hover:text-red-300 hover:bg-red-500/10 rounded-lg transition-all"
-                                                                    title="Supprimer"
-                                                                >
-                                                                    <Trash2 className="w-3 h-3" />
-                                                                </button>
-                                                            </div>
-                                                        </td>
-                                                    </tr>
-                                                ))}
-                                            </tbody>
-                                        </table>
-                                    </div>
-                                </div>
-                            )}
-                        </div>
-                    ))}
-                </div>
-            </div>
-
-            {/* Journal d'Activité par Agence */}
-            <div className="glass rounded-xl border border-white/10 p-6">
-                <div className="flex items-center justify-between mb-6">
-                    <div className="flex items-center gap-3">
-                        <Activity className="w-5 h-5 text-accent" />
-                        <h2 className="text-xl font-bold text-white">Journal d'Activité par Agence</h2>
-                    </div>
-                    <select 
-                        value={selectedAgencyLogs}
-                        onChange={(e) => setSelectedAgencyLogs(parseInt(e.target.value))}
-                        className="bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-accent/50"
-                    >
-                        {agencies.map((agency) => (
-                            <option key={agency.id} value={agency.id} className="bg-background text-white">
-                                {agency.name}
-                            </option>
-                        ))}
-                    </select>
-                </div>
-
-                {/* Informations de l'agence sélectionnée */}
-                <div className="mb-6 p-4 bg-white/5 rounded-lg">
-                    <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-3">
-                            <div className={`w-3 h-3 rounded-full ${
-                                agencies.find(a => a.id === selectedAgencyLogs)?.status === 'active' ? 'bg-green-500' : 'bg-red-500'
-                            }`} />
-                            <div>
-                                <h3 className="text-white font-semibold">
-                                    {agencies.find(a => a.id === selectedAgencyLogs)?.name}
-                                </h3>
-                                <p className="text-xs text-accent-steel">
-                                    {agencies.find(a => a.id === selectedAgencyLogs)?.location}
-                                </p>
+                                <button
+                                    onClick={() => setSelectedAgencyDetails(agency)}
+                                    className="w-full py-2 bg-accent hover:bg-accent/90 text-white rounded-lg transition-all duration-200 text-sm font-medium"
+                                >
+                                    Plus de détails
+                                </button>
                             </div>
-                        </div>
-                        <div className="text-right">
-                            <p className="text-sm text-white">
-                                {agencies.find(a => a.id === selectedAgencyLogs)?.clientsCount} utilisateurs actifs
-                            </p>
-                            <p className="text-xs text-accent-steel">
-                                {agencyLogs[selectedAgencyLogs]?.length || 0} activités aujourd'hui
-                            </p>
-                        </div>
-                    </div>
-                </div>
-
-                {/* Liste des activités */}
-                <div className="space-y-3 max-h-96 overflow-y-auto">
-                    {agencyLogs[selectedAgencyLogs]?.map((log, index) => (
-                        <div key={index} className="flex items-center gap-4 p-3 bg-white/5 rounded-lg hover:bg-white/10 transition-colors">
-                            <div className="text-xs text-accent-steel font-mono min-w-[40px]">{log.time}</div>
-                            <div className={`w-2 h-2 rounded-full ${
-                                log.type === 'login' ? 'bg-green-500' :
-                                log.type === 'error' ? 'bg-red-500' :
-                                log.type === 'success' ? 'bg-emerald-500' :
-                                log.type === 'create' ? 'bg-blue-500' :
-                                log.type === 'update' ? 'bg-yellow-500' :
-                                log.type === 'upload' ? 'bg-purple-500' :
-                                log.type === 'approve' ? 'bg-green-600' :
-                                log.type === 'training' ? 'bg-indigo-500' :
-                                log.type === 'analysis' ? 'bg-cyan-500' :
-                                log.type === 'system' ? 'bg-gray-500' :
-                                'bg-accent'
-                            }`} />
-                            <div className="flex-1">
-                                <span className="text-sm text-white">{log.action}</span>
-                                <span className="text-xs text-accent-steel ml-2">par {log.user}</span>
-                            </div>
-                            <div className={`px-2 py-1 rounded-full text-xs font-medium ${
-                                log.type === 'error' ? 'bg-red-500/20 text-red-400' :
-                                log.type === 'success' ? 'bg-emerald-500/20 text-emerald-400' :
-                                log.type === 'login' ? 'bg-green-500/20 text-green-400' :
-                                'bg-accent/20 text-accent'
-                            }`}>
-                                {log.type === 'error' ? 'Erreur' :
-                                 log.type === 'success' ? 'Succès' :
-                                 log.type === 'login' ? 'Connexion' :
-                                 log.type === 'create' ? 'Création' :
-                                 log.type === 'update' ? 'Mise à jour' :
-                                 log.type === 'upload' ? 'Upload' :
-                                 log.type === 'approve' ? 'Approbation' :
-                                 log.type === 'training' ? 'Formation' :
-                                 log.type === 'analysis' ? 'Analyse' :
-                                 log.type === 'system' ? 'Système' :
-                                 'Activité'}
-                            </div>
-                        </div>
-                    ))}
+                        );
+                    })}
                 </div>
             </div>
 
