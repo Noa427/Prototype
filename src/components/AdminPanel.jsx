@@ -1,9 +1,15 @@
 import React from 'react';
-import { Users, Shield, Plus, Trash2, UserCheck, AlertTriangle, Activity, Server, Bell, Eye, ChevronRight } from 'lucide-react';
+import { Users, Shield, Plus, Trash2, UserCheck, AlertTriangle, Activity, Server, Bell, Eye, ChevronRight, X, AlertCircle, Info } from 'lucide-react';
 
 export const AdminPanel = () => {
     const [selectedAgency, setSelectedAgency] = React.useState(null);
     const [expandedAgencies, setExpandedAgencies] = React.useState(new Set());
+    const [selectedAgencyLogs, setSelectedAgencyLogs] = React.useState(1); // Par défaut Paris Centre
+    const [notifications, setNotifications] = React.useState([
+        { id: 1, type: 'error', message: 'Agence Bordeaux Centre: 3 tentatives de connexion échouées', timestamp: '14:45', agency: 'Bordeaux Centre' },
+        { id: 2, type: 'warning', message: 'Agence Lyon: Serveur de sauvegarde en maintenance', timestamp: '12:30', agency: 'Lyon Presqu\'île' },
+        { id: 3, type: 'info', message: 'Nouvelle agence créée: Sol Invictus Nice', timestamp: '09:15', agency: 'Système' }
+    ]);
 
     // Données simulées des agences et leurs clients
     const agencies = [
@@ -100,17 +106,83 @@ export const AdminPanel = () => {
         }
     ];
 
-    // Journal d'activité simulé
-    const activityLogs = [
-        { time: '14:30', user: 'admin', action: 'Connexion système', type: 'login' },
-        { time: '09:15', user: 'client', action: 'Consultation dashboard', type: 'view' },
-        { time: '08:45', user: 'agent_paris', action: 'Tentative de connexion échouée', type: 'error' },
-        { time: '23:12', user: 'system', action: 'Sauvegarde automatique', type: 'system' },
-        { time: '22:30', user: 'manager_lyon', action: 'Modification profil', type: 'update' }
-    ];
+    // Journal d'activité par agence
+    const agencyLogs = {
+        1: [ // Paris Centre
+            { time: '14:30', user: 'marie.dubois', action: 'Consultation nouveau bien - 15ème arrondissement', type: 'view' },
+            { time: '14:15', user: 'pierre.martin', action: 'Création rapport de visite', type: 'create' },
+            { time: '13:45', user: 'sophie.laurent', action: 'Validation dossier client #2847', type: 'update' },
+            { time: '13:20', user: 'marie.dubois', action: 'Connexion mobile', type: 'login' },
+            { time: '12:55', user: 'pierre.martin', action: 'Upload photos bien #1234', type: 'upload' }
+        ],
+        2: [ // Lyon Presqu'île
+            { time: '16:45', user: 'thomas.rousseau', action: 'Négociation prix - Appartement Bellecour', type: 'update' },
+            { time: '16:20', user: 'antoine.leroy', action: 'Approbation commission agent', type: 'approve' },
+            { time: '15:30', user: 'julie.moreau', action: 'Tentative de connexion échouée', type: 'error' },
+            { time: '14:45', user: 'thomas.rousseau', action: 'Rendez-vous client programmé', type: 'create' },
+            { time: '14:20', user: 'antoine.leroy', action: 'Révision objectifs trimestriels', type: 'update' }
+        ],
+        3: [ // Marseille Vieux-Port
+            { time: '12:30', user: 'camille.blanc', action: 'Signature compromis de vente', type: 'success' },
+            { time: '11:45', user: 'nicolas.fabre', action: 'Formation équipe - Nouvelles réglementations', type: 'training' },
+            { time: '11:20', user: 'camille.blanc', action: 'Mise à jour fiche bien', type: 'update' },
+            { time: '10:30', user: 'nicolas.fabre', action: 'Analyse marché local', type: 'analysis' },
+            { time: '09:15', user: 'camille.blanc', action: 'Connexion système', type: 'login' }
+        ],
+        4: [ // Bordeaux Centre
+            { time: '15:20', user: 'emilie.girard', action: 'Tentative de connexion échouée', type: 'error' },
+            { time: '15:18', user: 'emilie.girard', action: 'Tentative de connexion échouée', type: 'error' },
+            { time: '15:15', user: 'emilie.girard', action: 'Tentative de connexion échouée', type: 'error' },
+            { time: '10:45', user: 'julien.roux', action: 'Dernière connexion avant maintenance', type: 'logout' },
+            { time: '10:30', user: 'system', action: 'Début maintenance programmée', type: 'system' }
+        ]
+    };
+
+    const dismissNotification = (notificationId) => {
+        setNotifications(notifications.filter(notif => notif.id !== notificationId));
+    };
 
     return (
         <div className="p-8 space-y-8">
+            {/* Système de notifications en haut */}
+            {notifications.length > 0 && (
+                <div className="space-y-3">
+                    {notifications.map((notification) => (
+                        <div key={notification.id} className={`flex items-center justify-between p-4 rounded-lg border ${
+                            notification.type === 'error' ? 'bg-red-500/10 border-red-500/20' :
+                            notification.type === 'warning' ? 'bg-yellow-500/10 border-yellow-500/20' :
+                            'bg-blue-500/10 border-blue-500/20'
+                        }`}>
+                            <div className="flex items-center gap-3">
+                                {notification.type === 'error' ? (
+                                    <AlertCircle className="w-5 h-5 text-red-400" />
+                                ) : notification.type === 'warning' ? (
+                                    <AlertTriangle className="w-5 h-5 text-yellow-400" />
+                                ) : (
+                                    <Info className="w-5 h-5 text-blue-400" />
+                                )}
+                                <div>
+                                    <p className={`text-sm font-medium ${
+                                        notification.type === 'error' ? 'text-red-400' :
+                                        notification.type === 'warning' ? 'text-yellow-400' :
+                                        'text-blue-400'
+                                    }`}>
+                                        {notification.message}
+                                    </p>
+                                    <p className="text-xs text-accent-steel">{notification.timestamp} - {notification.agency}</p>
+                                </div>
+                            </div>
+                            <button
+                                onClick={() => dismissNotification(notification.id)}
+                                className="p-1 text-accent-steel hover:text-white rounded-lg transition-colors"
+                            >
+                                <X className="w-4 h-4" />
+                            </button>
+                        </div>
+                    ))}
+                </div>
+            )}
+
             <div className="flex items-center justify-between">
                 <div>
                     <h1 className="text-3xl font-bold tracking-tight text-white">Panneau d'Administration</h1>
@@ -286,25 +358,92 @@ export const AdminPanel = () => {
                 </div>
             </div>
 
-            {/* Journal d'Activité */}
+            {/* Journal d'Activité par Agence */}
             <div className="glass rounded-xl border border-white/10 p-6">
-                <div className="flex items-center gap-3 mb-6">
-                    <Activity className="w-5 h-5 text-accent" />
-                    <h2 className="text-xl font-bold text-white">Journal d'Activité</h2>
+                <div className="flex items-center justify-between mb-6">
+                    <div className="flex items-center gap-3">
+                        <Activity className="w-5 h-5 text-accent" />
+                        <h2 className="text-xl font-bold text-white">Journal d'Activité par Agence</h2>
+                    </div>
+                    <select 
+                        value={selectedAgencyLogs}
+                        onChange={(e) => setSelectedAgencyLogs(parseInt(e.target.value))}
+                        className="bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-accent/50"
+                    >
+                        {agencies.map((agency) => (
+                            <option key={agency.id} value={agency.id} className="bg-background text-white">
+                                {agency.name}
+                            </option>
+                        ))}
+                    </select>
                 </div>
-                <div className="space-y-3">
-                    {activityLogs.map((log, index) => (
-                        <div key={index} className="flex items-center gap-4 p-3 bg-white/5 rounded-lg">
-                            <div className="text-xs text-accent-steel font-mono">{log.time}</div>
+
+                {/* Informations de l'agence sélectionnée */}
+                <div className="mb-6 p-4 bg-white/5 rounded-lg">
+                    <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                            <div className={`w-3 h-3 rounded-full ${
+                                agencies.find(a => a.id === selectedAgencyLogs)?.status === 'active' ? 'bg-green-500' : 'bg-red-500'
+                            }`} />
+                            <div>
+                                <h3 className="text-white font-semibold">
+                                    {agencies.find(a => a.id === selectedAgencyLogs)?.name}
+                                </h3>
+                                <p className="text-xs text-accent-steel">
+                                    {agencies.find(a => a.id === selectedAgencyLogs)?.location}
+                                </p>
+                            </div>
+                        </div>
+                        <div className="text-right">
+                            <p className="text-sm text-white">
+                                {agencies.find(a => a.id === selectedAgencyLogs)?.clientsCount} utilisateurs actifs
+                            </p>
+                            <p className="text-xs text-accent-steel">
+                                {agencyLogs[selectedAgencyLogs]?.length || 0} activités aujourd'hui
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Liste des activités */}
+                <div className="space-y-3 max-h-96 overflow-y-auto">
+                    {agencyLogs[selectedAgencyLogs]?.map((log, index) => (
+                        <div key={index} className="flex items-center gap-4 p-3 bg-white/5 rounded-lg hover:bg-white/10 transition-colors">
+                            <div className="text-xs text-accent-steel font-mono min-w-[40px]">{log.time}</div>
                             <div className={`w-2 h-2 rounded-full ${
                                 log.type === 'login' ? 'bg-green-500' :
                                 log.type === 'error' ? 'bg-red-500' :
-                                log.type === 'system' ? 'bg-blue-500' :
+                                log.type === 'success' ? 'bg-emerald-500' :
+                                log.type === 'create' ? 'bg-blue-500' :
+                                log.type === 'update' ? 'bg-yellow-500' :
+                                log.type === 'upload' ? 'bg-purple-500' :
+                                log.type === 'approve' ? 'bg-green-600' :
+                                log.type === 'training' ? 'bg-indigo-500' :
+                                log.type === 'analysis' ? 'bg-cyan-500' :
+                                log.type === 'system' ? 'bg-gray-500' :
                                 'bg-accent'
                             }`} />
                             <div className="flex-1">
                                 <span className="text-sm text-white">{log.action}</span>
                                 <span className="text-xs text-accent-steel ml-2">par {log.user}</span>
+                            </div>
+                            <div className={`px-2 py-1 rounded-full text-xs font-medium ${
+                                log.type === 'error' ? 'bg-red-500/20 text-red-400' :
+                                log.type === 'success' ? 'bg-emerald-500/20 text-emerald-400' :
+                                log.type === 'login' ? 'bg-green-500/20 text-green-400' :
+                                'bg-accent/20 text-accent'
+                            }`}>
+                                {log.type === 'error' ? 'Erreur' :
+                                 log.type === 'success' ? 'Succès' :
+                                 log.type === 'login' ? 'Connexion' :
+                                 log.type === 'create' ? 'Création' :
+                                 log.type === 'update' ? 'Mise à jour' :
+                                 log.type === 'upload' ? 'Upload' :
+                                 log.type === 'approve' ? 'Approbation' :
+                                 log.type === 'training' ? 'Formation' :
+                                 log.type === 'analysis' ? 'Analyse' :
+                                 log.type === 'system' ? 'Système' :
+                                 'Activité'}
                             </div>
                         </div>
                     ))}
