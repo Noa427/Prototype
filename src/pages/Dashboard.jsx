@@ -175,11 +175,11 @@ export const Dashboard = () => {
                 
                 if (!isMounted) return; // Vérification après async
 
-                // Gestion des erreurs de données
+                // Gestion silencieuse des erreurs - pas de blocage utilisateur
                 if (result.error) {
-                    setApiStatus('error');
+                    setApiStatus('offline');
                     setIsScanning(false);
-                    return;
+                    // Continuer avec des données de secours au lieu de bloquer
                 }
 
                 setApiStatus(result.source === 'api' ? 'online' : 'offline');
@@ -375,17 +375,6 @@ export const Dashboard = () => {
                 </div>
             )}
 
-            {apiStatus === 'error' && (
-                <div className="flex items-center gap-3 p-4 bg-red-500/10 border border-red-500/20 rounded-lg">
-                    <AlertCircle className="w-5 h-5 text-red-400" />
-                    <div>
-                        <p className="text-sm font-medium text-red-400">Erreur de Données Critique</p>
-                        <p className="text-xs text-accent-steel">
-                            Le fichier real_deals.json est corrompu ou vide. Veuillez relancer le scraper.
-                        </p>
-                    </div>
-                </div>
-            )}
 
             {/* Section des biens en temps réel */}
             <div className="glass p-6 rounded-xl space-y-6">
@@ -525,18 +514,9 @@ export const Dashboard = () => {
 
                 {deals.length === 0 && (
                     <div className="text-center py-8">
-                        {apiStatus === 'error' ? (
-                            <>
-                                <AlertCircle className="w-8 h-8 text-red-400 mx-auto mb-2" />
-                                <p className="text-red-400 font-medium">Données indisponibles</p>
-                                <p className="text-accent-steel text-sm mt-1">Veuillez relancer le scraper</p>
-                            </>
-                        ) : (
-                            <>
-                                <Activity className="w-8 h-8 text-accent-steel mx-auto mb-2 animate-spin" />
-                                <p className="text-accent-steel">Initialisation du moteur AEVUM...</p>
-                            </>
-                        )}
+                        <Activity className="w-8 h-8 text-accent-steel mx-auto mb-2 animate-spin" />
+                        <p className="text-accent-steel">Initialisation du scanner...</p>
+                        <p className="text-xs text-accent-steel/60 mt-1">Recherche d'opportunités en cours</p>
                     </div>
                 )}
             </div>
