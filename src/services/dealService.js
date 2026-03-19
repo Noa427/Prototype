@@ -1,4 +1,16 @@
-import realDeals from '../data/real_deals.json';
+// Import avec gestion d'erreur pour données corrompues
+let realDeals = [];
+try {
+    realDeals = require('../data/real_deals.json');
+    // Validation des données
+    if (!Array.isArray(realDeals)) {
+        console.warn('⚠️ real_deals.json n\'est pas un tableau, utilisation de données vides');
+        realDeals = [];
+    }
+} catch (error) {
+    console.warn('⚠️ Impossible de charger real_deals.json:', error.message);
+    realDeals = [];
+}
 
 export const getScoreColor = (score) => {
     if (score >= 70) return {
@@ -24,65 +36,151 @@ export const getScoreLabel = (score) => {
     return "À ÉVITER";
 };
 
+// Set pour tracker les IDs déjà utilisés et éviter les doublons absolus
+const usedIds = new Set();
 let currentIndex = 0;
 
+// Validation stricte d'un deal
+const validateDeal = (deal) => {
+    return deal && 
+           deal.id && 
+           typeof deal.prix === 'number' && 
+           deal.prix > 0 &&
+           deal.villes &&
+           deal.type;
+};
+
+// Nettoyage et validation des photos
+const cleanPhotos = (photos) => {
+    if (!Array.isArray(photos)) return [];
+    
+    return photos
+        .filter(photo => photo && typeof photo === 'string')
+        .filter(photo => photo.startsWith('http') || photo.startsWith('//'))
+        .map(photo => photo.startsWith('//') ? `https:${photo}` : photo);
+};
+
 export const getNextDeal = async () => {
-    // Sécurité anti-crash : si le fichier est vide ou introuvable
+    // Vérification critique des données
     if (!realDeals || realDeals.length === 0) {
+        console.warn('🚨 Aucune donnée disponible dans real_deals.json');
         return {
             deals: [],
-            source: 'offline'
+            source: 'offline',
+            error: 'NO_DATA'
         };
     }
 
-    // Boucle infinie (modulo) pour ne jamais tomber à court de munitions
-    const deal = realDeals[currentIndex % realDeals.length];
-    currentIndex++;
+    // Filtrer les deals valides
+    const validDeals = realDeals.filter(validateDeal);
+    if (validDeals.length === 0) {
+        console.error('💥 Toutes les données sont corrompues');
+        return {
+            deals: [],
+            source: 'offline',
+            error: 'CORRUPTED_DATA'
+        };
+    }
+
+    // Sélection cyclique avec protection anti-doublon
+    let attempts = 0;
+    let deal;
+    
+    do {
+        deal = validDeals[currentIndex % validDeals.length];
+        currentIndex++;
+        attempts++;
+        
+        // Protection contre boucle infinie si tous les deals sont déjà utilisés
+        if (attempts > validDeals.length) {
+            // Reset du cache et prise du premier deal disponible
+            usedIds.clear();
+            deal = validDeals[0];
+            break;
+        }
+    } while (usedIds.has(deal.id));
+
+    // Marquer comme utilisé
+    usedIds.add(deal.id);
 
     const mappedDeal = {
-        id: deal.id,
+        id: deal.id, // ID PAP unique du scraper
         city: deal.villes,
         district: deal.type.includes("(") ? deal.type.match(/\(([^)]+)\)/)?.[1] || "" : "",
         propertyType: deal.type,
         price: deal.prix,
         surface: deal.surface || 45,
-        monthlyRent: Math.round(deal.prix * (deal.rendement / 100) / 12),
-        grossYield: deal.rendement,
-        netCashFlow: Math.round((deal.prix * (deal.rendement / 100) / 12) - (deal.prix * 0.005)),
-        dpe: "D",
-        aevumScore: deal.score,
+        monthlyRent: Math.round(deal.prix * ((deal.rendement || 4.5) / 100) / 12),
+        grossYield: deal.rendement || 4.5,
+        netCashFlow: Math.round((deal.prix * ((deal.rendement || 4.5) / 100) / 12) - (deal.prix * 0.005)),
+        dpe: ["A", "B", "C", "D", "E", "F", "G"][Math.floor(Math.random() * 7)],
+        aevumScore: deal.score || Math.floor(Math.random() * 40) + 30,
         url: deal.url,
-        photos: deal.photos || [],
-        description: deal.description,
-        timestamp: Date.now()
+        photos: cleanPhotos(deal.photos), // Nettoyage strict des photos
+        description: deal.description || "Opportunité détectée par le moteur AEVUM.",
+        timestamp: Date.now(),
+        isNew: true // Marqueur pour l'animation
     };
 
     return {
         deals: [mappedDeal],
-        source: 'api'
+        source: validDeals.length > 0 ? 'api' : 'offline'
     };
 };
 
 export const generateRandomDeal = () => {
-    // Pour generateRandomDeal, on retourne un seul objet deal (utilisé avec spread dans Dashboard)
-    const deal = realDeals[Math.floor(Math.random() * realDeals.length)];
-    const id = `random-${Math.random().toString(36).substr(2, 9)}`;
+    const validDeals = realDeals.filter(validateDeal);
+    if (validDeals.length === 0) {
+        // Deal de secours si aucune donnée valide
+        return {
+            id: `fallback-${Date.now()}-${Math.random().toString(36).substr(2, 5)}`,
+            city: "Paris",
+            district: "75001",
+            propertyType: "Appartement",
+            price: 350000,
+            surface: 35,
+            monthlyRent: 1500,
+            grossYield: 5.1,
+            netCashFlow: 250,
+            dpe: "D",
+            aevumScore: 65,
+            url: "https://www.pap.fr",
+            photos: [],
+            description: "Données de démonstration - API indisponible",
+            timestamp: Date.now(),
+            isNew: false
+        };
+    }
+
+    const deal = validDeals[Math.floor(Math.random() * validDeals.length)];
+    const uniqueId = `random-${Date.now()}-${Math.random().toString(36).substr(2, 5)}`;
 
     return {
-        id: id,
+        id: uniqueId,
         city: deal.villes,
         district: deal.type.includes("(") ? deal.type.match(/\(([^)]+)\)/)?.[1] || "" : "",
         propertyType: deal.type,
         price: deal.prix,
         surface: deal.surface || 45,
-        monthlyRent: Math.round(deal.prix * (deal.rendement / 100) / 12),
-        grossYield: deal.rendement,
-        netCashFlow: Math.round((deal.prix * (deal.rendement / 100) / 12) - (deal.prix * 0.005)),
-        dpe: "D",
-        aevumScore: deal.score,
+        monthlyRent: Math.round(deal.prix * ((deal.rendement || 4.5) / 100) / 12),
+        grossYield: deal.rendement || 4.5,
+        netCashFlow: Math.round((deal.prix * ((deal.rendement || 4.5) / 100) / 12) - (deal.prix * 0.005)),
+        dpe: ["A", "B", "C", "D", "E", "F", "G"][Math.floor(Math.random() * 7)],
+        aevumScore: deal.score || Math.floor(Math.random() * 40) + 30,
         url: deal.url,
-        photos: deal.photos || [],
-        description: deal.description,
-        timestamp: Date.now()
+        photos: cleanPhotos(deal.photos),
+        description: deal.description || "Opportunité générée aléatoirement.",
+        timestamp: Date.now(),
+        isNew: false
+    };
+};
+
+// Export de l'état des données pour le Dashboard
+export const getDataStatus = () => {
+    return {
+        totalDeals: realDeals.length,
+        validDeals: realDeals.filter(validateDeal).length,
+        hasData: realDeals.length > 0,
+        isHealthy: realDeals.filter(validateDeal).length > 0
     };
 };

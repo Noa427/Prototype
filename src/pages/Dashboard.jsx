@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Building2, AlertCircle, TrendingUp, ArrowUpRight, Clock, MapPin, Zap, Activity, Wifi, WifiOff, X, ExternalLink, Maximize2, ChevronLeft, ChevronRight } from 'lucide-react';
-import { generateRandomDeal, getScoreColor, getScoreLabel, getNextDeal } from '../services/dealService';
+import { generateRandomDeal, getScoreColor, getScoreLabel, getNextDeal, getDataStatus } from '../services/dealService';
 
 const metrics = [
     { label: "Nouveaux Biens", value: "14", sub: "Dernières 24h", icon: Building2, color: "text-accent" },
@@ -155,63 +155,128 @@ export const Dashboard = () => {
     const [isScanning, setIsScanning] = useState(true);
     const [flashingDeal, setFlashingDeal] = useState(null);
     const [sortBy, setSortBy] = useState('score-desc'); // score-desc, score-asc, price-asc, price-desc
-    const [apiStatus, setApiStatus] = useState('checking'); // 'online', 'offline', 'checking'
+    const [apiStatus, setApiStatus] = useState('checking'); // 'online', 'offline', 'checking', 'error'
     const [selectedDeal, setSelectedDeal] = useState(null);
+    const [dataStatus, setDataStatus] = useState(null);
 
-    // Génération automatique de nouveaux biens toutes les 10 secondes
+    // Génération automatique avec protection anti-race conditions
     useEffect(() => {
-        // Générer quelques biens initiaux
+        let isMounted = true; // Protection contre les race conditions
+        let intervalId = null;
+
+        // Map pour garantir l'unicité absolue des IDs
+        const dealIds = new Set();
+
         const initializeDeals = async () => {
-            const result = await getNextDeal();
-            setApiStatus(result.source === 'api' ? 'online' : 'offline');
+            if (!isMounted) return;
 
-            const initialDeals = result.deals.map(deal => ({
-                ...deal,
-                isNew: false
-            }));
+            try {
+                const result = await getNextDeal();
+                
+                if (!isMounted) return; // Vérification après async
 
-            // Ajouter quelques biens supplémentaires pour la démo
-            const additionalDeals = Array.from({ length: 2 }, () => ({
-                ...generateRandomDeal(),
-                isNew: false
-            }));
-
-            setDeals([...initialDeals, ...additionalDeals]);
-        };
-
-        initializeDeals();
-
-        const interval = setInterval(async () => {
-            const result = await getNextDeal();
-            if (!result.deals || result.deals.length === 0) return;
-
-            const newDeal = result.deals[0];
-            setApiStatus(result.source === 'api' ? 'online' : 'offline');
-
-            setDeals(prevDeals => {
-                // VERIFICATION STRICTE : Empêcher les doublons par ID
-                if (prevDeals.some(deal => deal.id === newDeal.id)) {
-                    return prevDeals;
+                // Gestion des erreurs de données
+                if (result.error) {
+                    setApiStatus('error');
+                    setIsScanning(false);
+                    return;
                 }
 
-                // Déclencher l'animation flash UNIQUEMENT pour les nouveaux biens
-                setFlashingDeal(newDeal.id);
-                setTimeout(() => {
-                    setFlashingDeal(null);
-                    setDeals(currentDeals =>
-                        currentDeals.map(deal =>
-                            deal.id === newDeal.id ? { ...deal, isNew: false } : deal
-                        )
-                    );
-                }, 2000);
+                setApiStatus(result.source === 'api' ? 'online' : 'offline');
 
-                // Ajout en haut de liste et limite à 10 biens
-                return [newDeal, ...prevDeals.slice(0, 9)];
-            });
-        }, 10000); // 10 secondes
+                const initialDeals = result.deals
+                    .filter(deal => deal && deal.id) // Validation stricte
+                    .map(deal => {
+                        dealIds.add(deal.id);
+                        return { ...deal, isNew: false };
+                    });
 
-        return () => clearInterval(interval);
-    }, []);
+                // Ajouter quelques biens supplémentaires pour la démo
+                const additionalDeals = [];
+                for (let i = 0; i < 2; i++) {
+                    const randomDeal = generateRandomDeal();
+                    if (!dealIds.has(randomDeal.id)) {
+                        dealIds.add(randomDeal.id);
+                        additionalDeals.push({ ...randomDeal, isNew: false });
+                    }
+                }
+
+                if (isMounted) {
+                    setDeals([...initialDeals, ...additionalDeals]);
+                    setIsScanning(false);
+                }
+            } catch (error) {
+                console.error('💥 Erreur initialisation:', error);
+                if (isMounted) {
+                    setApiStatus('error');
+                    setIsScanning(false);
+                }
+            }
+        };
+
+        const addNewDeal = async () => {
+            if (!isMounted) return;
+
+            try {
+                const result = await getNextDeal();
+                
+                if (!isMounted || !result.deals || result.deals.length === 0) return;
+
+                const newDeal = result.deals[0];
+                
+                // Validation et protection anti-doublon ABSOLUE
+                if (!newDeal || !newDeal.id || dealIds.has(newDeal.id)) {
+                    return;
+                }
+
+                setApiStatus(result.source === 'api' ? 'online' : 'offline');
+
+                setDeals(prevDeals => {
+                    // Double vérification anti-doublon
+                    if (prevDeals.some(deal => deal.id === newDeal.id)) {
+                        return prevDeals;
+                    }
+
+                    // Ajouter à la Map de tracking
+                    dealIds.add(newDeal.id);
+
+                    // Animation flash UNIQUEMENT pour les vrais nouveaux
+                    if (isMounted) {
+                        setFlashingDeal(newDeal.id);
+                        setTimeout(() => {
+                            if (isMounted) {
+                                setFlashingDeal(null);
+                                setDeals(currentDeals =>
+                                    currentDeals.map(deal =>
+                                        deal.id === newDeal.id ? { ...deal, isNew: false } : deal
+                                    )
+                                );
+                            }
+                        }, 2000);
+                    }
+
+                    // Ajout en haut + limite à 12 biens
+                    return [newDeal, ...prevDeals.slice(0, 11)];
+                });
+            } catch (error) {
+                console.error('💥 Erreur ajout deal:', error);
+            }
+        };
+
+        // Initialisation
+        initializeDeals();
+
+        // Intervalle protégé
+        intervalId = setInterval(addNewDeal, 10000);
+
+        // Cleanup function
+        return () => {
+            isMounted = false;
+            if (intervalId) {
+                clearInterval(intervalId);
+            }
+        };
+    }, []); // Dépendances vides pour éviter les re-renders
 
     const formatPrice = (price) => {
         return new Intl.NumberFormat('fr-FR', {
@@ -297,7 +362,7 @@ export const Dashboard = () => {
                 ))}
             </div>
 
-            {/* Notification de mode simulation */}
+            {/* Notifications d'état */}
             {apiStatus === 'offline' && (
                 <div className="flex items-center gap-3 p-4 bg-yellow-500/10 border border-yellow-500/20 rounded-lg">
                     <WifiOff className="w-5 h-5 text-yellow-400" />
@@ -305,6 +370,18 @@ export const Dashboard = () => {
                         <p className="text-sm font-medium text-yellow-400">Mode Simulation Activé</p>
                         <p className="text-xs text-accent-steel">
                             L'API AEVUM n'est pas disponible. Utilisation du générateur de données simulées.
+                        </p>
+                    </div>
+                </div>
+            )}
+
+            {apiStatus === 'error' && (
+                <div className="flex items-center gap-3 p-4 bg-red-500/10 border border-red-500/20 rounded-lg">
+                    <AlertCircle className="w-5 h-5 text-red-400" />
+                    <div>
+                        <p className="text-sm font-medium text-red-400">Erreur de Données Critique</p>
+                        <p className="text-xs text-accent-steel">
+                            Le fichier real_deals.json est corrompu ou vide. Veuillez relancer le scraper.
                         </p>
                     </div>
                 </div>
@@ -365,13 +442,23 @@ export const Dashboard = () => {
                                     : 'bg-white/5 border-white/10'
                                     }`}
                             >
-                                <img
-                                    src={deal.photos && deal.photos.length > 0 ? `https://images.weserv.nl/?url=${encodeURIComponent(deal.photos[0])}` : 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80'}
-                                    alt={deal.propertyType}
-                                    className="w-full h-48 object-cover rounded-t-lg transition-transform duration-500 group-hover:scale-105"
-                                    onError={(e) => { e.target.onerror = null; e.target.src = 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80'; }}
-                                    referrerPolicy="no-referrer"
-                                />
+                                {/* Image avec fallback intelligent */}
+                                {deal.photos && deal.photos.length > 0 ? (
+                                    <img
+                                        src={deal.photos[0]}
+                                        alt={deal.propertyType}
+                                        className="w-full h-48 object-cover rounded-t-lg transition-transform duration-500 group-hover:scale-105"
+                                        onError={(e) => {
+                                            e.target.onerror = null;
+                                            e.target.src = 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80';
+                                        }}
+                                        referrerPolicy="no-referrer"
+                                    />
+                                ) : (
+                                    <div className="w-full h-48 bg-gradient-to-br from-accent/20 to-accent/5 rounded-t-lg flex items-center justify-center">
+                                        <Building2 className="w-12 h-12 text-accent/50" />
+                                    </div>
+                                )}
                                 <div className="p-4">
                                     {/* Header avec score AEVUM */}
                                     <div className="flex items-center justify-between mb-3">
@@ -436,14 +523,22 @@ export const Dashboard = () => {
                     })}
                 </div>
 
-                {
-                    deals.length === 0 && (
-                        <div className="text-center py-8">
-                            <Activity className="w-8 h-8 text-accent-steel mx-auto mb-2 animate-spin" />
-                            <p className="text-accent-steel">Initialisation du moteur AEVUM...</p>
-                        </div>
-                    )
-                }
+                {deals.length === 0 && (
+                    <div className="text-center py-8">
+                        {apiStatus === 'error' ? (
+                            <>
+                                <AlertCircle className="w-8 h-8 text-red-400 mx-auto mb-2" />
+                                <p className="text-red-400 font-medium">Données indisponibles</p>
+                                <p className="text-accent-steel text-sm mt-1">Veuillez relancer le scraper</p>
+                            </>
+                        ) : (
+                            <>
+                                <Activity className="w-8 h-8 text-accent-steel mx-auto mb-2 animate-spin" />
+                                <p className="text-accent-steel">Initialisation du moteur AEVUM...</p>
+                            </>
+                        )}
+                    </div>
+                )}
             </div>
 
             {/* Graphique d'activité du marché */}
