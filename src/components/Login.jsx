@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Shield, Lock, User, Eye, EyeOff } from 'lucide-react';
+import { login } from '../services/api';
 
 export const Login = ({ onLogin }) => {
     const [credentials, setCredentials] = useState({ username: '', password: '' });
@@ -12,27 +13,17 @@ export const Login = ({ onLogin }) => {
         setIsLoading(true);
         setError('');
 
-        // Simulation d'une authentification avec 2 comptes hardcodés
-        setTimeout(() => {
-            if (credentials.username === 'admin' && credentials.password === '1234') {
-                onLogin({ 
-                    username: 'admin', 
-                    role: 'admin',
-                    fullName: 'Administrateur Système',
-                    email: 'admin@aevum.io'
-                });
-            } else if (credentials.username === 'client' && credentials.password === 'client123') {
-                onLogin({ 
-                    username: 'client', 
-                    role: 'client',
-                    fullName: 'Agent Commercial',
-                    email: 'agent@aevum.io'
-                });
-            } else {
-                setError('Identifiants incorrects');
-            }
+        try {
+            const data = await login(credentials.username, credentials.password);
+            onLogin({
+                ...data.user,
+                access_token: data.access_token
+            });
+        } catch (err) {
+            setError(err.message || 'Identifiants incorrects');
+        } finally {
             setIsLoading(false);
-        }, 1000);
+        }
     };
 
     const handleInputChange = (e) => {
@@ -48,7 +39,7 @@ export const Login = ({ onLogin }) => {
             {/* Background Pattern */}
             <div className="absolute inset-0 bg-gradient-to-br from-accent/5 via-transparent to-accent/10"></div>
             <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(120,119,198,0.1),transparent_50%)]"></div>
-            
+
             {/* Login Card */}
             <div className="relative w-full max-w-md">
                 <div className="glass rounded-2xl border border-white/10 p-8 backdrop-blur-xl">
@@ -134,8 +125,8 @@ export const Login = ({ onLogin }) => {
                             <strong className="text-accent">Comptes de démonstration :</strong>
                         </p>
                         <div className="text-xs text-accent-steel text-center space-y-1">
-                            <div><strong>Admin:</strong> admin / 1234</div>
-                            <div><strong>Client:</strong> client / client123</div>
+                            <div><strong>Admin:</strong> admin / admin123</div>
+                            <div><strong>Client:</strong> agent_paris / agent123</div>
                         </div>
                     </div>
                 </div>
