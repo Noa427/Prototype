@@ -439,9 +439,14 @@ export const Dashboard = () => {
             <div className="glass p-6 rounded-xl">
                 <h2 className="font-bold text-lg text-white mb-6">Activité du Marché</h2>
                 <div className="flex-1 flex items-end gap-3 px-2 h-32">
-                    {[30, 45, 60, 40, 70, 85, 65, 90, 75, 80].map((h, i) => (
-                        <div key={i} className="flex-1 bg-accent/20 border-t border-accent/40 rounded-t-sm" style={{ height: `${h}%` }} />
-                    ))}
+                    {[30, 45, 60, 40, 70, 85, 65, 90, 75, 80].map((h, i) => {
+                        const color = h < 40 ? 'bg-red-500/40 border-red-500/60' :
+                            h < 70 ? 'bg-amber-500/40 border-amber-500/60' :
+                                'bg-green-500/40 border-green-500/60';
+                        return (
+                            <div key={i} className={`flex-1 ${color} border-t rounded-t-sm`} style={{ height: `${h}%` }} />
+                        );
+                    })}
                 </div>
                 <div className="flex justify-between mt-4 text-[10px] text-accent-steel uppercase tracking-widest">
                     <span>08:00</span>

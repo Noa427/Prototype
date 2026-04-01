@@ -4,6 +4,10 @@ from fastapi.security import OAuth2PasswordRequestForm
 from sqlmodel import Session, select
 from datetime import timedelta
 from typing import List
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
 
 from .database import engine, get_session, create_db_and_tables
 from .models import User, Deal, Agency

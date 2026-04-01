@@ -1,25 +1,18 @@
 { pkgs ? import <nixpkgs> {} }:
-
 pkgs.mkShell {
-  buildInputs = with pkgs; [
-    python311
-    python311Packages.playwright
-    python311Packages.beautifulsoup4
-    python311Packages.fastapi
-    python311Packages.uvicorn
-    python311Packages.sqlmodel
-    python311Packages.python-jose
-    python311Packages.passlib
-    python311Packages.bcrypt
-    python311Packages.python-multipart
-    python311Packages.httpx
-    python311Packages.playwright-stealth
-    playwright-driver.browsers
+  buildInputs = [
+    pkgs.python311
+    pkgs.python311Packages.pydantic
+    pkgs.python311Packages.pydantic-core
+    pkgs.python311Packages.playwright
+    pkgs.python311Packages.beautifulsoup4
+    pkgs.aider-chat
+    pkgs.nodejs_20
+    pkgs.git
   ];
-
   shellHook = ''
+    export OPENROUTER_API_KEY='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'
     export PLAYWRIGHT_BROWSERS_PATH=${pkgs.playwright-driver.browsers}
-    export PLAYWRIGHT_SKIP_VALIDATE_HOST_REQUIREMENTS=true
-    echo "🚀 Environnement AEVUM SCANNER prêt (NixOS Optimisé)."
+    echo "--- ENVIRONNEMENT ANTIGRAVITY PRÊT ---"
   '';
 }

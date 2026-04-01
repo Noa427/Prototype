@@ -5,7 +5,9 @@ import re
 import httpx
 import logging
 import random
+import yaml
 from playwright.async_api import async_playwright
+from backend.scrapers import PapScraper
 
 # Configuration des logs
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -117,70 +119,37 @@ def extract_map_query(text, city, district_text):
 
 @retry_on_failure()
 async def scrape_pap(page):
-    logger.info("🔍 Scraping PAP.fr...")
-    deals = []
+    logger.info("🔍 Scraping PAP.fr (Modular)...")
     try:
-        await page.goto("https://www.pap.fr/annonce/vente-appartements-maisons-paris-75-g439", wait_until="domcontentloaded", timeout=45000)
-        await page.evaluate("document.querySelectorAll('[id^=\"didomi\"]').forEach(el => el.remove());")
-        await page.wait_for_selector(".search-list-item-alt", timeout=20000)
+        config_path = os.path.join(os.path.dirname(__file__), "../../backend/scrapers/config/pap.yaml")
+        with open(config_path, 'r') as f:
+            config = yaml.safe_load(f)
         
-        listings = await page.query_selector_all(".search-list-item-alt")
-        logger.info(f"✅ PAP: {len(listings)} annonces trouvées.")
+        scraper = PapScraper(config)
+        deals = await scraper.run()
         
-        for item in listings[:10]:
-            try:
-                link_el = await item.query_selector("a")
-                href = await link_el.get_attribute("href") if link_el else ""
-                if not href: continue
-
-                id_match = re.search(r'-r(\d+)', href)
-                deal_id = f"pap-{id_match.group(1)}" if id_match else f"hash-{abs(hash(href))}"
-
-                title_el = await item.query_selector(".h1")
-                price_el = await item.query_selector(".item-price")
-                tags_el = await item.query_selector(".item-tags")
-                desc_el = await item.query_selector(".item-description")
-
-                price_text = await price_el.inner_text() if price_el else "0"
-                clean_price = int(''.join(filter(str.isdigit, price_text))) if any(c.isdigit() for c in price_text) else 0
-                if clean_price == 0: continue
-
-                tags_text = await tags_el.inner_text() if tags_el else ""
-                desc_text = await desc_el.inner_text() if desc_el else ""
-                full_text = f"{tags_text} {desc_text}"
-                title_text = (await title_el.inner_text()).strip() if title_el else "Appartement"
-
-                surface = extract_surface(full_text, tags_text)
-                dpe = extract_dpe(full_text)
-                defects = detect_defects(full_text)
-                
-                map_query = extract_map_query(full_text, "Paris", title_text)
-                location = await get_precise_location(map_query)
-
-                img_elements = await item.query_selector_all("img")
-                photos = [await img.get_attribute("src") for img in img_elements if await img.get_attribute("src") and "pap.fr" in await img.get_attribute("src")]
-
-                deals.append({
-                    "id": deal_id,
-                    "villes": "Paris",
-                    "type": title_text,
-                    "prix": clean_price,
-                    "surface": surface,
-                    "dpe": dpe,
-                    "defects": defects,
-                    "map_query": map_query,
-                    "location": location,
-                    "url": f"https://www.pap.fr{href}",
-                    "description": desc_text.strip(),
-                    "photos": photos,
-                    "source": "PAP.fr"
-                })
-            except Exception as e:
-                logger.debug(f"Erreur item PAP: {e}")
-                continue
+        # Add missing fields for compatibility with the rest of the system
+        for deal in deals:
+            deal.setdefault("villes", "Paris")
+            deal.setdefault("type", "Appartement")
+            deal.setdefault("location", None)
+            deal.setdefault("map_query", "Paris")
+            deal.setdefault("photos", [])
+            deal.setdefault("description", deal.get("title", ""))
+            deal.setdefault("id", f"pap-{abs(hash(deal['url']))}")
+            # Champs géocodage & enrichissement
+            deal.setdefault("street_number", None)
+            deal.setdefault("street", None)
+            deal.setdefault("postal_code", None)
+            deal.setdefault("latitude", None)
+            deal.setdefault("longitude", None)
+            deal.setdefault("amenities", {"metros": [], "schools": []})
+            deal.setdefault("city", deal.get("villes", "Paris"))
+            
+        return deals
     except Exception as e:
-        logger.error(f"Erreur PAP: {e}")
-    return deals
+        logger.error(f"Erreur PAP (Modular): {e}")
+    return []
 
 @retry_on_failure()
 async def scrape_lbc(page):
