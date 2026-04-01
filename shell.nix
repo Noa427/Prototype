@@ -6,6 +6,11 @@ pkgs.mkShell {
     pkgs.python311Packages.pydantic-core
     pkgs.python311Packages.playwright
     pkgs.python311Packages.beautifulsoup4
+    pkgs.python311Packages.geopy
+    pkgs.python311Packages.overpy
+    pkgs.python311Packages.sqlmodel
+    pkgs.python311Packages.alembic
+    pkgs.postgresql
     pkgs.aider-chat
     pkgs.nodejs_20
     pkgs.git
