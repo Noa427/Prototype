@@ -32,10 +32,48 @@ class BaseScraper(ABC):
         """Parses the HTML content and returns a list of deals."""
         pass
 
-    def save(self, deals):
-        """Optional method to save deals."""
-        logger.info(f"[{self.name}] Saving {len(deals)} deals...")
-        # Implementation can be added here or in subclasses
+    async def save_to_db(self, deals, session):
+        """Save deals to database with history tracking."""
+        from backend.models import Deal, DealHistory
+        
+        # Get all existing deals by URL
+        existing_deals = {deal.url: deal for deal in session.query(Deal).all()}
+        
+        # Track URLs from current scrape
+        current_urls = set()
+        
+        for deal_data in deals:
+            current_urls.add(deal_data['url'])
+            
+            if deal_data['url'] in existing_deals:
+                # Existing deal - check for changes
+                deal = existing_deals[deal_data['url']]
+                if deal.price != deal_data['price']:
+                    # Price changed - create history
+                    session.add(DealHistory(
+                        deal_id=deal.id,
+                        price=deal_data['price'],
+                        available=True
+                    ))
+                    deal.price = deal_data['price']
+            else:
+                # New deal
+                session.add(Deal(
+                    **deal_data,
+                    is_active=True
+                ))
+        
+        # Mark deals that disappeared as inactive
+        for url, deal in existing_deals.items():
+            if url not in current_urls and deal.is_active:
+                session.add(DealHistory(
+                    deal_id=deal.id,
+                    price=deal.price,
+                    available=False
+                ))
+                deal.is_active = False
+        
+        session.commit()
 
     async def run(self):
         """Runs the scraper for all configured URLs."""

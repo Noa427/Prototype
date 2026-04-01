@@ -19,6 +19,7 @@ from sqlalchemy import Column, JSON, ForeignKey
 
 class Deal(SQLModel, table=True):
     id: str = Field(primary_key=True)
+    is_active: bool = Field(default=True)
     city: str
     district: Optional[str] = None
     property_type: str
@@ -85,6 +86,16 @@ class Alert(SQLModel, table=True):
     # Relationships
     user_id: int = Field(foreign_key="user.id")
     user: User = Relationship(back_populates="alerts")
+
+class DealHistory(SQLModel, table=True):
+    id: Optional[int] = Field(default=None, primary_key=True)
+    deal_id: str = Field(foreign_key="deal.id")
+    price: int
+    available: bool
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+    
+    # Relationships
+    deal: Optional[Deal] = Relationship()
 
 class Campaign(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
