@@ -1,16 +1,20 @@
 { pkgs ? import <nixpkgs> {} }:
+let
+  pythonEnv = pkgs.python311.withPackages (ps: with ps; [
+    pydantic
+    pydantic-core
+    playwright
+    beautifulsoup4
+    geopy
+    overpy
+    sqlmodel
+    alembic
+    pyyaml
+  ]);
+in
 pkgs.mkShell {
   buildInputs = [
-    pkgs.python311
-    pkgs.python311Packages.pydantic
-    pkgs.python311Packages.pydantic-core
-    pkgs.python311Packages.playwright
-    pkgs.python311Packages.beautifulsoup4
-    pkgs.python311Packages.geopy
-    pkgs.python311Packages.overpy
-    pkgs.python311Packages.sqlmodel
-    pkgs.python311Packages.alembic
-    pkgs.python311Packages.pyyaml
+    pythonEnv
     pkgs.postgresql
     pkgs.aider-chat
     pkgs.nodejs_20
