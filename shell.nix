@@ -10,6 +10,7 @@ pkgs.mkShell {
     pkgs.python311Packages.overpy
     pkgs.python311Packages.sqlmodel
     pkgs.python311Packages.alembic
+    pkgs.python311Packages.pyyaml
     pkgs.postgresql
     pkgs.aider-chat
     pkgs.nodejs_20
