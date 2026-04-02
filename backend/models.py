@@ -3,7 +3,7 @@ from sqlmodel import SQLModel, Field, Relationship
 from datetime import datetime
 
 class User(SQLModel, table=True):
-    id: Optional[int] = Field(default=None, primary_key=True)
+    id: int | None = Field(default=None, primary_key=True)
     username: str = Field(index=True, unique=True)
     full_name: str
     email: str = Field(unique=True)
@@ -18,19 +18,19 @@ class User(SQLModel, table=True):
 from sqlalchemy import Column, JSON, ForeignKey
 
 class Deal(SQLModel, table=True):
-    id: str = Field(primary_key=True)
+    id: int | None = Field(default=None, primary_key=True)
     is_active: bool = Field(default=True)
-    city: str
+    city: str | None = Field(default=None)
     district: Optional[str] = None
-    property_type: str
-    price: int
-    surface: float
-    price_per_m2: int
-    dpe: str
-    need_work: bool
-    map_query: str
-    gross_yield: float
-    aevum_score: int
+    property_type: str | None = Field(default=None)
+    price: int | None = Field(default=None)
+    surface: float | None = Field(default=None)
+    price_per_m2: int | None = Field(default=None)
+    dpe: str | None = Field(default=None)
+    need_work: bool | None = Field(default=None)
+    map_query: str | None = Field(default=None)
+    gross_yield: float | None = Field(default=None)
+    aevum_score: int | None = Field(default=None)
     url: str
     description: Optional[str] = None
     photos: List[str] = Field(default=[], sa_column=Column(JSON))
@@ -50,7 +50,7 @@ class Deal(SQLModel, table=True):
     leads: List["Lead"] = Relationship(back_populates="deal")
 
 class Agency(SQLModel, table=True):
-    id: Optional[int] = Field(default=None, primary_key=True)
+    id: int | None = Field(default=None, primary_key=True)
     name: str
     location: str
     status: str = Field(default="active")
@@ -60,7 +60,7 @@ class Agency(SQLModel, table=True):
     deals: List[Deal] = Relationship(back_populates="agency")
 
 class Lead(SQLModel, table=True):
-    id: Optional[int] = Field(default=None, primary_key=True)
+    id: int | None = Field(default=None, primary_key=True)
     full_name: str
     email: str
     phone: Optional[str] = None
@@ -71,11 +71,11 @@ class Lead(SQLModel, table=True):
     created_at: datetime = Field(default_factory=datetime.utcnow)
     
     # Relationships
-    deal_id: str = Field(foreign_key="deal.id")
+    deal_id: int = Field(foreign_key="deal.id")
     deal: Deal = Relationship(back_populates="leads")
 
 class Alert(SQLModel, table=True):
-    id: Optional[int] = Field(default=None, primary_key=True)
+    id: int | None = Field(default=None, primary_key=True)
     query: str
     min_price: Optional[int] = None
     max_price: Optional[int] = None
@@ -88,9 +88,9 @@ class Alert(SQLModel, table=True):
     user: User = Relationship(back_populates="alerts")
 
 class DealHistory(SQLModel, table=True):
-    id: Optional[int] = Field(default=None, primary_key=True)
-    deal_id: str = Field(foreign_key="deal.id")
-    price: int
+    id: int | None = Field(default=None, primary_key=True)
+    deal_id: int = Field(foreign_key="deal.id")
+    price: int | None = Field(default=None)
     available: bool
     created_at: datetime = Field(default_factory=datetime.utcnow)
     
@@ -98,7 +98,7 @@ class DealHistory(SQLModel, table=True):
     deal: Optional[Deal] = Relationship()
 
 class Campaign(SQLModel, table=True):
-    id: Optional[int] = Field(default=None, primary_key=True)
+    id: int | None = Field(default=None, primary_key=True)
     name: str
     type: str # "email", "sms"
     status: str = Field(default="draft") # "draft", "scheduled", "sent", "failed"

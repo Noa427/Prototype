@@ -83,8 +83,4 @@ class BaseScraper(ABC):
             if html:
                 deals = self.parse(html)
                 all_deals.extend(deals)
-        
-        if all_deals:
-            self.save(all_deals)
-        
         return all_deals
