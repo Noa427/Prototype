@@ -1,12 +1,16 @@
+import api from './api';
 import realDeals from '../data/real_deals.json';
 
 export const getScoreColor = (score) => {
-    if (score >= 70) return {
+    // Handle both 0-10 and 0-100 scales
+    const normalizedScore = score > 10 ? score / 10 : score;
+
+    if (normalizedScore >= 8) return {
         bg: "bg-emerald-500/10",
         text: "text-emerald-500",
         border: "border-emerald-500/20"
     };
-    if (score >= 50) return {
+    if (normalizedScore >= 5) return {
         bg: "bg-amber-500/10",
         text: "text-amber-500",
         border: "border-amber-500/20"
@@ -19,14 +23,129 @@ export const getScoreColor = (score) => {
 };
 
 export const getScoreLabel = (score) => {
-    if (score >= 70) return "INTÉRESSANT";
-    if (score >= 50) return "MOYEN";
+    const normalizedScore = score > 10 ? score / 10 : score;
+    if (normalizedScore >= 8) return "EXCELLENT";
+    if (normalizedScore >= 5) return "CORRECT";
     return "À ÉVITER";
 };
 
-let currentIndex = 0;
+export const getDeals = async () => {
+    try {
+        const response = await api.get('/api/deals');
+        const deals = response.data;
+        return deals.map(deal => ({
+            ...deal,
+            id: deal.id,
+            title: deal.title || `Bien à ${deal.city}`,
+            type: deal.property_type || "Bien",
+            price: deal.price ? `${deal.price.toLocaleString()} €` : "Prix N.C.",
+            yield: deal.gross_yield ? `${deal.gross_yield}%` : "N.C.",
+            location: deal.city ? `${deal.city} (${deal.postal_code || ""})` : "N.C.",
+            time: deal.timestamp ? new Date(deal.timestamp).toLocaleTimeString() : "N.C.",
+            desc: deal.description || "Aucune description disponible.",
+            aevumScore: deal.aevum_score || 0
+        }));
+    } catch (error) {
+        console.error("Error fetching deals:", error);
+        return [];
+    }
+};
 
-import { apiRequest } from './api';
+export const getTrends = async () => {
+    try {
+        const response = await api.get('/api/trends/price_by_zipcode');
+        return response.data;
+    } catch (error) {
+        console.error("Error fetching trends:", error);
+        return [];
+    }
+};
+
+export const getStats = async () => {
+    try {
+        const response = await api.get('/api/trends/stats');
+        return response.data;
+    } catch (error) {
+        console.error("Error fetching stats:", error);
+        return { total_deals: 0, avg_price: 0, avg_yield: 0 };
+    }
+};
+
+export const exportDeals = async (filters = {}) => {
+    try {
+        const queryParams = new URLSearchParams(filters).toString();
+        const response = await fetch(`${import.meta.env.VITE_API_URL || ''}/api/deals/export?${queryParams}`, {
+            headers: {
+                'Authorization': `Bearer ${localStorage.getItem('aevum_token')}`
+            }
+        });
+        if (!response.ok) throw new Error('Export failed');
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `deals_export_${new Date().toISOString().slice(0, 19).replace(/[:T]/g, '_')}.csv`;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+    } catch (error) {
+        console.error("Error exporting deals:", error);
+    }
+};
+
+export const getLeads = async (status = null) => {
+    try {
+        const url = status ? `/api/leads?status=${status}` : '/api/leads';
+        const response = await api.get(url);
+        return response.data;
+    } catch (error) {
+        console.error("Error fetching leads:", error);
+        return [];
+    }
+};
+
+export const createLead = async (leadData) => {
+    try {
+        const response = await api.post('/api/leads', leadData);
+        return response.data;
+    } catch (error) {
+        console.error("Error creating lead:", error);
+        throw error;
+    }
+};
+
+export const updateLead = async (leadId, leadData) => {
+    try {
+        const response = await api.put(`/api/leads/${leadId}`, leadData);
+        return response.data;
+    } catch (error) {
+        console.error("Error updating lead:", error);
+        throw error;
+    }
+};
+
+export const deleteLead = async (leadId) => {
+    try {
+        const response = await api.delete(`/api/leads/${leadId}`);
+        return response.data;
+    } catch (error) {
+        console.error("Error deleting lead:", error);
+        throw error;
+    }
+};
+
+export const getAdminKPIs = async () => {
+    try {
+        const response = await api.get('/api/admin/kpi');
+        return response.data;
+    } catch (error) {
+        console.error("Error fetching KPIs:", error);
+        return [];
+    }
+};
+
+// Backward compatibility for Dashboard.jsx
+let currentIndex = 0;
 
 export const getNextDeal = async () => {
     if (!realDeals || realDeals.length === 0) {
@@ -87,12 +206,5 @@ export const generateRandomDeal = () => {
         photos: deal.photos || [],
         description: deal.description,
         timestamp: Date.now()
-    };
-};
-
-export const getDataStatus = () => {
-    return {
-        totalDeals: realDeals ? realDeals.length : 0,
-        hasData: realDeals && realDeals.length > 0
     };
 };

@@ -1,3 +1,4 @@
+from typing import Optional
 from fastapi import FastAPI, Depends, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import OAuth2PasswordRequestForm
@@ -18,6 +19,15 @@ from .auth import (
     ACCESS_TOKEN_EXPIRE_MINUTES,
     get_password_hash
 )
+from .scheduler import start_scheduler, shutdown_scheduler, run_all_scrapers
+from .services.rental_yield import update_all_yields
+from .services.scoring import update_all_scores_deepseek
+from .api.trends import router as trends_router
+from .api.deals import router as deals_router
+from .api.leads import router as leads_router
+from .api.admin import router as admin_router
+from .api.alerts import router as alerts_router
+from .models import Alert
 
 app = FastAPI(title="AEVUM API", version="1.0.0")
 
@@ -30,9 +40,20 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+app.include_router(trends_router, prefix="/api")
+app.include_router(deals_router, prefix="/api")
+app.include_router(leads_router, prefix="/api")
+app.include_router(admin_router, prefix="/api")
+app.include_router(alerts_router, prefix="/api")
+
 @app.on_event("startup")
 def on_startup():
     create_db_and_tables()
+    start_scheduler()
+
+@app.on_event("shutdown")
+def on_shutdown():
+    shutdown_scheduler()
 
 @app.get("/health")
 def health_check():
@@ -72,11 +93,51 @@ async def login_for_access_token(
 async def read_users_me(current_user: User = Depends(get_current_user)):
     return current_user
 
-@app.get("/deals", response_model=List[Deal])
-async def read_deals(
+# Les routes /deals et /alerts sont maintenant dans backend/api/deals.py et backend/api/leads.py (ou alerts.py)
+# Pour l'instant, je garde /alerts ici si je n'ai pas créé alerts.py, mais je devrais le faire.
+# Le user a demandé de modifier /deals, /leads, /alerts.
+
+@app.post("/admin/run_scrapers")
+async def trigger_scrapers(current_user: User = Depends(get_current_user)):
+    if current_user.role != "admin":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Only admins can trigger scrapers"
+        )
+    
+    # Trigger in a separate thread to not block FastAPI
+    import threading
+    thread = threading.Thread(target=run_all_scrapers)
+    thread.start()
+    
+    return {"message": "Scrapers triggered in background"}
+
+@app.post("/admin/update_yields")
+async def trigger_update_yields(
     session: Session = Depends(get_session),
     current_user: User = Depends(get_current_user)
 ):
-    statement = select(Deal).order_by(Deal.timestamp.desc())
-    deals = session.exec(statement).all()
-    return deals
+    if current_user.role != "admin":
+        raise HTTPException(status_code=403, detail="Admin only")
+    
+    count = update_all_yields(session)
+    return {"message": f"Updated yields for {count} deals"}
+    
+from pydantic import BaseModel
+
+class UserPreferencesUpdate(BaseModel):
+    alert_threshold: Optional[int] = None
+
+@app.patch("/users/me/preferences")
+async def update_user_preferences(
+    update: UserPreferencesUpdate,
+    session: Session = Depends(get_session),
+    current_user: User = Depends(get_current_user)
+):
+    if update.alert_threshold is not None:
+        current_user.alert_threshold = update.alert_threshold
+    
+    session.add(current_user)
+    session.commit()
+    session.refresh(current_user)
+    return current_user

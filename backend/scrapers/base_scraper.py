@@ -1,7 +1,11 @@
+import sys
+from pathlib import Path
+sys.path.insert(0, str(Path(__file__).parent.parent.parent))
+
 import httpx
 import logging
-import asyncio
 from abc import ABC, abstractmethod
+from backend.models import Deal, DealHistory
 
 logger = logging.getLogger(__name__)
 
@@ -13,43 +17,44 @@ class BaseScraper(ABC):
         self.selectors = config.get("selectors", {})
 
     async def fetch_page(self, url):
-        """Fetches the HTML content of a page."""
-        logger.info(f"[{self.name}] Fetching {url}...")
         headers = {
-            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36"
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+            'Accept-Language': 'fr,fr-FR;q=0.8,en;q=0.6',
+            'Referer': 'https://www.pap.fr/',
+            'Accept-Encoding': 'gzip, deflate, br',
+            'Connection': 'keep-alive',
         }
-        try:
-            async with httpx.AsyncClient(timeout=30.0, headers=headers, follow_redirects=True) as client:
-                response = await client.get(url)
-                response.raise_for_status()
-                return response.text
-        except Exception as e:
-            logger.error(f"[{self.name}] Error fetching {url}: {e}")
-            return ""
+        async with httpx.AsyncClient(headers=headers, timeout=30.0, follow_redirects=True) as client:
+            resp = await client.get(url)
+            resp.raise_for_status()
+            return resp.text
 
     @abstractmethod
-    def parse(self, html):
-        """Parses the HTML content and returns a list of deals."""
+    async def parse(self, html):
         pass
 
-    async def save_to_db(self, deals, session):
-        """Save deals to database with history tracking."""
-        from backend.models import Deal, DealHistory
-        
-        # Get all existing deals by URL
-        existing_deals = {deal.url: deal for deal in session.query(Deal).all()}
-        
-        # Track URLs from current scrape
+    async def run(self):
+        logger.info(f"[{self.name}] Starting scraping...")
+        all_deals = []
+        for url in self.urls:
+            try:
+                html = await self.fetch_page(url)
+                deals = await self.parse(html)
+                all_deals.extend(deals)
+            except Exception as e:
+                logger.error(f"[{self.name}] Error fetching {url}: {e}")
+        logger.info(f"[{self.name}] Found {len(all_deals)} deals")
+        return all_deals
+
+    def save_to_db(self, deals, session):
+        existing = {d.url: d for d in session.query(Deal).all()}
         current_urls = set()
-        
         for deal_data in deals:
             current_urls.add(deal_data['url'])
-            
-            if deal_data['url'] in existing_deals:
-                # Existing deal - check for changes
-                deal = existing_deals[deal_data['url']]
+            if deal_data['url'] in existing:
+                deal = existing[deal_data['url']]
                 if deal.price != deal_data['price']:
-                    # Price changed - create history
                     session.add(DealHistory(
                         deal_id=deal.id,
                         price=deal_data['price'],
@@ -57,14 +62,8 @@ class BaseScraper(ABC):
                     ))
                     deal.price = deal_data['price']
             else:
-                # New deal
-                session.add(Deal(
-                    **deal_data,
-                    is_active=True
-                ))
-        
-        # Mark deals that disappeared as inactive
-        for url, deal in existing_deals.items():
+                session.add(Deal(**deal_data, is_active=True))
+        for url, deal in existing.items():
             if url not in current_urls and deal.is_active:
                 session.add(DealHistory(
                     deal_id=deal.id,
@@ -72,15 +71,4 @@ class BaseScraper(ABC):
                     available=False
                 ))
                 deal.is_active = False
-        
         session.commit()
-
-    async def run(self):
-        """Runs the scraper for all configured URLs."""
-        all_deals = []
-        for url in self.urls:
-            html = await self.fetch_page(url)
-            if html:
-                deals = self.parse(html)
-                all_deals.extend(deals)
-        return all_deals

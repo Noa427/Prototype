@@ -1,51 +1,32 @@
-const API_BASE_URL = 'http://localhost:8000';
+import axios from 'axios';
 
-export const apiRequest = async (endpoint, options = {}) => {
-    const user = JSON.parse(localStorage.getItem('aevum_user'));
-    const token = user?.access_token;
-
-    const headers = {
+const api = axios.create({
+    baseURL: import.meta.env.VITE_API_URL || 'http://localhost:8000',
+    headers: {
         'Content-Type': 'application/json',
-        ...options.headers,
-    };
+    },
+});
 
+api.interceptors.request.use((config) => {
+    const token = localStorage.getItem('token');
     if (token) {
-        headers['Authorization'] = `Bearer ${token}`;
+        config.headers.Authorization = `Bearer ${token}`;
     }
-
-    const response = await fetch(`${API_BASE_URL}${endpoint}`, {
-        ...options,
-        headers,
-    });
-
-    if (response.status === 401) {
-        localStorage.removeItem('aevum_user');
-        window.location.href = '/login';
-        return null;
-    }
-
-    if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.detail || 'Une erreur est survenue');
-    }
-
-    return response.json();
-};
+    return config;
+});
 
 export const login = async (username, password) => {
     const formData = new FormData();
     formData.append('username', username);
     formData.append('password', password);
 
-    const response = await fetch(`${API_BASE_URL}/auth/login`, {
-        method: 'POST',
-        body: formData,
+    const response = await api.post('/auth/login', formData, {
+        headers: {
+            'Content-Type': 'multipart/form-data'
+        }
     });
 
-    if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.detail || 'Identifiants incorrects');
-    }
-
-    return response.json();
+    return response.data;
 };
+
+export default api;

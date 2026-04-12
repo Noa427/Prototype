@@ -10,6 +10,16 @@ let
     sqlmodel
     alembic
     pyyaml
+    apscheduler
+    python-jose
+    passlib
+    bcrypt
+    httpx
+    uvicorn
+    fastapi
+    python-multipart
+    python-dotenv
+    psycopg2
   ]);
 in
 pkgs.mkShell {

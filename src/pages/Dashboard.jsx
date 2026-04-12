@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Building2, AlertCircle, TrendingUp, ArrowUpRight, Clock, MapPin, Zap, Activity, Wifi, WifiOff, X, ExternalLink, Maximize2, ChevronLeft, ChevronRight } from 'lucide-react';
-import { generateRandomDeal, getScoreColor, getScoreLabel, getNextDeal } from '../services/dealService';
+import { Building2, AlertCircle, TrendingUp, ArrowUpRight, Clock, MapPin, Zap, Activity, Wifi, WifiOff, X, ExternalLink, Maximize2, ChevronLeft, ChevronRight, UserPlus } from 'lucide-react';
+import { generateRandomDeal, getScoreColor, getScoreLabel, getNextDeal, createLead } from '../services/dealService';
 
 const metrics = [
     { label: "Nouveaux Biens", value: "14", sub: "Dernières 24h", icon: Building2, color: "text-accent" },
@@ -229,6 +229,33 @@ const DealDetailPanel = ({ deal, onClose, formatPrice, getScoreColor }) => {
                             >
                                 <span>VOIR L'ANNONCE SOURCE</span>
                                 <ExternalLink className="w-5 h-5 group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />
+                            </button>
+
+                            <button
+                                onClick={async () => {
+                                    const name = prompt("Nom du lead :");
+                                    if (!name) return;
+                                    const email = prompt("Email du lead :");
+                                    if (!email) return;
+                                    try {
+                                        await createLead({
+                                            full_name: name,
+                                            email: email,
+                                            deal_id: deal.id,
+                                            budget: deal.price,
+                                            apport: Math.round(deal.price * 0.1),
+                                            delay: "immédiat",
+                                            status: "new"
+                                        });
+                                        alert("Lead créé avec succès !");
+                                    } catch (e) {
+                                        alert("Erreur lors de la création du lead");
+                                    }
+                                }}
+                                className="w-full py-4 bg-accent hover:bg-accent/90 text-white font-bold rounded-xl transition-all flex items-center justify-center gap-3 shadow-[0_0_20px_rgba(59,130,246,0.3)]"
+                            >
+                                <UserPlus className="w-5 h-5" />
+                                <span>CRÉER UN LEAD (CRM)</span>
                             </button>
                         </div>
 

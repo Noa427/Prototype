@@ -8,12 +8,15 @@ class User(SQLModel, table=True):
     full_name: str
     email: str = Field(unique=True)
     hashed_password: str
-    role: str = Field(default="client") # "admin" or "client"
+    role: str = Field(default="client") # "admin", "client", or "commercial"
     is_active: bool = Field(default=True)
     last_login: Optional[datetime] = None
+    alert_threshold: int = Field(default=8)
+    agency_id: Optional[int] = Field(default=None, foreign_key="agency.id")
     
     # Relationships
     alerts: List["Alert"] = Relationship(back_populates="user")
+    notifications: List["Notification"] = Relationship(back_populates="user")
 
 from sqlalchemy import Column, JSON, ForeignKey
 
@@ -30,6 +33,7 @@ class Deal(SQLModel, table=True):
     need_work: bool | None = Field(default=None)
     map_query: str | None = Field(default=None)
     gross_yield: float | None = Field(default=None)
+    estimated_rent: float | None = Field(default=None)
     aevum_score: int | None = Field(default=None)
     url: str
     description: Optional[str] = None
@@ -48,6 +52,19 @@ class Deal(SQLModel, table=True):
     agency_id: Optional[int] = Field(default=None, foreign_key="agency.id")
     agency: Optional["Agency"] = Relationship(back_populates="deals")
     leads: List["Lead"] = Relationship(back_populates="deal")
+
+class Notification(SQLModel, table=True):
+    id: int | None = Field(default=None, primary_key=True)
+    user_id: int = Field(foreign_key="user.id")
+    deal_id: int = Field(foreign_key="deal.id")
+    alert_id: Optional[int] = Field(default=None, foreign_key="alert.id")
+    message: str
+    is_read: bool = Field(default=False)
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+    
+    # Relationships
+    user: User = Relationship(back_populates="notifications")
+    deal: Deal = Relationship()
 
 class Agency(SQLModel, table=True):
     id: int | None = Field(default=None, primary_key=True)
@@ -73,6 +90,7 @@ class Lead(SQLModel, table=True):
     # Relationships
     deal_id: int = Field(foreign_key="deal.id")
     deal: Deal = Relationship(back_populates="leads")
+    assigned_to: Optional[int] = Field(default=None, foreign_key="user.id")
 
 class Alert(SQLModel, table=True):
     id: int | None = Field(default=None, primary_key=True)

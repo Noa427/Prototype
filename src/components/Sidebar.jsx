@@ -1,6 +1,6 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
-import { LayoutDashboard, Building2, Settings, Shield, Map, Users } from 'lucide-react';
+import { LayoutDashboard, Building2, Settings, Shield, Map, Users, BarChart3 } from 'lucide-react';
 import { clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 import { useAuth } from '../App';
@@ -13,6 +13,7 @@ function cn(...inputs) {
 const clientNavItems = [
     { icon: LayoutDashboard, label: 'Tableau de Bord', id: 'dashboard', path: '/dashboard' },
     { icon: Building2, label: 'Le Flux', id: 'immo', path: '/immobilier' },
+    { icon: Users, label: 'Leads', id: 'leads', path: '/leads' },
     { icon: Map, label: 'Analyse de Zone', id: 'zone', path: '/analyse' },
     { icon: Settings, label: 'Paramètres', id: 'settings', path: '/settings' },
 ];
@@ -20,15 +21,16 @@ const clientNavItems = [
 // Navigation pour les admins
 const adminNavItems = [
     { icon: Users, label: 'Administration', id: 'admin', path: '/admin' },
+    { icon: BarChart3, label: 'Admin KPI', id: 'kpi', path: '/admin/kpi' },
     { icon: Settings, label: 'Paramètres', id: 'settings', path: '/settings' },
 ];
 
 export const Sidebar = () => {
     const { isAdmin, user } = useAuth();
-    
+
     // Sélection des éléments de navigation selon le rôle
     const navItems = isAdmin ? adminNavItems : clientNavItems;
-    
+
     return (
         <aside className="w-64 h-screen glass border-r border-white/5 flex flex-col">
             <div className="p-6 flex items-center gap-3">
@@ -41,17 +43,15 @@ export const Sidebar = () => {
             <nav className="flex-1 px-4 py-4 space-y-2">
                 {/* Indicateur de rôle */}
                 <div className="px-3 pb-4">
-                    <div className={`flex items-center gap-2 px-3 py-2 rounded-lg ${
-                        isAdmin ? 'bg-accent/10 border border-accent/20' : 'bg-blue-500/10 border border-blue-500/20'
-                    }`}>
+                    <div className={`flex items-center gap-2 px-3 py-2 rounded-lg ${isAdmin ? 'bg-accent/10 border border-accent/20' : 'bg-blue-500/10 border border-blue-500/20'
+                        }`}>
                         {isAdmin ? (
                             <Shield className="w-4 h-4 text-accent" />
                         ) : (
                             <LayoutDashboard className="w-4 h-4 text-blue-400" />
                         )}
-                        <span className={`text-xs font-medium ${
-                            isAdmin ? 'text-accent' : 'text-blue-400'
-                        }`}>
+                        <span className={`text-xs font-medium ${isAdmin ? 'text-accent' : 'text-blue-400'
+                            }`}>
                             {isAdmin ? 'Mode Administrateur' : 'Mode Client'}
                         </span>
                     </div>

@@ -1,13 +1,67 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { TrendingUp, MapPin, ArrowUpRight, ArrowDownRight, Info } from 'lucide-react';
-
-const stats = [
-    { label: "Prix Moyen m²", value: "12,450 €", change: "+2.4%", trend: "up" },
-    { label: "Tension Locative", value: "8.9/10", change: "+0.5", trend: "up" },
-    { label: "Délai de Vente", value: "42 jours", change: "-5 jours", trend: "down" },
-];
+import { getTrends, getStats } from '../services/dealService';
+import {
+    BarChart,
+    Bar,
+    XAxis,
+    YAxis,
+    CartesianGrid,
+    Tooltip,
+    ResponsiveContainer,
+    LineChart,
+    Line,
+    Legend
+} from 'recharts';
 
 export const AnalyseZone = () => {
+    const [trends, setTrends] = useState([]);
+    const [stats, setStats] = useState({ total_deals: 0, avg_price: 0, avg_yield: 0 });
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        const fetchData = async () => {
+            setLoading(true);
+            try {
+                const trendData = await getTrends();
+                const statData = await getStats();
+                setTrends(trendData);
+                setStats(statData);
+            } catch (error) {
+                console.error("Error fetching data:", error);
+            } finally {
+                setLoading(false);
+            }
+        };
+        fetchData();
+    }, []);
+
+    const displayStats = [
+        { label: "Prix Moyen m²", value: `${stats.avg_price.toLocaleString()} €`, change: "+2.4%", trend: "up" },
+        { label: "Rendement Moyen", value: `${stats.avg_yield}%`, change: "+0.5", trend: "up" },
+        { label: "Total Opportunités", value: stats.total_deals, change: "Live", trend: "up" },
+    ];
+
+    // Prepare data for Recharts
+    // The API returns [{ month: '2024-01', '75012': 8500, ... }, ...]
+    // We want to show the average of all postal codes if multiple exist, or just the ones present.
+    const chartData = trends.map(t => {
+        const keys = Object.keys(t).filter(k => k !== 'month');
+        const avg = keys.length > 0
+            ? keys.reduce((sum, k) => sum + t[k], 0) / keys.length
+            : 0;
+        return {
+            ...t,
+            average: Math.round(avg)
+        };
+    });
+
+    const postalCodes = trends.length > 0
+        ? Object.keys(trends[0]).filter(k => k !== 'month')
+        : [];
+
+    const colors = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6'];
+
     return (
         <div className="p-8 space-y-8">
             <div className="flex items-center justify-between">
@@ -25,7 +79,7 @@ export const AnalyseZone = () => {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                {stats.map((stat, i) => (
+                {displayStats.map((stat, i) => (
                     <div key={i} className="glass p-6 rounded-xl border border-white/5">
                         <p className="text-[10px] font-bold uppercase tracking-widest text-accent-steel mb-2">{stat.label}</p>
                         <div className="flex items-end justify-between">
@@ -42,34 +96,69 @@ export const AnalyseZone = () => {
             <div className="glass p-8 rounded-xl border border-white/5">
                 <div className="flex items-center justify-between mb-8">
                     <h3 className="font-bold text-lg text-white">Évolution des Prix au m²</h3>
-                    <div className="flex gap-4 text-[10px] font-bold uppercase tracking-widest text-accent-steel">
-                        <div className="flex items-center gap-2">
-                            <div className="w-3 h-3 bg-accent rounded-sm" />
-                            Secteur Actuel
-                        </div>
-                        <div className="flex items-center gap-2">
-                            <div className="w-3 h-3 bg-white/10 rounded-sm" />
-                            Moyenne Ville
-                        </div>
+                </div>
+
+                {loading ? (
+                    <div className="h-80 flex items-center justify-center">
+                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-accent"></div>
                     </div>
-                </div>
-                <div className="h-64 flex items-end gap-3 px-4">
-                    {[40, 45, 38, 52, 60, 58, 65, 72, 68, 80, 85, 90].map((h, i) => (
-                        <div key={i} className="flex-1 group relative">
-                            <div className="absolute -top-8 left-1/2 -translate-x-1/2 bg-accent text-white text-[10px] font-bold px-1.5 py-0.5 rounded opacity-0 group-hover:opacity-100 transition-opacity">
-                                {10000 + h * 50}€
+                ) : (
+                    <div className="h-80 w-full">
+                        {trends.length > 0 ? (
+                            <ResponsiveContainer width="100%" height="100%">
+                                <LineChart data={chartData}>
+                                    <CartesianGrid strokeDasharray="3 3" stroke="#ffffff10" vertical={false} />
+                                    <XAxis
+                                        dataKey="month"
+                                        stroke="#94a3b8"
+                                        fontSize={10}
+                                        tickLine={false}
+                                        axisLine={false}
+                                        tickFormatter={(str) => str.split('-')[1] + '/' + str.split('-')[0].slice(2)}
+                                    />
+                                    <YAxis
+                                        stroke="#94a3b8"
+                                        fontSize={10}
+                                        tickLine={false}
+                                        axisLine={false}
+                                        tickFormatter={(val) => `${val}€`}
+                                    />
+                                    <Tooltip
+                                        contentStyle={{ backgroundColor: '#1a1a1a', border: '1px solid #ffffff10', borderRadius: '8px' }}
+                                        itemStyle={{ fontSize: '12px', fontWeight: 'bold' }}
+                                        labelStyle={{ color: '#94a3b8', marginBottom: '4px', fontSize: '10px' }}
+                                    />
+                                    <Legend iconType="circle" wrapperStyle={{ paddingTop: '20px', fontSize: '10px', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '0.05em' }} />
+                                    {postalCodes.map((pc, i) => (
+                                        <Line
+                                            key={pc}
+                                            type="monotone"
+                                            dataKey={pc}
+                                            stroke={colors[i % colors.length]}
+                                            strokeWidth={2}
+                                            dot={{ r: 4, fill: colors[i % colors.length], strokeWidth: 0 }}
+                                            activeDot={{ r: 6, strokeWidth: 0 }}
+                                            name={`CP ${pc}`}
+                                        />
+                                    ))}
+                                    <Line
+                                        type="monotone"
+                                        dataKey="average"
+                                        stroke="#ffffff"
+                                        strokeWidth={2}
+                                        strokeDasharray="5 5"
+                                        dot={false}
+                                        name="Moyenne"
+                                    />
+                                </LineChart>
+                            </ResponsiveContainer>
+                        ) : (
+                            <div className="h-full flex items-center justify-center text-accent-steel text-sm">
+                                Pas assez de données historiques pour le graphique.
                             </div>
-                            <div className="w-full bg-accent/20 border-t border-accent/40 rounded-t-sm transition-all hover:bg-accent/40" style={{ height: `${h}%` }} />
-                        </div>
-                    ))}
-                </div>
-                <div className="flex justify-between mt-6 text-[10px] text-accent-steel uppercase tracking-widest border-t border-white/5 pt-4">
-                    <span>Janvier</span>
-                    <span>Avril</span>
-                    <span>Juillet</span>
-                    <span>Octobre</span>
-                    <span>Décembre</span>
-                </div>
+                        )}
+                    </div>
+                )}
             </div>
         </div>
     );

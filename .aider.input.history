@@ -903,3 +903,202 @@
 
 # 2026-04-01 18:35:15.524194
 +ne code rien, juste dit bonjours
+
+# 2026-04-01 19:28:55.646401
++Contexte : Projet `antigravity-proto`. Le scraper PAP fonctionne et géocode déjà les annonces (Prompt 1.2 terminé). Les données sont stockées dans PostgreSQL avec les colonnes de géocodage.
++
++Objectif : Implémenter l’historisation des annonces et le marquage des biens expirés.
++
++### 1. Modèles
++- Dans `backend/models.py`, ajouter un modèle `DealHistory` avec :
++  - `id` (int, primary key)
++  - `deal_id` (ForeignKey vers `Deal`, relation)
++  - `price` (int)
++  - `available` (bool)
++  - `created_at` (datetime, default=datetime.utcnow)
++- Ajouter un champ `is_active` (bool, default=True) dans `Deal`.
++
++### 2. Migration Alembic
++- Créer une migration avec `alembic revision --autogenerate -m "add deal history and is_active"`.
++- Vérifier que le fichier généré contient bien la création de la table `dealhistory` et l’ajout de la colonne `is_active` à `deal`.
++- Appliquer la migration : `alembic upgrade head`.
++
++### 3. Modification du scraper
++- Dans `backend/scrapers/base_scraper.py`, modifier la méthode `save_to_db` (ou la fonction qui enregistre) pour :
++  - Pour chaque annonce récupérée, vérifier si un `Deal` avec la même `url` existe déjà.
++  - Si c’est un nouveau bien, créer un `Deal` avec `is_active=True` et ne pas créer d’historique.
++  - Si le bien existe déjà, comparer le prix avec le dernier prix connu (via `deal.history` trié par date).
++    - Si le prix a changé, créer une entrée `DealHistory` avec le nouveau prix et `available=True`.
++  - Pour les annonces qui ne sont plus présentes dans le flux (à déterminer en comparant les URLs du flux précédent), passer `is_active=False` et ajouter une entrée `DealHistory` avec `available=False`.
++
++- Gérer la logique de mise à jour : si le bien est toujours présent mais sans changement de prix, ne pas créer d’historique.
++
++### 4. Planification (optionnel pour l’instant)
++- On pourra plus tard utiliser APScheduler pour lancer le scraper périodiquement. Pour l’instant, on teste manuellement.
++
++### 5. Test
++- Lancer le scraper manuellement avec `python backend/test_scraper_live.py` (ou via le script).
++- Vérifier que :
++  - La première exécution crée des `Deal` sans historique.
++  - Une seconde exécution (avec les mêmes annonces) ne crée pas de duplicate d’historique.
++  - Si un prix change dans la source, on doit voir une nouvelle entrée dans `DealHistory`.
++  - Si une annonce disparaît (à simuler en modifiant le flux), `is_active` passe à `False`.
++
++### 6. Vérification en base
++- Après les tests, exécuter `psql` pour inspecter la table `dealhistory` et la colonne `is_active`.
++
++Sois concis dans l’implémentation, écris uniquement le code nécessaire, et vérifie que les imports sont corrects.
+
+# 2026-04-01 19:28:57.211726
++y
+
+# 2026-04-01 19:29:42.362505
++/run alembic revision --autogenerate -m "add deal history and is_active"
+
+# 2026-04-01 19:29:42.362702
++/run alembic revision --autogenerate -m "add deal history and is_active"
+
+# 2026-04-01 19:29:42.527836
++/run alembic upgrade head
+
+# 2026-04-01 19:29:42.527889
++/run alembic upgrade head
+
+# 2026-04-01 19:29:42.664457
++/run python backend/test_scraper_live.py
+
+# 2026-04-01 19:29:42.664508
++/run python backend/test_scraper_live.py
+
+# 2026-04-01 19:29:44.803557
++y
+
+# 2026-04-01 19:29:45.410341
++/run psql -d aevum -c "SELECT * FROM dealhistory;"
+
+# 2026-04-01 19:29:45.410396
++/run psql -d aevum -c "SELECT * FROM dealhistory;"
+
+# 2026-04-01 19:29:45.545931
++/run psql -d aevum -c "SELECT id, url, is_active FROM deal;"
+
+# 2026-04-01 19:29:45.545986
++/run psql -d aevum -c "SELECT id, url, is_active FROM deal;"
+
+# 2026-04-01 19:29:46.446659
++y
+
+# 2026-04-01 19:36:30.855765
++les commande ne se sont pas bien executé car ça n'était pas dans l'environement nix, sans rien coder répond juste par oui ou par non, peux tu rentrer dans l'environnement nix ?
+
+# 2026-04-01 19:39:39.049777
++[noa@nixos:~/Documents/N.C.C./antigravity-proto]$ nix-shell
++--- ENVIRONNEMENT ANTIGRAVITY PRÊT ---
++
++[nix-shell:~/Documents/N.C.C./antigravity-proto]$ python -c "import yaml, geopy, overpy; print('OK')"
++Traceback (most recent call last):
++  File "<string>", line 1, in <module>
++ModuleNotFoundError: No module named 'geopy'
++
++[nix-shell:~/Documents/N.C.C./antigravity-proto]$ 
++ne code rien, juste repond : pourquoi ça ma fait ça ?
+
+# 2026-04-01 19:39:49.727510
++y
+
+# 2026-04-01 19:40:06.784631
++/run exit
+
+# 2026-04-01 19:40:06.784844
++/run exit
+
+# 2026-04-01 19:40:06.948753
++/run nix-shell
+
+# 2026-04-01 19:40:06.948964
++/run nix-shell
+
+# 2026-04-01 19:43:10.592287
++[nix-shell:~/Documents/N.C.C./antigravity-proto]$ exit
++exit
++
++[noa@nixos:~/Documents/N.C.C./antigravity-proto]$ nix-shell
++--- ENVIRONNEMENT ANTIGRAVITY PRÊT ---
++
++[nix-shell:~/Documents/N.C.C./antigravity-proto]$ python -c "import yaml, geopy, overpy; print('OK')"
++Traceback (most recent call last):
++  File "<string>", line 1, in <module>
++ModuleNotFoundError: No module named 'geopy'
++
++[nix-shell:~/Documents/N.C.C./antigravity-proto]$ 
++
++
++j'ai pourtant relancer nix-shell mais ça ne marche pas encore (ne lance pas nix-shellpour tester, tu ne peut pas)
+
+# 2026-04-01 19:43:26.746933
++y
+
+# 2026-04-01 19:43:49.327155
++n
+
+# 2026-04-01 19:44:46.048453
++[nix-shell:~/Documents/N.C.C./antigravity-proto]$ exit
++exit
++
++[noa@nixos:~/Documents/N.C.C./antigravity-proto]$ nix-shell
++--- ENVIRONNEMENT ANTIGRAVITY PRÊT ---
++
++[nix-shell:~/Documents/N.C.C./antigravity-proto]$ python -c "import yaml, geopy, overpy; print('OK')"
++Traceback (most recent call last):
++  File "<string>", line 1, in <module>
++ModuleNotFoundError: No module named 'geopy'
++
++[nix-shell:~/Documents/N.C.C./antigravity-proto]$ 
++bon la va falloir etre plus incisif, ça fait 3 fois
+
+# 2026-04-01 19:45:46.013852
++n
+
+# 2026-04-01 20:02:52.888295
++1. Corriger le fichier de migration
++
++Ouvre le fichier de migration avec nano :
++bash
++
++nano ~/Documents/N.C.C./antigravity-proto/alembic/versions/9993dd32c597_add_deal_history_and_is_active.py
++
++Remplace toutes les occurrences de sqlmodel.sql.sqltypes.AutoString par sa.String().
++Si tu vois sqlmodel.sql.sqltypes.JSON, remplace par sa.JSON().
++Assure-toi que l’import import sqlalchemy as sa est présent en haut (il l’est normalement).
++
++Exemple de correction :
++python
++
++# Avant
++sa.Column('deal_id', sqlmodel.sql.sqltypes.AutoString(), nullable=False),
++
++# Après
++sa.Column('deal_id', sa.String(), nullable=False),
++
++Sauvegarde et quitte.
+
+# 2026-04-01 20:03:22.049670
++y
+
+# 2026-04-01 20:03:22.061637
++/run cat ~/Documents/N.C.C./antigravity-proto/alembic/versions/9993dd32c597_add_deal_history_and_is_active.py
+
+# 2026-04-01 20:03:22.061856
++/run cat ~/Documents/N.C.C./antigravity-proto/alembic/versions/9993dd32c597_add_deal_history_and_is_active.py
+
+# 2026-04-01 20:03:25.330036
++y
+
+# 2026-04-01 20:03:25.974307
++/run nano ~/Documents/N.C.C./antigravity-proto/alembic/versions/9993dd32c597_add_deal_history_and_is_active.py
+
+# 2026-04-01 20:03:25.974348
++/run nano ~/Documents/N.C.C./antigravity-proto/alembic/versions/9993dd32c597_add_deal_history_and_is_active.py
+
+# 2026-04-01 20:03:43.871324
++y

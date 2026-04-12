@@ -1,14 +1,17 @@
-import sys
-import asyncio
 import yaml
-from sqlmodel import Session
-
-sys.path.insert(0, '/home/noa/Documents/N.C.C./antigravity-proto')
+import asyncio
+from sqlmodel import Session, create_engine
 from scrapers.pap_scraper import PapScraper
-from backend.database import engine
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
+DATABASE_URL = os.getenv("DATABASE_URL")
+engine = create_engine(DATABASE_URL)
 
 async def main():
-    with open('backend/scrapers/config/pap.yaml', 'r') as f:
+    # Chemin correct : on est dans backend/, le fichier est dans backend/scrapers/config/
+    with open('scrapers/config/pap.yaml', 'r') as f:
         config = yaml.safe_load(f)
 
     scraper = PapScraper(config)
@@ -16,8 +19,7 @@ async def main():
     print(f"Deals trouvés : {len(deals)}")
 
     with Session(engine) as session:
-        await scraper.save_to_db(deals, session)
-        session.commit()
+        scraper.save_to_db(deals, session)   # synchrone
 
     if deals:
         d = deals[0]
