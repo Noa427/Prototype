@@ -8,7 +8,8 @@ const api = axios.create({
 });
 
 api.interceptors.request.use((config) => {
-    const token = localStorage.getItem('token');
+    const user = localStorage.getItem('aevum_user');
+    const token = user ? JSON.parse(user).access_token : null;
     if (token) {
         config.headers.Authorization = `Bearer ${token}`;
     }
@@ -16,13 +17,13 @@ api.interceptors.request.use((config) => {
 });
 
 export const login = async (username, password) => {
-    const formData = new FormData();
-    formData.append('username', username);
-    formData.append('password', password);
+    const params = new URLSearchParams();
+    params.append('username', username);
+    params.append('password', password);
 
-    const response = await api.post('/auth/login', formData, {
+    const response = await api.post('/auth/login', params, {
         headers: {
-            'Content-Type': 'multipart/form-data'
+            'Content-Type': 'application/x-www-form-urlencoded'
         }
     });
 

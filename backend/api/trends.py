@@ -2,13 +2,17 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlmodel import Session, select, func
 from typing import List, Dict, Any
 from ..database import get_session
-from ..models import Deal, DealHistory
+from ..models import Deal, DealHistory, User
+from ..auth import get_current_user
 from datetime import datetime
 
 router = APIRouter(prefix="/trends", tags=["trends"])
 
 @router.get("/price_by_zipcode")
-async def get_price_trends(session: Session = Depends(get_session)):
+async def get_price_trends(
+    session: Session = Depends(get_session),
+    current_user: User = Depends(get_current_user)
+):
     """
     Returns a time series of average prices per month for each postal code.
     """
@@ -43,7 +47,10 @@ async def get_price_trends(session: Session = Depends(get_session)):
         raise HTTPException(status_code=500, detail=f"Error fetching trends: {e}")
 
 @router.get("/stats")
-async def get_global_stats(session: Session = Depends(get_session)):
+async def get_global_stats(
+    session: Session = Depends(get_session),
+    current_user: User = Depends(get_current_user)
+):
     """
     Returns global stats (avg price, total deals, etc.)
     """

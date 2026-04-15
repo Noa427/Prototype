@@ -74,9 +74,11 @@ export const getStats = async () => {
 export const exportDeals = async (filters = {}) => {
     try {
         const queryParams = new URLSearchParams(filters).toString();
-        const response = await fetch(`${import.meta.env.VITE_API_URL || ''}/api/deals/export?${queryParams}`, {
+        const user = localStorage.getItem('aevum_user');
+        const token = user ? JSON.parse(user).access_token : null;
+        const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/api/deals/export?${queryParams}`, {
             headers: {
-                'Authorization': `Bearer ${localStorage.getItem('aevum_token')}`
+                'Authorization': `Bearer ${token}`
             }
         });
         if (!response.ok) throw new Error('Export failed');
