@@ -30,6 +30,8 @@ from .api.deals import router as deals_router
 from .api.leads import router as leads_router
 from .api.admin import router as admin_router
 from .api.alerts import router as alerts_router
+from .api.documents import router as documents_router
+from .api.chat import router as chat_router
 from .models import Alert
 
 # Rate limiter
@@ -56,6 +58,8 @@ app.include_router(deals_router, prefix="/api")
 app.include_router(leads_router, prefix="/api")
 app.include_router(admin_router, prefix="/api")
 app.include_router(alerts_router, prefix="/api")
+app.include_router(documents_router, prefix="/api")
+app.include_router(chat_router, prefix="/api")
 
 @app.on_event("startup")
 def on_startup():
