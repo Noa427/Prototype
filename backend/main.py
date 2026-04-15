@@ -53,6 +53,20 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+@app.middleware("http")
+async def tenant_middleware(request: Request, call_next):
+    """Injecte tenant_id (agency_id) dans request.state depuis le JWT cookie."""
+    from jose import jwt as _jwt, JWTError
+    token = request.cookies.get("access_token")
+    request.state.tenant_id = None
+    if token:
+        try:
+            payload = _jwt.decode(token, os.getenv("SECRET_KEY", "SUPER_SECRET_KEY_CHANGE_ME"), algorithms=["HS256"])
+            request.state.tenant_id = payload.get("agency_id")
+        except JWTError:
+            pass
+    return await call_next(request)
+
 app.include_router(trends_router, prefix="/api")
 app.include_router(deals_router, prefix="/api")
 app.include_router(leads_router, prefix="/api")
@@ -93,7 +107,7 @@ async def login_for_access_token(
 
     access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
     access_token = create_access_token(
-        data={"sub": user.username, "role": user.role},
+        data={"sub": user.username, "role": user.role, "agency_id": user.agency_id},
         expires_delta=access_token_expires
     )
 

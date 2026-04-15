@@ -3,7 +3,7 @@ from sqlmodel import Session, select, func
 from typing import List, Dict, Any
 
 from ..database import get_session
-from ..models import User, Lead, Deal
+from ..models import User, Lead, Deal, Agency
 from ..auth import get_admin_user
 from ..services.rental_yield import update_all_yields
 from ..services.scoring import update_all_scores_deepseek
@@ -62,6 +62,56 @@ async def get_sales_kpis(
         })
         
     return kpis
+
+@router.get("/agencies/stats")
+async def get_agencies_stats(
+    session: Session = Depends(get_session),
+    admin_user: User = Depends(get_admin_user)
+):
+    """Super-admin : liste des agences avec volumes deals/leads."""
+    agencies = session.exec(select(Agency)).all()
+    result = []
+    for agency in agencies:
+        deal_count = session.exec(
+            select(func.count(Deal.id)).where(Deal.agency_id == agency.id)
+        ).one()
+        lead_count = session.exec(
+            select(func.count(Lead.id))
+            .join(Deal, Lead.deal_id == Deal.id)
+            .where(Deal.agency_id == agency.id)
+        ).one()
+        user_count = session.exec(
+            select(func.count(User.id)).where(User.agency_id == agency.id)
+        ).one()
+        avg_score = session.exec(
+            select(func.avg(Deal.aevum_score)).where(Deal.agency_id == agency.id)
+        ).one()
+        result.append({
+            "id": agency.id,
+            "name": agency.name,
+            "location": agency.location,
+            "status": agency.status,
+            "deal_count": deal_count,
+            "lead_count": lead_count,
+            "user_count": user_count,
+            "avg_score": round(float(avg_score or 0), 1),
+        })
+    # Agences sans agency_id (deals non rattachés)
+    unassigned_deals = session.exec(
+        select(func.count(Deal.id)).where(Deal.agency_id == None)
+    ).one()
+    result.append({
+        "id": None,
+        "name": "Non rattachés",
+        "location": "—",
+        "status": "active",
+        "deal_count": unassigned_deals,
+        "lead_count": 0,
+        "user_count": 0,
+        "avg_score": 0,
+    })
+    return result
+
 
 @router.post("/update_yield")
 async def trigger_update_yields(

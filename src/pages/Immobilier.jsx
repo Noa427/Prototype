@@ -7,7 +7,14 @@ export const Immobilier = () => {
     const [deals, setDeals] = useState([]);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState("");
-    const [viewMode, setViewMode] = useState("grid"); // "grid" or "map"
+    const [viewMode, setViewMode] = useState("grid");
+    // Filtres immo
+    const [minSurface, setMinSurface] = useState("");
+    const [maxPrice, setMaxPrice] = useState("");
+    // Filtres auto
+    const [filterBrand, setFilterBrand] = useState("");
+    const [maxMileage, setMaxMileage] = useState("");
+    const [minYear, setMinYear] = useState("");
 
     useEffect(() => {
         const fetchDeals = async () => {
@@ -19,10 +26,27 @@ export const Immobilier = () => {
         fetchDeals();
     }, []);
 
-    const filteredDeals = deals.filter(deal =>
-        (deal.title && deal.title.toLowerCase().includes(searchTerm.toLowerCase())) ||
-        (deal.location && deal.location.toLowerCase().includes(searchTerm.toLowerCase()))
-    );
+    // Détecter la verticale dominante
+    const vertical = deals.length > 0
+        ? (deals.filter(d => d.vertical === "auto").length > deals.length / 2 ? "auto" : "immo")
+        : "immo";
+
+    const filteredDeals = deals.filter(deal => {
+        const matchSearch =
+            (deal.title && deal.title.toLowerCase().includes(searchTerm.toLowerCase())) ||
+            (deal.location && deal.location.toLowerCase().includes(searchTerm.toLowerCase())) ||
+            (deal.brand && deal.brand.toLowerCase().includes(searchTerm.toLowerCase()));
+        if (!matchSearch) return false;
+        if (vertical === "immo") {
+            if (minSurface && (!deal.surface || deal.surface < Number(minSurface))) return false;
+            if (maxPrice && deal.price && deal.price > Number(maxPrice.replace(/\D/g, ""))) return false;
+        } else {
+            if (filterBrand && (!deal.brand || !deal.brand.toLowerCase().includes(filterBrand.toLowerCase()))) return false;
+            if (maxMileage && (!deal.mileage || deal.mileage > Number(maxMileage))) return false;
+            if (minYear && (!deal.year || deal.year < Number(minYear))) return false;
+        }
+        return true;
+    });
 
     return (
         <div className="p-6 space-y-6">
@@ -36,12 +60,34 @@ export const Immobilier = () => {
                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-accent-steel" />
                         <input
                             type="text"
-                            placeholder="Filtrer..."
+                            placeholder={vertical === "auto" ? "Marque, ville..." : "Ville, titre..."}
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
                             className="bg-white/5 border border-white/10 rounded-lg py-2 pl-10 pr-4 text-sm focus:outline-none focus:border-accent/50 w-48 text-white"
                         />
                     </div>
+                    {vertical === "immo" ? (
+                        <>
+                            <input type="number" placeholder="Surface min m²" value={minSurface}
+                                onChange={e => setMinSurface(e.target.value)}
+                                className="bg-white/5 border border-white/10 rounded-lg py-2 px-3 text-sm text-white w-32 focus:outline-none focus:border-accent/50" />
+                            <input type="number" placeholder="Prix max €" value={maxPrice}
+                                onChange={e => setMaxPrice(e.target.value)}
+                                className="bg-white/5 border border-white/10 rounded-lg py-2 px-3 text-sm text-white w-32 focus:outline-none focus:border-accent/50" />
+                        </>
+                    ) : (
+                        <>
+                            <input type="text" placeholder="Marque" value={filterBrand}
+                                onChange={e => setFilterBrand(e.target.value)}
+                                className="bg-white/5 border border-white/10 rounded-lg py-2 px-3 text-sm text-white w-28 focus:outline-none focus:border-accent/50" />
+                            <input type="number" placeholder="Km max" value={maxMileage}
+                                onChange={e => setMaxMileage(e.target.value)}
+                                className="bg-white/5 border border-white/10 rounded-lg py-2 px-3 text-sm text-white w-24 focus:outline-none focus:border-accent/50" />
+                            <input type="number" placeholder="Année min" value={minYear}
+                                onChange={e => setMinYear(e.target.value)}
+                                className="bg-white/5 border border-white/10 rounded-lg py-2 px-3 text-sm text-white w-28 focus:outline-none focus:border-accent/50" />
+                        </>
+                    )}
                     <button
                         onClick={() => exportDeals()}
                         className="flex items-center gap-2 px-3 py-2 bg-white/5 border border-white/10 rounded-lg hover:bg-white/10 transition-all text-accent-steel hover:text-white text-sm font-medium"
@@ -111,10 +157,27 @@ export const Immobilier = () => {
                                         <p className="text-[9px] text-accent-steel uppercase tracking-widest mb-0.5">Prix</p>
                                         <p className="text-sm font-bold text-white">{op.price}</p>
                                     </div>
-                                    <div>
-                                        <p className="text-[9px] text-accent-steel uppercase tracking-widest mb-0.5">Rendement</p>
-                                        <p className="text-sm font-bold text-green-500">{op.yield}</p>
-                                    </div>
+                                    {vertical === "auto" ? (
+                                        <>
+                                            <div>
+                                                <p className="text-[9px] text-accent-steel uppercase tracking-widest mb-0.5">Kilométrage</p>
+                                                <p className="text-sm font-bold text-white">{op.mileage ? `${op.mileage.toLocaleString()} km` : "N.C."}</p>
+                                            </div>
+                                            <div>
+                                                <p className="text-[9px] text-accent-steel uppercase tracking-widest mb-0.5">Année</p>
+                                                <p className="text-sm font-bold text-white">{op.year || "N.C."}</p>
+                                            </div>
+                                            <div>
+                                                <p className="text-[9px] text-accent-steel uppercase tracking-widest mb-0.5">Marque</p>
+                                                <p className="text-sm font-bold text-white">{op.brand || "N.C."}</p>
+                                            </div>
+                                        </>
+                                    ) : (
+                                        <div>
+                                            <p className="text-[9px] text-accent-steel uppercase tracking-widest mb-0.5">Rendement</p>
+                                            <p className="text-sm font-bold text-green-500">{op.yield}</p>
+                                        </div>
+                                    )}
                                 </div>
 
                                 <div className="flex items-center gap-2 text-[11px] text-accent-steel mb-6">

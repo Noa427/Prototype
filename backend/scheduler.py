@@ -8,6 +8,7 @@ from sqlmodel import Session, select
 from .database import engine
 from .scrapers.pap_scraper import PapScraper
 from .scrapers.leboncoin_scraper import LeboncoinScraper
+from .scrapers.auto_scraper import AutoScraper
 from .services.rental_yield import update_yield_for_deal, update_all_yields
 from .services.scoring import update_score_for_deal_deepseek, update_all_scores_deepseek
 from .services.alert_service import check_new_deals_for_alerts
@@ -273,6 +274,14 @@ def start_scheduler():
             replace_existing=True
         )
 
+        # Auto scraper – toutes les 12 heures
+        scheduler.add_job(
+            run_auto_scraper_job,
+            trigger=IntervalTrigger(hours=12),
+            id="auto_scraper_job",
+            replace_existing=True
+        )
+
         scheduler.start()
         logger.info(
             "[SCHEDULER] Démarré — PAP(6h), Leboncoin(6h+30min), alertes(15min), "
@@ -289,6 +298,34 @@ def shutdown_scheduler():
 def stop_scheduler():
     shutdown_scheduler()
 
+def run_auto_scraper_job():
+    """Scraping annonces automobiles LeBonCoin."""
+    logger.info("--- [SCHEDULER] Démarrage scraping Auto ---")
+    try:
+        base_dir = os.path.dirname(os.path.abspath(__file__))
+        config_path = os.path.join(base_dir, "scrapers", "config", "leboncoin_auto.yaml")
+        if not os.path.exists(config_path):
+            logger.error(f"[SCHEDULER] Config auto non trouvée : {config_path}")
+            return
+        with open(config_path, 'r') as f:
+            config = yaml.safe_load(f)
+        scraper = AutoScraper(config)
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+        try:
+            deals = loop.run_until_complete(scraper.run())
+        finally:
+            loop.close()
+        logger.info(f"[SCHEDULER] Auto scraping terminé : {len(deals)} annonces")
+        if deals:
+            with Session(engine) as session:
+                scraper.save_to_db(deals, session)
+                logger.info("[SCHEDULER] Auto - sauvegarde OK")
+    except Exception as e:
+        logger.exception(f"[SCHEDULER] Erreur scraping auto : {e}")
+
+
 def run_all_scrapers():
     run_pap_scraper_job()
     run_leboncoin_scraper_job()
+    run_auto_scraper_job()

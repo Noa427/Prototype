@@ -48,6 +48,13 @@ class Deal(SQLModel, table=True):
     longitude: Optional[float] = None
     amenities: Optional[dict] = Field(default=None, sa_column=Column(JSON))
 
+    # Champs verticale automobile
+    vertical: str = Field(default="immo")  # "immo" | "auto"
+    brand: Optional[str] = None
+    model_name: Optional[str] = None
+    mileage: Optional[int] = None
+    year: Optional[int] = None
+
     # Relationships
     agency_id: Optional[int] = Field(default=None, foreign_key="agency.id")
     agency: Optional["Agency"] = Relationship(back_populates="deals")

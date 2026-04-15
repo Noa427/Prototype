@@ -51,13 +51,15 @@ async def get_global_stats(
     session: Session = Depends(get_session),
     current_user: User = Depends(get_current_user)
 ):
-    """
-    Returns global stats (avg price, total deals, etc.)
-    """
-    total_deals = session.exec(select(func.count(Deal.id))).one()
-    avg_price = session.exec(select(func.avg(Deal.price))).one()
-    avg_yield = session.exec(select(func.avg(Deal.gross_yield))).one()
-    
+    """Returns global stats filtered by tenant (agency_id) for non-admins."""
+    base = select(Deal)
+    if current_user.role != "admin" and current_user.agency_id:
+        base = base.where(Deal.agency_id == current_user.agency_id)
+
+    total_deals = session.exec(select(func.count(Deal.id)).select_from(base.subquery())).one()
+    avg_price = session.exec(select(func.avg(Deal.price)).select_from(base.subquery())).one()
+    avg_yield = session.exec(select(func.avg(Deal.gross_yield)).select_from(base.subquery())).one()
+
     return {
         "total_deals": total_deals,
         "avg_price": round(float(avg_price or 0), 2),
