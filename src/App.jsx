@@ -9,6 +9,7 @@ import AnalyseZone from './pages/AnalyseZone';
 import Settings from './pages/Settings';
 import Leads from './pages/Leads';
 import AdminKPI from './pages/AdminKPI';
+import Automation from './pages/Automation';
 
 // Contexte d'authentification
 const AuthContext = createContext();
@@ -22,29 +23,12 @@ export const useAuth = () => {
 };
 
 // Composant de protection des routes
-const ProtectedRoute = ({ children, requiredRole = null }) => {
+// roles: null = tout le monde connecté, "admin" = admin seulement, "staff" = client+commercial
+const ProtectedRoute = ({ children, roles = null }) => {
   const { user } = useAuth();
-
-  if (!user) {
-    return <Navigate to="/login" replace />;
-  }
-
-  if (requiredRole && user.role !== requiredRole) {
-    // Si un client tente d'accéder à une route admin ou commercial, rediriger vers dashboard
-    if (user.role === 'client' && (requiredRole === 'admin' || requiredRole === 'commercial')) {
-      return <Navigate to="/dashboard" replace />;
-    }
-    // Si un commercial tente d'accéder à une route admin, rediriger vers dashboard
-    if (user.role === 'commercial' && requiredRole === 'admin') {
-      return <Navigate to="/dashboard" replace />;
-    }
-    // Si un admin tente d'accéder à une route client, rediriger vers admin
-    if (user.role === 'admin' && requiredRole === 'client') {
-      return <Navigate to="/admin" replace />;
-    }
-    return <Navigate to="/" replace />;
-  }
-
+  if (!user) return <Navigate to="/login" replace />;
+  if (roles === "admin" && user.role !== "admin") return <Navigate to="/dashboard" replace />;
+  if (roles === "staff" && !["client", "commercial", "admin"].includes(user.role)) return <Navigate to="/login" replace />;
   return children;
 };
 
@@ -68,14 +52,15 @@ function App() {
   });
 
   const login = (userData) => {
-    setUser(userData);
-    // Sauvegarder la session dans localStorage
-    localStorage.setItem('aevum_user', JSON.stringify(userData));
+    // Stocker uniquement les infos user — le token JWT est dans le cookie HttpOnly
+    const { access_token, ...userInfo } = userData;
+    setUser(userInfo);
+    localStorage.setItem('aevum_user', JSON.stringify(userInfo));
   };
 
-  const logout = () => {
+  const logout = async () => {
+    try { await fetch('http://localhost:8000/auth/logout', { method: 'POST', credentials: 'include' }); } catch {}
     setUser(null);
-    // Vider complètement le localStorage
     localStorage.removeItem('aevum_user');
     localStorage.removeItem('aevum_settings');
   };
@@ -107,108 +92,39 @@ function App() {
     <AuthContext.Provider value={authValue}>
       <BrowserRouter>
         <Routes>
-          {/* Route de connexion */}
-          <Route
-            path="/login"
-            element={
-              user ? (
-                user.role === 'admin' ? <Navigate to="/admin" replace /> : <Navigate to="/dashboard" replace />
-              ) : (
-                <Login onLogin={login} />
-              )
-            }
-          />
+          <Route path="/login" element={
+            user ? (user.role === 'admin' ? <Navigate to="/admin" replace /> : <Navigate to="/dashboard" replace />) : <Login onLogin={login} />
+          } />
+          <Route path="/" element={
+            user ? (user.role === 'admin' ? <Navigate to="/admin" replace /> : <Navigate to="/dashboard" replace />) : <Navigate to="/login" replace />
+          } />
 
-          {/* Route d'accueil - Redirection selon le rôle */}
-          <Route
-            path="/"
-            element={
-              user ? (
-                user.role === 'admin' ? <Navigate to="/admin" replace /> : <Navigate to="/dashboard" replace />
-              ) : (
-                <Navigate to="/login" replace />
-              )
-            }
-          />
-
-          {/* Route Admin - Strictement réservée aux admins */}
-          <Route
-            path="/admin"
-            element={
-              <ProtectedRoute requiredRole="admin">
-                <Layout />
-              </ProtectedRoute>
-            }
-          >
+          {/* Admin */}
+          <Route path="/admin" element={<ProtectedRoute roles="admin"><Layout /></ProtectedRoute>}>
             <Route index element={<AdminPanel />} />
           </Route>
+          <Route path="/admin/kpi" element={<ProtectedRoute roles="admin"><Layout /></ProtectedRoute>}>
+            <Route index element={<AdminKPI />} />
+          </Route>
 
-          {/* Route Dashboard - Réservée aux clients */}
-          <Route
-            path="/dashboard"
-            element={
-              <ProtectedRoute requiredRole="client">
-                <Layout />
-              </ProtectedRoute>
-            }
-          >
+          {/* Staff (client + commercial + admin) */}
+          <Route path="/dashboard" element={<ProtectedRoute roles="staff"><Layout /></ProtectedRoute>}>
             <Route index element={<Dashboard />} />
           </Route>
-
-          {/* Routes supplémentaires pour les clients */}
-          <Route
-            path="/immobilier"
-            element={
-              <ProtectedRoute requiredRole="client">
-                <Layout />
-              </ProtectedRoute>
-            }
-          >
+          <Route path="/immobilier" element={<ProtectedRoute roles="staff"><Layout /></ProtectedRoute>}>
             <Route index element={<Immobilier />} />
           </Route>
-
-          <Route
-            path="/analyse"
-            element={
-              <ProtectedRoute requiredRole="client">
-                <Layout />
-              </ProtectedRoute>
-            }
-          >
+          <Route path="/analyse" element={<ProtectedRoute roles="staff"><Layout /></ProtectedRoute>}>
             <Route index element={<AnalyseZone />} />
           </Route>
-
-          <Route
-            path="/settings"
-            element={
-              <ProtectedRoute>
-                <Layout />
-              </ProtectedRoute>
-            }
-          >
-            <Route index element={<Settings />} />
-          </Route>
-
-          <Route
-            path="/leads"
-            element={
-              <ProtectedRoute>
-                <Layout />
-              </ProtectedRoute>
-            }
-          >
+          <Route path="/leads" element={<ProtectedRoute roles="staff"><Layout /></ProtectedRoute>}>
             <Route index element={<Leads />} />
           </Route>
-
-          <Route
-            path="/admin/kpi"
-            element={
-              <ProtectedRoute requiredRole="admin">
-                <Layout />
-              </ProtectedRoute>
-            }
-          >
-            <Route index element={<AdminKPI />} />
+          <Route path="/automation" element={<ProtectedRoute roles="staff"><Layout /></ProtectedRoute>}>
+            <Route index element={<Automation />} />
+          </Route>
+          <Route path="/settings" element={<ProtectedRoute><Layout /></ProtectedRoute>}>
+            <Route index element={<Settings />} />
           </Route>
 
           {/* Redirection par défaut */}

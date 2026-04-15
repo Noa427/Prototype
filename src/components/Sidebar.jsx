@@ -1,6 +1,6 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
-import { LayoutDashboard, Building2, Settings, Shield, Map, Users, BarChart3 } from 'lucide-react';
+import { LayoutDashboard, Building2, Settings, Shield, Map, Users, BarChart3, Zap } from 'lucide-react';
 import { clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 import { useAuth } from '../App';
@@ -14,6 +14,7 @@ const clientNavItems = [
     { icon: LayoutDashboard, label: 'Tableau de Bord', id: 'dashboard', path: '/dashboard' },
     { icon: Building2, label: 'Le Flux', id: 'immo', path: '/immobilier' },
     { icon: Users, label: 'Leads', id: 'leads', path: '/leads' },
+    { icon: Zap, label: 'Automatisation', id: 'automation', path: '/automation' },
     { icon: Map, label: 'Analyse de Zone', id: 'zone', path: '/analyse' },
     { icon: Settings, label: 'Paramètres', id: 'settings', path: '/settings' },
 ];
