@@ -1,10 +1,13 @@
-from typing import Optional
-from fastapi import FastAPI, Depends, HTTPException, status
+from typing import Optional, List
+from fastapi import FastAPI, Depends, HTTPException, status, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import OAuth2PasswordRequestForm
+from fastapi.responses import JSONResponse
 from sqlmodel import Session, select
 from datetime import timedelta
-from typing import List
+from slowapi import Limiter, _rate_limit_exceeded_handler
+from slowapi.util import get_remote_address
+from slowapi.errors import RateLimitExceeded
 import os
 from dotenv import load_dotenv
 
@@ -13,9 +16,9 @@ load_dotenv()
 from .database import engine, get_session, create_db_and_tables
 from .models import User, Deal, Agency
 from .auth import (
-    authenticate_user, 
-    create_access_token, 
-    get_current_user, 
+    authenticate_user,
+    create_access_token,
+    get_current_user,
     ACCESS_TOKEN_EXPIRE_MINUTES,
     get_password_hash
 )
@@ -29,12 +32,20 @@ from .api.admin import router as admin_router
 from .api.alerts import router as alerts_router
 from .models import Alert
 
-app = FastAPI(title="AEVUM API", version="1.0.0")
+# Rate limiter
+limiter = Limiter(key_func=get_remote_address)
 
-# CORS
+app = FastAPI(title="AEVUM API", version="1.0.0")
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+
+# CORS — origines restreintes via .env
+_raw_origins = os.getenv("ALLOWED_ORIGINS", "http://localhost:5173")
+ALLOWED_ORIGINS = [o.strip() for o in _raw_origins.split(",") if o.strip()]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"], # À restreindre en production
+    allow_origins=ALLOWED_ORIGINS,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -60,27 +71,39 @@ def health_check():
     return {"status": "healthy", "version": "1.0.0"}
 
 @app.post("/auth/login")
+@limiter.limit("5/15minutes")
 async def login_for_access_token(
+    request: Request,
+    response: Response,
     form_data: OAuth2PasswordRequestForm = Depends(),
     session: Session = Depends(get_session)
 ):
     user = authenticate_user(session, form_data.username, form_data.password)
-    
+
     if not user:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Incorrect username or password",
             headers={"WWW-Authenticate": "Bearer"},
         )
-    
+
     access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
     access_token = create_access_token(
-        data={"sub": user.username, "role": user.role}, 
+        data={"sub": user.username, "role": user.role},
         expires_delta=access_token_expires
     )
-    
+
+    is_prod = os.getenv("ENV", "dev") == "production"
+    response.set_cookie(
+        key="access_token",
+        value=access_token,
+        httponly=True,
+        secure=is_prod,
+        samesite="lax",
+        max_age=ACCESS_TOKEN_EXPIRE_MINUTES * 60,
+    )
+
     return {
-        "access_token": access_token, 
         "token_type": "bearer",
         "user": {
             "username": user.username,
@@ -88,6 +111,12 @@ async def login_for_access_token(
             "role": user.role
         }
     }
+
+
+@app.post("/auth/logout")
+async def logout(response: Response):
+    response.delete_cookie("access_token")
+    return {"message": "Logged out"}
 
 @app.get("/auth/me")
 async def read_users_me(current_user: User = Depends(get_current_user)):

@@ -1,0 +1,70 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-admin123}
+      POSTGRES_DB: antigravity
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    env_file: .env
+    environment:
+      DATABASE_URL: postgresql://postgres:${POSTGRES_PASSWORD:-admin123}@postgres:5432/antigravity
+      ENV: production
+    ports:
+      - "8000:8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    command: >
+      sh -c "python -m alembic upgrade head && uvicorn backend.main:app --host 0.0.0.0 --port 8000"
+
+  frontend:
+    build:
+      context: .
+      dockerfile: frontend/Dockerfile
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+
+  scraper:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    env_file: .env
+    environment:
+      DATABASE_URL: postgresql://postgres:${POSTGRES_PASSWORD:-admin123}@postgres:5432/antigravity
+    depends_on:
+      postgres:
+        condition: service_healthy
+    command: python -c "
+      import asyncio, yaml, os;
+      from backend.scrapers.pap_scraper import PapScraper;
+      from backend.scrapers.leboncoin_scraper import LeboncoinScraper;
+      from sqlmodel import Session;
+      from backend.database import engine;
+
+      async def main():
+          for cls, path in [(PapScraper, 'backend/scrapers/config/pap.yaml'), (LeboncoinScraper, 'backend/scrapers/config/leboncoin.yaml')]:
+              if os.path.exists(path):
+                  with open(path) as f: cfg = yaml.safe_load(f)
+                  s = cls(cfg); deals = await s.run()
+                  if deals:
+                      with Session(engine) as session: s.save_to_db(deals, session)
+      asyncio.run(main())
+      "
+    restart: "no"
+
+volumes:
+  pgdata:
