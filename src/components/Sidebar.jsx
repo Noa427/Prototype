@@ -23,6 +23,7 @@ const clientNavItems = [
 const adminNavItems = [
     { icon: Users, label: 'Administration', id: 'admin', path: '/admin' },
     { icon: BarChart3, label: 'Admin KPI', id: 'kpi', path: '/admin/kpi' },
+    { icon: Building2, label: 'Agences', id: 'agencies', path: '/admin/agencies' },
     { icon: Settings, label: 'Paramètres', id: 'settings', path: '/settings' },
 ];
 

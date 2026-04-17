@@ -9,6 +9,7 @@ import AnalyseZone from './pages/AnalyseZone';
 import Settings from './pages/Settings';
 import Leads from './pages/Leads';
 import AdminKPI from './pages/AdminKPI';
+import AdminAgencies from './pages/AdminAgencies';
 import Automation from './pages/Automation';
 
 // Contexte d'authentification
@@ -105,6 +106,9 @@ function App() {
           </Route>
           <Route path="/admin/kpi" element={<ProtectedRoute roles="admin"><Layout /></ProtectedRoute>}>
             <Route index element={<AdminKPI />} />
+          </Route>
+          <Route path="/admin/agencies" element={<ProtectedRoute roles="admin"><Layout /></ProtectedRoute>}>
+            <Route index element={<AdminAgencies />} />
           </Route>
 
           {/* Staff (client + commercial + admin) */}

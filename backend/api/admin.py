@@ -113,6 +113,42 @@ async def get_agencies_stats(
     return result
 
 
+@router.put("/agencies/{agency_id}/status")
+async def update_agency_status(
+    agency_id: int,
+    body: Dict[str, Any],
+    session: Session = Depends(get_session),
+    admin_user: User = Depends(get_admin_user)
+):
+    """Super-admin : change le statut d'une agence (active/suspended/revoked)."""
+    agency = session.get(Agency, agency_id)
+    if not agency:
+        raise HTTPException(status_code=404, detail="Agence introuvable")
+    new_status = body.get("status")
+    if new_status not in ("active", "suspended", "revoked"):
+        raise HTTPException(status_code=400, detail="Statut invalide")
+    agency.status = new_status
+    session.add(agency)
+    session.commit()
+    session.refresh(agency)
+    return {"id": agency.id, "name": agency.name, "status": agency.status}
+
+
+@router.delete("/agencies/{agency_id}")
+async def delete_agency(
+    agency_id: int,
+    session: Session = Depends(get_session),
+    admin_user: User = Depends(get_admin_user)
+):
+    """Super-admin : supprime une agence."""
+    agency = session.get(Agency, agency_id)
+    if not agency:
+        raise HTTPException(status_code=404, detail="Agence introuvable")
+    session.delete(agency)
+    session.commit()
+    return {"detail": "Agence supprimée"}
+
+
 @router.post("/update_yield")
 async def trigger_update_yields(
     session: Session = Depends(get_session),
