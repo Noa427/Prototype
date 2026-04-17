@@ -1,6 +1,7 @@
 from typing import Optional, List
 from sqlmodel import SQLModel, Field, Relationship
 from datetime import datetime
+import uuid
 
 class User(SQLModel, table=True):
     id: int | None = Field(default=None, primary_key=True)
@@ -79,7 +80,10 @@ class Agency(SQLModel, table=True):
     location: str
     status: str = Field(default="active")
     last_activity: Optional[datetime] = None
-    
+    license_key: str = Field(default_factory=lambda: str(uuid.uuid4()), unique=True, index=True)
+    last_heartbeat: Optional[datetime] = None
+    expires_at: Optional[datetime] = None
+
     # Relationships
     deals: List[Deal] = Relationship(back_populates="agency")
 

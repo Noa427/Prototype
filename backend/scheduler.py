@@ -12,7 +12,7 @@ from .scrapers.auto_scraper import AutoScraper
 from .services.rental_yield import update_yield_for_deal, update_all_yields
 from .services.scoring import update_score_for_deal_deepseek, update_all_scores_deepseek
 from .services.alert_service import check_new_deals_for_alerts
-from .models import Deal, Lead, Notification
+from .models import Deal, Lead, Notification, Agency
 
 logger = logging.getLogger(__name__)
 
@@ -227,6 +227,28 @@ def dpe_expiry_job():
         logger.error(f"[SCHEDULER] Erreur alerte DPE : {e}")
 
 
+def check_heartbeat_staleness_job():
+    """Logue les agences dont le heartbeat est absent depuis >2h."""
+    logger.info("[SCHEDULER] Vérification staleness heartbeat agences...")
+    try:
+        from datetime import datetime, timedelta
+        threshold = datetime.utcnow() - timedelta(hours=2)
+        with Session(engine) as session:
+            agencies = session.exec(select(Agency)).all()
+            stale = [
+                a for a in agencies
+                if a.status == "active" and (
+                    a.last_heartbeat is None or a.last_heartbeat < threshold
+                )
+            ]
+            for a in stale:
+                age = "jamais" if a.last_heartbeat is None else f"{int((datetime.utcnow() - a.last_heartbeat).total_seconds() / 3600)}h"
+                logger.warning(f"[HEARTBEAT] Agence #{a.id} '{a.name}' — dernier heartbeat : {age}")
+            logger.info(f"[SCHEDULER] {len(stale)} agence(s) avec heartbeat stale")
+    except Exception as e:
+        logger.error(f"[SCHEDULER] Erreur check heartbeat : {e}")
+
+
 def start_scheduler():
     """Démarre le scheduler avec la tâche périodique."""
     if not scheduler.running:
@@ -282,10 +304,18 @@ def start_scheduler():
             replace_existing=True
         )
 
+        # Heartbeat staleness — toutes les 5 min
+        scheduler.add_job(
+            check_heartbeat_staleness_job,
+            trigger=IntervalTrigger(minutes=5),
+            id="heartbeat_staleness_job",
+            replace_existing=True
+        )
+
         scheduler.start()
         logger.info(
             "[SCHEDULER] Démarré — PAP(6h), Leboncoin(6h+30min), alertes(15min), "
-            "relances leads(24h), baisse prix(24h), DPE(24h)"
+            "relances leads(24h), baisse prix(24h), DPE(24h), heartbeat(5min)"
         )
 
 def shutdown_scheduler():

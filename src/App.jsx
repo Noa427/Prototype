@@ -10,6 +10,7 @@ import Settings from './pages/Settings';
 import Leads from './pages/Leads';
 import AdminKPI from './pages/AdminKPI';
 import AdminAgencies from './pages/AdminAgencies';
+import LicenseGuard from './components/LicenseGuard';
 import Automation from './pages/Automation';
 
 // Contexte d'authentification
@@ -91,6 +92,7 @@ function App() {
 
   return (
     <AuthContext.Provider value={authValue}>
+      <LicenseGuard>
       <BrowserRouter>
         <Routes>
           <Route path="/login" element={
@@ -135,6 +137,7 @@ function App() {
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </BrowserRouter>
+      </LicenseGuard>
     </AuthContext.Provider>
   );
 }
