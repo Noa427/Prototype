@@ -126,6 +126,19 @@ class DealHistory(SQLModel, table=True):
     # Relationships
     deal: Optional[Deal] = Relationship()
 
+class CalendarConfig(SQLModel, table=True):
+    id: int | None = Field(default=None, primary_key=True)
+    user_id: int = Field(foreign_key="user.id", unique=True)
+    work_days: str = Field(default="1,2,3,4,5")   # CSV: 1=lun … 7=dim
+    start_time: str = Field(default="09:00")
+    end_time: str = Field(default="18:00")
+    slot_duration: int = Field(default=30)          # minutes
+    lunch_start: str = Field(default="12:00")
+    lunch_end: str = Field(default="13:00")
+    excluded_dates: str = Field(default="")         # CSV YYYY-MM-DD
+    calendar_url: Optional[str] = None              # iCal / Google link
+
+
 class Campaign(SQLModel, table=True):
     id: int | None = Field(default=None, primary_key=True)
     name: str

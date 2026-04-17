@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { Search, Filter, Phone, Info, MapPin, Clock, Star, Download, Map as MapIcon, LayoutGrid } from 'lucide-react';
+import { Search, Filter, Phone, Info, MapPin, Clock, Star, Download, Map as MapIcon, LayoutGrid, Users } from 'lucide-react';
+import MatchingModal from '../components/MatchingModal';
 import { getDeals, getScoreColor, getScoreLabel, exportDeals } from '../services/dealService';
 import { MapComponent } from '../components/MapComponent';
 
 export const Immobilier = () => {
     const [deals, setDeals] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [matchingDeal, setMatchingDeal] = useState(null);
     const [searchTerm, setSearchTerm] = useState("");
     const [viewMode, setViewMode] = useState("grid");
     // Filtres immo
@@ -185,26 +187,41 @@ export const Immobilier = () => {
                                     {op.location}
                                 </div>
 
-                                <div className="mt-auto grid grid-cols-2 gap-2">
-                                    <a
-                                        href={op.url}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        className="flex items-center justify-center gap-2 py-2 rounded-md bg-white/5 border border-white/10 text-xs font-bold text-white hover:bg-white/10 transition-all"
-                                    >
-                                        <Info className="w-3.5 h-3.5" />
-                                        Détails
-                                    </a>
-                                    <button className="flex items-center justify-center gap-2 py-2 rounded-md bg-accent text-xs font-bold text-white hover:bg-accent/90 transition-all shadow-[0_0_10px_rgba(59,130,246,0.2)]">
-                                        <Phone className="w-3.5 h-3.5" />
-                                        Appeler
-                                    </button>
+                                <div className="mt-auto space-y-2">
+                                    <div className="grid grid-cols-2 gap-2">
+                                        <a
+                                            href={op.url}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="flex items-center justify-center gap-2 py-2 rounded-md bg-white/5 border border-white/10 text-xs font-bold text-white hover:bg-white/10 transition-all"
+                                        >
+                                            <Info className="w-3.5 h-3.5" />
+                                            Détails
+                                        </a>
+                                        <button className="flex items-center justify-center gap-2 py-2 rounded-md bg-accent text-xs font-bold text-white hover:bg-accent/90 transition-all shadow-[0_0_10px_rgba(59,130,246,0.2)]">
+                                            <Phone className="w-3.5 h-3.5" />
+                                            Appeler
+                                        </button>
+                                    </div>
+                                    {vertical === "immo" && (
+                                        <button
+                                            onClick={() => setMatchingDeal(op)}
+                                            className="w-full flex items-center justify-center gap-2 py-2 rounded-md bg-purple-500/10 border border-purple-500/20 text-xs font-bold text-purple-400 hover:bg-purple-500/20 transition-all"
+                                        >
+                                            <Users className="w-3.5 h-3.5" />
+                                            Voir clients matchés
+                                        </button>
+                                    )}
                                 </div>
                             </div>
                         );
                     })}
                 </div>
             ) : null}
+
+            {matchingDeal && (
+                <MatchingModal deal={matchingDeal} onClose={() => setMatchingDeal(null)} />
+            )}
 
             {!loading && filteredDeals.length === 0 && (
                 <div className="text-center py-12">

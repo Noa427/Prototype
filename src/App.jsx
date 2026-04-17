@@ -11,6 +11,8 @@ import Leads from './pages/Leads';
 import AdminKPI from './pages/AdminKPI';
 import AdminAgencies from './pages/AdminAgencies';
 import LicenseGuard from './components/LicenseGuard';
+import Onboarding from './pages/Onboarding';
+import CalendarSettings from './pages/CalendarSettings';
 import Automation from './pages/Automation';
 
 // Contexte d'authentification
@@ -132,6 +134,10 @@ function App() {
           <Route path="/settings" element={<ProtectedRoute><Layout /></ProtectedRoute>}>
             <Route index element={<Settings />} />
           </Route>
+          <Route path="/settings/calendar" element={<ProtectedRoute roles="staff"><Layout /></ProtectedRoute>}>
+            <Route index element={<CalendarSettings />} />
+          </Route>
+          <Route path="/onboarding" element={<ProtectedRoute roles="staff"><Onboarding /></ProtectedRoute>} />
 
           {/* Redirection par défaut */}
           <Route path="*" element={<Navigate to="/" replace />} />

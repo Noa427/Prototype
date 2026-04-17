@@ -17,6 +17,7 @@ const clientNavItems = [
     { icon: Zap, label: 'Automatisation', id: 'automation', path: '/automation' },
     { icon: Map, label: 'Analyse de Zone', id: 'zone', path: '/analyse' },
     { icon: Settings, label: 'Paramètres', id: 'settings', path: '/settings' },
+    { icon: BarChart3, label: 'Calendrier', id: 'calendar', path: '/settings/calendar' },
 ];
 
 // Navigation pour les admins
