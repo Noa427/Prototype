@@ -1,100 +1,10 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { TrendingUp, MapPin, Building2, Star, ExternalLink, RefreshCw, ChevronLeft, ChevronRight, Calendar } from 'lucide-react';
+import { TrendingUp, MapPin, Building2, Star, ExternalLink, RefreshCw } from 'lucide-react';
 import { getStats } from '../services/dealService';
 import api from '../services/api';
 import {
     BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell
 } from 'recharts';
-
-// ── Mini-calendrier ──────────────────────────────────────────────────────────
-const JOURS = ['L', 'M', 'M', 'J', 'V', 'S', 'D'];
-const MOIS = ['Janvier','Février','Mars','Avril','Mai','Juin','Juillet','Août','Septembre','Octobre','Novembre','Décembre'];
-
-const MiniCalendar = ({ slots }) => {
-    const [cur, setCur] = useState(new Date());
-    const today = new Date();
-
-    const year = cur.getFullYear();
-    const month = cur.getMonth();
-    const firstDay = new Date(year, month, 1).getDay(); // 0=dim
-    const daysInMonth = new Date(year, month + 1, 0).getDate();
-    // Convertir firstDay pour lundi=0
-    const offset = (firstDay + 6) % 7;
-
-    // Slots: {"2026-04-21": ["09:00", "10:00"], ...}
-    const hasSlot = (d) => {
-        const iso = `${year}-${String(month + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
-        return slots[iso]?.length > 0;
-    };
-    const isToday = (d) => d === today.getDate() && month === today.getMonth() && year === today.getFullYear();
-
-    const cells = [];
-    for (let i = 0; i < offset; i++) cells.push(null);
-    for (let d = 1; d <= daysInMonth; d++) cells.push(d);
-
-    const [selDay, setSelDay] = useState(null);
-    const selIso = selDay ? `${year}-${String(month + 1).padStart(2, '0')}-${String(selDay).padStart(2, '0')}` : null;
-    const selSlots = selIso ? (slots[selIso] || []) : [];
-
-    return (
-        <div className="glass rounded-xl border border-white/10 p-5 space-y-4">
-            <div className="flex items-center justify-between">
-                <h3 className="font-bold text-white text-sm flex items-center gap-2">
-                    <Calendar className="w-4 h-4 text-accent" />Créneaux disponibles
-                </h3>
-                <div className="flex items-center gap-2">
-                    <button onClick={() => setCur(new Date(year, month - 1))} className="p-1 rounded hover:bg-white/10 text-accent-steel hover:text-white transition-colors">
-                        <ChevronLeft className="w-4 h-4" />
-                    </button>
-                    <span className="text-xs font-bold text-white w-28 text-center">{MOIS[month]} {year}</span>
-                    <button onClick={() => setCur(new Date(year, month + 1))} className="p-1 rounded hover:bg-white/10 text-accent-steel hover:text-white transition-colors">
-                        <ChevronRight className="w-4 h-4" />
-                    </button>
-                </div>
-            </div>
-
-            <div className="grid grid-cols-7 gap-1">
-                {JOURS.map((j, i) => (
-                    <div key={i} className="text-center text-[9px] font-bold text-accent-steel uppercase py-1">{j}</div>
-                ))}
-                {cells.map((d, i) => (
-                    <div key={i}>
-                        {d === null ? <div /> : (
-                            <button
-                                onClick={() => setSelDay(d === selDay ? null : d)}
-                                className={`w-full aspect-square rounded-lg text-xs font-medium transition-colors flex items-center justify-center relative
-                                    ${isToday(d) ? 'border border-accent/50' : ''}
-                                    ${d === selDay ? 'bg-accent text-white' : hasSlot(d) ? 'bg-accent/15 text-accent hover:bg-accent/25' : 'text-accent-steel hover:bg-white/5'}`}
-                            >
-                                {d}
-                                {hasSlot(d) && d !== selDay && (
-                                    <span className="absolute bottom-0.5 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-accent" />
-                                )}
-                            </button>
-                        )}
-                    </div>
-                ))}
-            </div>
-
-            {selDay && (
-                <div className="border-t border-white/10 pt-3 space-y-2">
-                    <p className="text-[10px] font-bold uppercase tracking-wider text-accent-steel">
-                        {selDay} {MOIS[month]} — {selSlots.length} créneau(x)
-                    </p>
-                    {selSlots.length === 0 ? (
-                        <p className="text-xs text-accent-steel">Aucun créneau ce jour.</p>
-                    ) : (
-                        <div className="flex flex-wrap gap-1.5">
-                            {selSlots.map(s => (
-                                <span key={s} className="px-2 py-1 rounded bg-accent/10 border border-accent/20 text-xs text-accent font-medium">{s}</span>
-                            ))}
-                        </div>
-                    )}
-                </div>
-            )}
-        </div>
-    );
-};
 
 // ── Tooltip personnalisé ─────────────────────────────────────────────────────
 const CustomTooltip = ({ active, payload, label }) => {
@@ -120,7 +30,6 @@ const AnalyseZone = () => {
     const [zoneData, setZoneData] = useState([]);
     const [topDeals, setTopDeals] = useState([]);
     const [stats, setStats] = useState({ total_deals: 0, avg_price: 0, avg_yield: 0 });
-    const [slots, setSlots] = useState({});
     const [loading, setLoading] = useState(true);
 
     const load = useCallback(async () => {
@@ -134,23 +43,6 @@ const AnalyseZone = () => {
             setZoneData(z);
             setTopDeals(t);
             setStats(s);
-
-            // Charger les créneaux des 30 prochains jours
-            const today = new Date();
-            const slotMap = {};
-            const promises = [];
-            for (let i = 0; i < 30; i++) {
-                const d = new Date(today);
-                d.setDate(today.getDate() + i);
-                const iso = d.toISOString().slice(0, 10);
-                promises.push(
-                    api.get(`/api/calendar/slots?date=${iso}`)
-                        .then(r => { if (r.data.slots?.length) slotMap[iso] = r.data.slots; })
-                        .catch(() => {})
-                );
-            }
-            await Promise.all(promises);
-            setSlots(slotMap);
         } finally {
             setLoading(false);
         }
@@ -196,11 +88,9 @@ const AnalyseZone = () => {
                 ))}
             </div>
 
-            {/* Layout 2 colonnes */}
-            <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
-
-                {/* Graphique prix par zone — 2/3 */}
-                <div className="xl:col-span-2 glass p-6 rounded-xl border border-white/10 space-y-4">
+            {/* Graphique prix par zone */}
+            <div>
+                <div className="glass p-6 rounded-xl border border-white/10 space-y-4">
                     <h2 className="font-bold text-white text-sm">Prix moyen au m² par code postal</h2>
                     {loading ? (
                         <div className="h-64 flex items-center justify-center">
@@ -240,8 +130,6 @@ const AnalyseZone = () => {
                     )}
                 </div>
 
-                {/* Mini-calendrier — 1/3 */}
-                <MiniCalendar slots={slots} />
             </div>
 
             {/* Top deals */}
