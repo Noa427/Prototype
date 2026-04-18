@@ -1,19 +1,53 @@
-import React from 'react';
-import { Bell, Search, User, LogOut, Shield, UserCheck } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { Bell, Search, User, LogOut, Shield, UserCheck, CheckCheck, Trash2 } from 'lucide-react';
 import { useAuth } from '../App';
+import api from '../services/api';
+
+const POLL_MS = 30_000;
 
 export const Header = () => {
     const [isOnline, setIsOnline] = React.useState(true);
     const { user, logout, isAdmin } = useAuth();
 
-    const handleLogout = () => {
-        logout();
+    // ── Notifications ──────────────────────────────────────────────────────
+    const [notifs, setNotifs] = useState([]);
+    const [open, setOpen] = useState(false);
+    const dropRef = useRef(null);
+
+    const fetchNotifs = () => {
+        api.get('/api/notifications').then(r => setNotifs(r.data)).catch(() => {});
+    };
+
+    useEffect(() => {
+        fetchNotifs();
+        const id = setInterval(fetchNotifs, POLL_MS);
+        return () => clearInterval(id);
+    }, []);
+
+    useEffect(() => {
+        const handler = (e) => {
+            if (dropRef.current && !dropRef.current.contains(e.target)) setOpen(false);
+        };
+        document.addEventListener('mousedown', handler);
+        return () => document.removeEventListener('mousedown', handler);
+    }, []);
+
+    const unread = notifs.filter(n => !n.is_read).length;
+
+    const markRead = async (id) => {
+        await api.put(`/api/notifications/${id}/read`).catch(() => {});
+        setNotifs(prev => prev.map(n => n.id === id ? { ...n, is_read: true } : n));
+    };
+
+    const clearAll = async () => {
+        await api.delete('/api/notifications/clear').catch(() => {});
+        setNotifs([]);
+        setOpen(false);
     };
 
     return (
         <header className="h-16 glass border-b border-white/5 flex items-center px-8 sticky top-0 z-10">
             <div className="flex items-center gap-6">
-                {/* Left side empty to keep search centered or for future use */}
                 <div className="w-48 hidden md:block" />
             </div>
 
@@ -47,10 +81,53 @@ export const Header = () => {
                         <User className="w-5 h-5 text-accent" />
                     </div>
                 </div>
-                <button className="p-2 text-accent-steel hover:text-white transition-colors relative">
-                    <Bell className="w-5 h-5" />
-                    <span className="absolute top-2 right-2 w-2 h-2 bg-accent rounded-full border-2 border-background" />
-                </button>
+
+                {/* ── Cloche notifs ── */}
+                <div className="relative" ref={dropRef}>
+                    <button
+                        onClick={() => setOpen(o => !o)}
+                        className="p-2 text-accent-steel hover:text-white transition-colors relative"
+                    >
+                        <Bell className="w-5 h-5" />
+                        {unread > 0 && (
+                            <span className="absolute top-1 right-1 w-4 h-4 bg-accent rounded-full border-2 border-background flex items-center justify-center text-[9px] font-bold text-white">
+                                {unread > 9 ? '9+' : unread}
+                            </span>
+                        )}
+                    </button>
+
+                    {open && (
+                        <div className="absolute right-0 top-10 w-80 glass border border-white/10 rounded-xl shadow-2xl overflow-hidden z-50">
+                            <div className="flex items-center justify-between px-4 py-3 border-b border-white/10">
+                                <span className="text-xs font-bold uppercase tracking-widest text-white">Notifications</span>
+                                {notifs.length > 0 && (
+                                    <button onClick={clearAll} className="text-accent-steel hover:text-red-400 transition-colors">
+                                        <Trash2 className="w-3.5 h-3.5" />
+                                    </button>
+                                )}
+                            </div>
+                            <div className="max-h-72 overflow-y-auto">
+                                {notifs.length === 0 ? (
+                                    <p className="text-center text-accent-steel text-xs py-6">Aucune notification</p>
+                                ) : notifs.map(n => (
+                                    <div
+                                        key={n.id}
+                                        onClick={() => markRead(n.id)}
+                                        className={`px-4 py-3 border-b border-white/5 cursor-pointer hover:bg-white/5 transition-colors flex items-start gap-3 ${n.is_read ? 'opacity-50' : ''}`}
+                                    >
+                                        <CheckCheck className={`w-4 h-4 mt-0.5 flex-shrink-0 ${n.is_read ? 'text-accent-steel' : 'text-accent'}`} />
+                                        <div className="flex-1 min-w-0">
+                                            <p className="text-xs text-white leading-snug truncate">{n.message}</p>
+                                            <p className="text-[10px] text-accent-steel mt-0.5">
+                                                {new Date(n.created_at).toLocaleString('fr-FR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })}
+                                            </p>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+                </div>
 
                 <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-white/5 border border-white/10">
                     <div className={`w-2 h-2 rounded-full animate-pulse ${isOnline ? 'bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.6)]' : 'bg-red-500'}`} />
@@ -58,7 +135,7 @@ export const Header = () => {
                 </div>
 
                 <button
-                    onClick={handleLogout}
+                    onClick={logout}
                     className="flex items-center gap-2 px-3 py-1.5 text-accent-steel hover:text-white hover:bg-white/5 rounded-lg transition-all duration-200"
                     title="Se déconnecter"
                 >

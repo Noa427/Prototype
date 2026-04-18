@@ -14,6 +14,8 @@ import LicenseGuard from './components/LicenseGuard';
 import Onboarding from './pages/Onboarding';
 import CalendarSettings from './pages/CalendarSettings';
 import Automation from './pages/Automation';
+import Campaigns from './pages/Campaigns';
+import Reporting from './pages/Reporting';
 
 // Contexte d'authentification
 const AuthContext = createContext();
@@ -138,6 +140,12 @@ function App() {
             <Route index element={<CalendarSettings />} />
           </Route>
           <Route path="/onboarding" element={<ProtectedRoute roles="staff"><Onboarding /></ProtectedRoute>} />
+          <Route path="/campaigns" element={<ProtectedRoute roles="staff"><Layout /></ProtectedRoute>}>
+            <Route index element={<Campaigns />} />
+          </Route>
+          <Route path="/reporting" element={<ProtectedRoute roles="staff"><Layout /></ProtectedRoute>}>
+            <Route index element={<Reporting />} />
+          </Route>
 
           {/* Redirection par défaut */}
           <Route path="*" element={<Navigate to="/" replace />} />

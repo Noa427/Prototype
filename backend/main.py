@@ -3,12 +3,14 @@ from fastapi import FastAPI, Depends, HTTPException, status, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import OAuth2PasswordRequestForm
 from fastapi.responses import JSONResponse
+from fastapi.staticfiles import StaticFiles
 from sqlmodel import Session, select
 from datetime import timedelta
 from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.util import get_remote_address
 from slowapi.errors import RateLimitExceeded
 import os
+from pathlib import Path
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -36,6 +38,9 @@ from .api.license import router as license_router
 from .api.calendar_config import router as calendar_router
 from .api.matching import router as matching_router
 from .api.onboarding import router as onboarding_router
+from .api.notifications import router as notifications_router
+from .api.campaigns import router as campaigns_router
+from .api.chat_public import router as chat_public_router
 from .models import Alert
 
 # Rate limiter
@@ -82,6 +87,14 @@ app.include_router(license_router, prefix="/api")
 app.include_router(calendar_router, prefix="/api")
 app.include_router(matching_router, prefix="/api")
 app.include_router(onboarding_router, prefix="/api")
+app.include_router(notifications_router, prefix="/api")
+app.include_router(campaigns_router, prefix="/api")
+app.include_router(chat_public_router, prefix="/api")
+
+# Fichiers statiques (chat-widget.js, etc.)
+_static_dir = Path(__file__).parent / "static"
+_static_dir.mkdir(exist_ok=True)
+app.mount("/static", StaticFiles(directory=str(_static_dir)), name="static")
 
 @app.on_event("startup")
 def on_startup():

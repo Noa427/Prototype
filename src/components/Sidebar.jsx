@@ -1,6 +1,6 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
-import { LayoutDashboard, Building2, Settings, Shield, Map, Users, BarChart3, Zap } from 'lucide-react';
+import { LayoutDashboard, Building2, Settings, Shield, Map, Users, BarChart3, Zap, Mail, TrendingUp } from 'lucide-react';
 import { clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 import { useAuth } from '../App';
@@ -18,6 +18,8 @@ const clientNavItems = [
     { icon: Map, label: 'Analyse de Zone', id: 'zone', path: '/analyse' },
     { icon: Settings, label: 'Paramètres', id: 'settings', path: '/settings' },
     { icon: BarChart3, label: 'Calendrier', id: 'calendar', path: '/settings/calendar' },
+    { icon: Mail, label: 'Campagnes', id: 'campaigns', path: '/campaigns' },
+    { icon: TrendingUp, label: 'Reporting', id: 'reporting', path: '/reporting' },
 ];
 
 // Navigation pour les admins

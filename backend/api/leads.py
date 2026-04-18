@@ -2,9 +2,10 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlmodel import Session, select
 from typing import List, Optional
 from datetime import datetime
+from pydantic import BaseModel
 
 from ..database import get_session
-from ..models import Lead, Deal, User
+from ..models import Lead, Deal, User, Notification
 from ..auth import get_current_user
 
 router = APIRouter(prefix="/leads", tags=["leads"])
@@ -81,6 +82,82 @@ async def update_lead(
     session.commit()
     session.refresh(lead)
     return lead
+
+class NotifyPayload(BaseModel):
+    lead_id: int
+    deal_id: int
+    message: str
+    type: str = "matching"
+
+@router.post("/notify")
+async def notify_lead(
+    payload: NotifyPayload,
+    session: Session = Depends(get_session),
+    current_user: User = Depends(get_current_user)
+):
+    lead = session.get(Lead, payload.lead_id)
+    if not lead:
+        raise HTTPException(status_code=404, detail="Lead not found")
+
+    notif = Notification(
+        user_id=current_user.id,
+        deal_id=payload.deal_id,
+        message=payload.message,
+    )
+    session.add(notif)
+    session.commit()
+    return {"message": "Notification créée", "notification_id": notif.id}
+
+
+@router.get("/stats")
+async def get_leads_stats(
+    session: Session = Depends(get_session),
+    current_user: User = Depends(get_current_user)
+):
+    from sqlmodel import func
+    base = select(Lead)
+    if current_user.role == "commercial":
+        base = base.where(Lead.assigned_to == current_user.id)
+    elif current_user.role == "client":
+        base = base.join(Deal).where(Deal.agency_id == current_user.agency_id)
+
+    leads = session.exec(base).all()
+    total = len(leads)
+    par_statut = {}
+    scores = []
+    for l in leads:
+        par_statut[l.status] = par_statut.get(l.status, 0) + 1
+    converted = par_statut.get("converted", 0)
+    return {
+        "total": total,
+        "par_statut": par_statut,
+        "taux_conversion": round(converted / total * 100, 1) if total else 0,
+    }
+
+
+@router.get("/export")
+async def export_leads_csv(
+    session: Session = Depends(get_session),
+    current_user: User = Depends(get_current_user)
+):
+    import csv, io
+    from fastapi.responses import StreamingResponse
+    stmt = select(Lead)
+    if current_user.role == "commercial":
+        stmt = stmt.where(Lead.assigned_to == current_user.id)
+    elif current_user.role == "client":
+        stmt = stmt.join(Deal).where(Deal.agency_id == current_user.agency_id)
+    leads = session.exec(stmt).all()
+
+    output = io.StringIO()
+    writer = csv.writer(output)
+    writer.writerow(["id", "full_name", "email", "phone", "budget", "apport", "delay", "status", "created_at", "deal_id"])
+    for l in leads:
+        writer.writerow([l.id, l.full_name, l.email, l.phone, l.budget, l.apport, l.delay, l.status, l.created_at, l.deal_id])
+    output.seek(0)
+    return StreamingResponse(iter([output.getvalue()]), media_type="text/csv",
+                             headers={"Content-Disposition": "attachment; filename=leads.csv"})
+
 
 @router.delete("/{lead_id}")
 async def delete_lead(
