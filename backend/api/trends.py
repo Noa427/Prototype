@@ -46,6 +46,36 @@ async def get_price_trends(
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error fetching trends: {e}")
 
+@router.get("/price_by_zone")
+async def get_price_by_zone(
+    session: Session = Depends(get_session),
+    current_user: User = Depends(get_current_user)
+):
+    """Prix moyen par code postal depuis les deals actifs (pas besoin d'historique)."""
+    base = select(Deal.postal_code, func.avg(Deal.price_per_m2).label('avg_pm2'), func.count(Deal.id).label('count'))
+    if current_user.role != "admin" and current_user.agency_id:
+        base = base.where(Deal.agency_id == current_user.agency_id)
+    base = base.where(Deal.postal_code != None, Deal.price_per_m2 != None, Deal.price_per_m2 > 0)
+    base = base.group_by(Deal.postal_code).order_by(func.avg(Deal.price_per_m2).desc())
+    rows = session.exec(base).all()
+    return [{"zone": r.postal_code or "?", "avg_pm2": round(float(r.avg_pm2), 0), "count": r.count} for r in rows]
+
+
+@router.get("/top_deals")
+async def get_top_deals(
+    session: Session = Depends(get_session),
+    current_user: User = Depends(get_current_user)
+):
+    """Top 5 deals par score pour le dashboard."""
+    base = select(Deal).where(Deal.is_active == True, Deal.aevum_score != None)
+    if current_user.role != "admin" and current_user.agency_id:
+        base = base.where(Deal.agency_id == current_user.agency_id)
+    base = base.order_by(Deal.aevum_score.desc()).limit(5)
+    deals = session.exec(base).all()
+    return [{"id": d.id, "city": d.city, "postal_code": d.postal_code, "price": d.price,
+             "surface": d.surface, "gross_yield": d.gross_yield, "score": d.aevum_score, "url": d.url} for d in deals]
+
+
 @router.get("/stats")
 async def get_global_stats(
     session: Session = Depends(get_session),
