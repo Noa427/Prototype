@@ -1,12 +1,15 @@
 from fastapi import APIRouter, Depends, HTTPException
+from fastapi.responses import StreamingResponse
 from sqlmodel import Session, select, func
 from typing import List, Dict, Any
+import io
 
 from ..database import get_session
 from ..models import User, Lead, Deal, Agency
 from ..auth import get_admin_user
 from ..services.rental_yield import update_all_yields
 from ..services.scoring import update_all_scores_deepseek
+from ..services.report_service import generate_monthly_report
 
 router = APIRouter(prefix="/admin", tags=["admin"])
 
@@ -165,6 +168,39 @@ async def trigger_update_scores(
     session: Session = Depends(get_session),
     admin_user: User = Depends(get_admin_user)
 ):
-    # Use DeepSeek scoring by default if possible
     count = await update_all_scores_deepseek(session)
     return {"message": f"Updated scores (DeepSeek) for {count} deals"}
+
+
+@router.get("/agencies/{agency_id}/report")
+async def download_agency_report(
+    agency_id: int,
+    session: Session = Depends(get_session),
+    admin_user: User = Depends(get_admin_user)
+):
+    agency = session.get(Agency, agency_id)
+    if not agency:
+        raise HTTPException(status_code=404, detail="Agency not found")
+
+    leads = session.exec(
+        select(Lead).join(Deal).where(Deal.agency_id == agency_id).order_by(Lead.created_at.desc())
+    ).all()
+
+    total = len(leads)
+    par_statut: Dict[str, int] = {}
+    for l in leads:
+        par_statut[l.status] = par_statut.get(l.status, 0) + 1
+    converted = par_statut.get("converted", 0)
+    stats = {
+        "total": total,
+        "par_statut": par_statut,
+        "taux_conversion": round(converted / total * 100, 1) if total else 0,
+    }
+
+    doc_bytes = generate_monthly_report(agency.name, stats, leads)
+    filename = f"rapport_{agency.name.replace(' ', '_')}.docx"
+    return StreamingResponse(
+        io.BytesIO(doc_bytes),
+        media_type="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        headers={"Content-Disposition": f"attachment; filename={filename}"},
+    )

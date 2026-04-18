@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { TrendingUp, Users, CheckCircle, Download, RefreshCw } from 'lucide-react';
+import { TrendingUp, Users, CheckCircle, Download, RefreshCw, FileText } from 'lucide-react';
 import api from '../services/api';
+import { useAuth } from '../App';
 
 const StatCard = ({ label, value, sub, icon: Icon, accent = false }) => (
     <div className={`glass p-5 rounded-xl border ${accent ? 'border-accent/30' : 'border-white/10'} flex items-center gap-4`}>
@@ -32,6 +33,7 @@ const STATUS_COLORS = {
 };
 
 const Reporting = () => {
+    const { user } = useAuth();
     const [stats, setStats] = useState(null);
     const [loading, setLoading] = useState(true);
 
@@ -48,6 +50,18 @@ const Reporting = () => {
     }, []);
 
     useEffect(() => { fetchStats(); }, [fetchStats]);
+
+    const handlePDFReport = () => {
+        if (!user?.agency_id) return;
+        api.get(`/api/admin/agencies/${user.agency_id}/report`, { responseType: 'blob' })
+            .then(r => {
+                const url = URL.createObjectURL(r.data);
+                const a = document.createElement('a');
+                a.href = url; a.download = 'rapport_mensuel.docx'; a.click();
+                URL.revokeObjectURL(url);
+            })
+            .catch(console.error);
+    };
 
     const handleExport = () => {
         api.get('/api/leads/export', { responseType: 'blob' })
@@ -78,9 +92,15 @@ const Reporting = () => {
                         <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
                     </button>
                     <button onClick={handleExport}
-                        className="flex items-center gap-2 px-4 py-2 rounded-xl bg-accent text-white text-sm font-medium hover:opacity-90 transition-colors">
+                        className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-white text-sm font-medium hover:bg-white/10 transition-colors">
                         <Download className="w-4 h-4" />Export CSV
                     </button>
+                    {user?.role === 'admin' && (
+                        <button onClick={handlePDFReport}
+                            className="flex items-center gap-2 px-4 py-2 rounded-xl bg-accent text-white text-sm font-medium hover:opacity-90 transition-colors">
+                            <FileText className="w-4 h-4" />Rapport .docx
+                        </button>
+                    )}
                 </div>
             </div>
 

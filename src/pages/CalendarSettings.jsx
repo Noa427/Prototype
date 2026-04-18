@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Calendar, Clock, Save, CheckCircle } from 'lucide-react';
+import { Calendar, Clock, Save, CheckCircle, RefreshCw, Link2, Eye } from 'lucide-react';
 import api from '../services/api';
 
 const DAYS = [
@@ -39,6 +39,8 @@ const CalendarSettings = () => {
     const [saving, setSaving] = useState(false);
     const [saved, setSaved] = useState(false);
     const [newDate, setNewDate] = useState('');
+    const [syncStatus, setSyncStatus] = useState(null); // null | 'loading' | {slots, date}
+    const [previewDate, setPreviewDate] = useState(new Date().toISOString().slice(0, 10));
 
     useEffect(() => {
         api.get('/api/calendar/config')
@@ -65,6 +67,16 @@ const CalendarSettings = () => {
     const addHolidays = () => {
         const merged = [...new Set([...cfg.excluded_dates, ...FRENCH_HOLIDAYS_2026])].sort();
         setCfg(c => ({ ...c, excluded_dates: merged }));
+    };
+
+    const testSync = async () => {
+        setSyncStatus('loading');
+        try {
+            const { data } = await api.get(`/api/calendar/slots?date=${previewDate}`);
+            setSyncStatus({ slots: data.slots, date: data.date });
+        } catch (e) {
+            setSyncStatus({ slots: [], date: previewDate, error: true });
+        }
     };
 
     const save = async () => {
@@ -190,7 +202,9 @@ const CalendarSettings = () => {
 
             {/* iCal */}
             <div className="glass rounded-xl border border-white/5 p-5 space-y-3">
-                <h2 className="font-bold text-white text-sm">Lien iCal / Google Calendar</h2>
+                <h2 className="font-bold text-white text-sm flex items-center gap-2">
+                    <Link2 className="w-4 h-4 text-accent" />Lien iCal / Google Calendar
+                </h2>
                 <input
                     type="url"
                     value={cfg.calendar_url}
@@ -198,6 +212,51 @@ const CalendarSettings = () => {
                     placeholder="https://calendar.google.com/calendar/ical/..."
                     className="w-full bg-white/5 border border-white/10 rounded-lg py-2.5 px-4 text-sm text-white focus:outline-none focus:border-accent/50"
                 />
+                {cfg.calendar_url && (
+                    <p className="text-[10px] text-accent-steel">
+                        Connecté · Synchronisation automatique (cache 15 min)
+                    </p>
+                )}
+            </div>
+
+            {/* Aperçu créneaux */}
+            <div className="glass rounded-xl border border-white/5 p-5 space-y-3">
+                <h2 className="font-bold text-white text-sm flex items-center gap-2">
+                    <Eye className="w-4 h-4 text-accent" />Aperçu des créneaux disponibles
+                </h2>
+                <div className="flex gap-2 items-center">
+                    <input
+                        type="date"
+                        value={previewDate}
+                        onChange={e => setPreviewDate(e.target.value)}
+                        className="bg-white/5 border border-white/10 rounded-lg py-2 px-3 text-sm text-white focus:outline-none focus:border-accent/50"
+                    />
+                    <button
+                        onClick={testSync}
+                        disabled={syncStatus === 'loading'}
+                        className="flex items-center gap-2 px-3 py-2 rounded-lg bg-accent/10 border border-accent/20 text-accent text-xs font-bold hover:bg-accent/20 transition-colors disabled:opacity-50"
+                    >
+                        <RefreshCw className={`w-3.5 h-3.5 ${syncStatus === 'loading' ? 'animate-spin' : ''}`} />
+                        Tester
+                    </button>
+                </div>
+                {syncStatus && syncStatus !== 'loading' && (
+                    <div>
+                        {syncStatus.error ? (
+                            <p className="text-xs text-red-400">Erreur lors de la récupération des créneaux.</p>
+                        ) : syncStatus.slots.length === 0 ? (
+                            <p className="text-xs text-accent-steel">Aucun créneau disponible ce jour (congé, weekend ou tout occupé).</p>
+                        ) : (
+                            <div className="flex flex-wrap gap-1.5 mt-1">
+                                {syncStatus.slots.map(s => (
+                                    <span key={s} className="px-2 py-1 rounded bg-accent/10 border border-accent/20 text-xs text-accent font-medium">
+                                        {s}
+                                    </span>
+                                ))}
+                            </div>
+                        )}
+                    </div>
+                )}
             </div>
 
             {/* Save */}
