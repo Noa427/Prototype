@@ -12,12 +12,27 @@ const STATUS_CONFIG = {
 const CampaignCard = ({ campaign, onSend, onDelete, busy }) => {
     const cfg = STATUS_CONFIG[campaign.status] || STATUS_CONFIG.draft;
     const Icon = cfg.icon;
+    const [expanded, setExpanded] = useState(false);
+
     return (
         <div className="glass p-5 rounded-xl border border-white/10 flex flex-col gap-3">
             <div className="flex items-start justify-between gap-3">
                 <div className="flex-1 min-w-0">
                     <h3 className="font-semibold text-white text-sm truncate">{campaign.name}</h3>
-                    <p className="text-xs text-accent-steel mt-1 line-clamp-2">{campaign.message}</p>
+                    <p
+                        onClick={() => setExpanded(e => !e)}
+                        className={`text-xs text-accent-steel mt-1 cursor-pointer hover:text-white transition-colors ${expanded ? '' : 'line-clamp-2'}`}
+                    >
+                        {campaign.message}
+                    </p>
+                    {campaign.message && campaign.message.length > 120 && (
+                        <button
+                            onClick={() => setExpanded(e => !e)}
+                            className="text-[10px] text-accent hover:text-accent/80 transition-colors mt-0.5"
+                        >
+                            {expanded ? 'Voir moins' : 'Voir plus'}
+                        </button>
+                    )}
                 </div>
                 <span className={`flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider flex-shrink-0 ${cfg.cls}`}>
                     <Icon className="w-3 h-3" />{cfg.label}
