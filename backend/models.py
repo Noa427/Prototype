@@ -64,15 +64,15 @@ class Deal(SQLModel, table=True):
 class Notification(SQLModel, table=True):
     id: int | None = Field(default=None, primary_key=True)
     user_id: int = Field(foreign_key="user.id")
-    deal_id: int = Field(foreign_key="deal.id")
+    deal_id: Optional[int] = Field(default=None, foreign_key="deal.id")
     alert_id: Optional[int] = Field(default=None, foreign_key="alert.id")
     message: str
     is_read: bool = Field(default=False)
     created_at: datetime = Field(default_factory=datetime.utcnow)
-    
+
     # Relationships
     user: User = Relationship(back_populates="notifications")
-    deal: Deal = Relationship()
+    deal: Optional[Deal] = Relationship()
 
 class Agency(SQLModel, table=True):
     id: int | None = Field(default=None, primary_key=True)
@@ -95,9 +95,11 @@ class Lead(SQLModel, table=True):
     budget: int
     apport: int
     delay: str
-    status: str = Field(default="new") # "new", "contacted", "qualified", "lost"
+    status: str = Field(default="new")  # new|contacted|qualified|rdv_pris|offre|signé|lost
+    notes: Optional[str] = None
+    score_chaleur: int = Field(default=5)
     created_at: datetime = Field(default_factory=datetime.utcnow)
-    
+
     # Relationships
     deal_id: int = Field(foreign_key="deal.id")
     deal: Deal = Relationship(back_populates="leads")
