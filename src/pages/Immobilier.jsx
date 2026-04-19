@@ -189,15 +189,25 @@ export const Immobilier = () => {
 
                                 <div className="mt-auto space-y-2">
                                     <div className="grid grid-cols-2 gap-2">
-                                        <a
-                                            href={op.url}
-                                            target="_blank"
-                                            rel="noopener noreferrer"
-                                            className="flex items-center justify-center gap-2 py-2 rounded-md bg-white/5 border border-white/10 text-xs font-bold text-white hover:bg-white/10 transition-all"
-                                        >
-                                            <Info className="w-3.5 h-3.5" />
-                                            Détails
-                                        </a>
+                                        {op.url ? (
+                                            <a
+                                                href={op.url}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                className="flex items-center justify-center gap-2 py-2 rounded-md bg-white/5 border border-white/10 text-xs font-bold text-white hover:bg-white/10 transition-all"
+                                            >
+                                                <Info className="w-3.5 h-3.5" />
+                                                Détails
+                                            </a>
+                                        ) : (
+                                            <span
+                                                className="flex items-center justify-center gap-2 py-2 rounded-md bg-white/5 border border-white/10 text-xs font-bold text-accent-steel cursor-not-allowed opacity-50"
+                                                title="URL non disponible"
+                                            >
+                                                <Info className="w-3.5 h-3.5" />
+                                                Détails
+                                            </span>
+                                        )}
                                         <button className="flex items-center justify-center gap-2 py-2 rounded-md bg-accent text-xs font-bold text-white hover:bg-accent/90 transition-all shadow-[0_0_10px_rgba(59,130,246,0.2)]">
                                             <Phone className="w-3.5 h-3.5" />
                                             Appeler
