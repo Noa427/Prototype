@@ -119,6 +119,24 @@ async def get_agencies_stats(
     return result
 
 
+@router.post("/agencies")
+async def create_agency(
+    body: Dict[str, Any],
+    session: Session = Depends(get_session),
+    admin_user: User = Depends(get_admin_user)
+):
+    """Super-admin : crée une nouvelle agence."""
+    name = (body.get("name") or "").strip()
+    location = (body.get("location") or "").strip()
+    if not name or not location:
+        raise HTTPException(status_code=400, detail="Nom et localisation requis")
+    agency = Agency(name=name, location=location)
+    session.add(agency)
+    session.commit()
+    session.refresh(agency)
+    return {"id": agency.id, "name": agency.name, "location": agency.location, "status": agency.status}
+
+
 @router.put("/agencies/{agency_id}/status")
 async def update_agency_status(
     agency_id: int,

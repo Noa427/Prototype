@@ -3,11 +3,78 @@ import { Users, Shield, Plus, AlertTriangle, Activity, Bell, ChevronRight, X, Al
 import { AgencyDetails } from './AgencyDetails';
 import api from '../services/api';
 
+const NewAgencyModal = ({ onClose, onCreated }) => {
+    const [form, setForm] = React.useState({ name: '', location: '' });
+    const [saving, setSaving] = React.useState(false);
+    const [error, setError] = React.useState('');
+
+    const submit = async () => {
+        if (!form.name.trim() || !form.location.trim()) return;
+        setSaving(true);
+        setError('');
+        try {
+            await api.post('/api/admin/agencies', form);
+            onCreated();
+        } catch (e) {
+            setError(e.response?.data?.detail || 'Erreur lors de la création.');
+        } finally {
+            setSaving(false);
+        }
+    };
+
+    return (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+            <div className="glass rounded-2xl border border-white/10 p-6 w-full max-w-md space-y-4">
+                <div className="flex items-center justify-between">
+                    <h2 className="font-bold text-white flex items-center gap-2">
+                        <Plus className="w-5 h-5 text-accent" />Nouvelle Agence
+                    </h2>
+                    <button onClick={onClose} className="p-1.5 rounded-lg hover:bg-white/10 text-accent-steel hover:text-white transition-colors">
+                        <X className="w-4 h-4" />
+                    </button>
+                </div>
+                {error && <p className="text-red-400 text-sm">{error}</p>}
+                <div className="space-y-1.5">
+                    <label className="text-[10px] font-bold uppercase tracking-widest text-accent-steel">Nom de l'agence</label>
+                    <input
+                        value={form.name}
+                        onChange={e => setForm(f => ({ ...f, name: e.target.value }))}
+                        placeholder="Ex : Agence Martin Immobilier"
+                        className="w-full bg-white/5 border border-white/10 rounded-lg py-2 px-3 text-sm text-white focus:outline-none focus:border-accent/50"
+                    />
+                </div>
+                <div className="space-y-1.5">
+                    <label className="text-[10px] font-bold uppercase tracking-widest text-accent-steel">Localisation</label>
+                    <input
+                        value={form.location}
+                        onChange={e => setForm(f => ({ ...f, location: e.target.value }))}
+                        placeholder="Ex : Lyon, France"
+                        className="w-full bg-white/5 border border-white/10 rounded-lg py-2 px-3 text-sm text-white focus:outline-none focus:border-accent/50"
+                    />
+                </div>
+                <div className="flex gap-3 pt-2">
+                    <button onClick={onClose} className="flex-1 py-2 rounded-lg bg-white/5 border border-white/10 text-accent-steel text-sm hover:text-white transition-colors">
+                        Annuler
+                    </button>
+                    <button
+                        onClick={submit}
+                        disabled={saving || !form.name.trim() || !form.location.trim()}
+                        className="flex-1 py-2 rounded-lg bg-accent text-white text-sm font-medium hover:opacity-90 transition-colors disabled:opacity-50"
+                    >
+                        {saving ? 'Création…' : 'Créer'}
+                    </button>
+                </div>
+            </div>
+        </div>
+    );
+};
+
 export const AdminPanel = () => {
     const [selectedAgencyDetails, setSelectedAgencyDetails] = React.useState(null);
     const [agencies, setAgencies] = React.useState([]);
     const [notifications, setNotifications] = React.useState([]);
     const [loading, setLoading] = React.useState(true);
+    const [showNewAgency, setShowNewAgency] = React.useState(false);
     const [apiConfig, setApiConfig] = React.useState({ sms_api_key: '', email_api_key: '' });
     const [configLoading, setConfigLoading] = React.useState(false);
     const [configSaved, setConfigSaved] = React.useState(false);
@@ -17,12 +84,14 @@ export const AdminPanel = () => {
         Promise.all([
             api.get('/admin/agencies/stats'),
             api.get('/notifications/'),
-            api.get('/admin/config'),
-        ]).then(([agenciesRes, notifRes, configRes]) => {
+        ]).then(([agenciesRes, notifRes]) => {
             setAgencies(agenciesRes.data.filter(a => a.id !== null));
             setNotifications(notifRes.data.slice(0, 5));
-            setApiConfig(configRes.data);
         }).catch(console.error).finally(() => setLoading(false));
+
+        api.get('/api/admin/config')
+            .then(res => setApiConfig(res.data))
+            .catch(console.error);
     }, []);
 
     const getAgencyHealth = (agency) => {
@@ -61,7 +130,7 @@ export const AdminPanel = () => {
         setConfigLoading(true);
         setConfigError(false);
         try {
-            await api.put('/admin/config', apiConfig);
+            await api.put('/api/admin/config', apiConfig);
             setConfigSaved(true);
             setTimeout(() => setConfigSaved(false), 3000);
         } catch {
@@ -185,7 +254,10 @@ export const AdminPanel = () => {
                         <Users className="w-5 h-5 text-accent" />
                         <h2 className="text-xl font-bold text-white">Gestion des Agences</h2>
                     </div>
-                    <button className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-all duration-200">
+                    <button
+                        onClick={() => setShowNewAgency(true)}
+                        className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-all duration-200"
+                    >
                         <Plus className="w-4 h-4" />
                         Nouvelle Agence
                     </button>
@@ -305,6 +377,16 @@ export const AdminPanel = () => {
                     Sauvegarder les clés
                 </button>
             </div>
+
+            {showNewAgency && (
+                <NewAgencyModal
+                    onClose={() => setShowNewAgency(false)}
+                    onCreated={() => {
+                        setShowNewAgency(false);
+                        api.get('/admin/agencies/stats').then(r => setAgencies(r.data.filter(a => a.id !== null))).catch(console.error);
+                    }}
+                />
+            )}
 
             <div className="p-4 bg-accent/5 border border-accent/10 rounded-lg">
                 <div className="flex items-start gap-3">
