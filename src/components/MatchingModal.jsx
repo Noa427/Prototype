@@ -7,13 +7,16 @@ const STATUS_LABEL = { new: 'Nouveau', contacted: 'Contacté', qualified: 'Quali
 const MatchingModal = ({ deal, onClose }) => {
     const [data, setData] = useState(null);
     const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(false);
     const [sending, setSending] = useState(null);
     const [sent, setSent] = useState({});
 
     useEffect(() => {
+        setLoading(true);
+        setError(false);
         api.get(`/api/matching/deals/${deal.id}/leads`)
             .then(r => setData(r.data))
-            .catch(console.error)
+            .catch(() => setError(true))
             .finally(() => setLoading(false));
     }, [deal.id]);
 
@@ -58,10 +61,15 @@ const MatchingModal = ({ deal, onClose }) => {
                             <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-accent" />
                         </div>
                     )}
-                    {!loading && data?.matches?.length === 0 && (
+                    {error && (
+                        <p className="text-center text-red-400 text-sm py-8">
+                            Erreur lors du chargement des clients matchés.
+                        </p>
+                    )}
+                    {!loading && !error && data?.matches?.length === 0 && (
                         <p className="text-center text-accent-steel text-sm py-8">Aucun client avec un budget suffisant.</p>
                     )}
-                    {!loading && data?.matches?.map(lead => (
+                    {!loading && !error && data?.matches?.map(lead => (
                         <div key={lead.id} className="bg-white/[0.03] rounded-xl border border-white/5 p-4 space-y-3">
                             <div className="flex items-start justify-between">
                                 <div>
