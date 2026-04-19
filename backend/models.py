@@ -83,6 +83,8 @@ class Agency(SQLModel, table=True):
     license_key: str = Field(default_factory=lambda: str(uuid.uuid4()), unique=True, index=True)
     last_heartbeat: Optional[datetime] = None
     expires_at: Optional[datetime] = None
+    sms_api_key: Optional[str] = None
+    email_api_key: Optional[str] = None
 
     # Relationships
     deals: List[Deal] = Relationship(back_populates="agency")

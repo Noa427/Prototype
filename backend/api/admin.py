@@ -155,6 +155,30 @@ async def delete_agency(
     return {"detail": "Agence supprimée"}
 
 
+@router.get("/agencies/{agency_id}/users")
+async def get_agency_users(
+    agency_id: int,
+    session: Session = Depends(get_session),
+    admin_user: User = Depends(get_admin_user)
+):
+    """Super-admin : liste des utilisateurs d'une agence."""
+    agency = session.get(Agency, agency_id)
+    if not agency:
+        raise HTTPException(status_code=404, detail="Agence introuvable")
+    users = session.exec(select(User).where(User.agency_id == agency_id)).all()
+    return [
+        {
+            "id": u.id,
+            "username": u.username,
+            "full_name": u.full_name,
+            "email": u.email,
+            "role": u.role,
+            "is_active": u.is_active,
+        }
+        for u in users
+    ]
+
+
 @router.post("/update_yield")
 async def trigger_update_yields(
     session: Session = Depends(get_session),
@@ -204,3 +228,37 @@ async def download_agency_report(
         media_type="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
         headers={"Content-Disposition": f"attachment; filename={filename}"},
     )
+
+
+@router.get("/config")
+async def get_admin_config(
+    session: Session = Depends(get_session),
+    admin_user: User = Depends(get_admin_user)
+):
+    """Retourne la config API keys de la première agence (super-admin)."""
+    agency = session.exec(select(Agency)).first()
+    if not agency:
+        return {"sms_api_key": "", "email_api_key": ""}
+    return {
+        "sms_api_key": agency.sms_api_key or "",
+        "email_api_key": agency.email_api_key or "",
+    }
+
+
+@router.put("/config")
+async def update_admin_config(
+    body: Dict[str, Any],
+    session: Session = Depends(get_session),
+    admin_user: User = Depends(get_admin_user)
+):
+    """Met à jour les clés API de la première agence."""
+    agency = session.exec(select(Agency)).first()
+    if not agency:
+        raise HTTPException(status_code=404, detail="Aucune agence configurée")
+    if "sms_api_key" in body:
+        agency.sms_api_key = body["sms_api_key"] or None
+    if "email_api_key" in body:
+        agency.email_api_key = body["email_api_key"] or None
+    session.add(agency)
+    session.commit()
+    return {"detail": "Configuration sauvegardée"}
