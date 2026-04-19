@@ -9,7 +9,9 @@ export const Settings = () => {
         fullName: user?.fullName || '',
         email: user?.email || ''
     });
-    const [notifications, setNotifications] = useState(userSettings.notifications);
+    const [notifications, setNotifications] = useState(
+        userSettings?.notifications ?? { newProperties: true, zoneReports: true, securityAlerts: true }
+    );
     const [isSaving, setIsSaving] = useState(false);
     const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
     const [passwordChangeSuccess, setPasswordChangeSuccess] = useState(false);
