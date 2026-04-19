@@ -201,6 +201,10 @@ export const Immobilier = () => {
                                             </a>
                                         ) : (
                                             <span
+                                                role="button"
+                                                aria-disabled="true"
+                                                tabIndex={0}
+                                                aria-label="Détails — URL non disponible"
                                                 className="flex items-center justify-center gap-2 py-2 rounded-md bg-white/5 border border-white/10 text-xs font-bold text-accent-steel cursor-not-allowed opacity-50"
                                                 title="URL non disponible"
                                             >
@@ -208,10 +212,27 @@ export const Immobilier = () => {
                                                 Détails
                                             </span>
                                         )}
-                                        <button className="flex items-center justify-center gap-2 py-2 rounded-md bg-accent text-xs font-bold text-white hover:bg-accent/90 transition-all shadow-[0_0_10px_rgba(59,130,246,0.2)]">
-                                            <Phone className="w-3.5 h-3.5" />
-                                            Appeler
-                                        </button>
+                                        {op.phone ? (
+                                            <a
+                                                href={`tel:${op.phone}`}
+                                                className="flex items-center justify-center gap-2 py-2 rounded-md bg-accent text-xs font-bold text-white hover:bg-accent/90 transition-all shadow-[0_0_10px_rgba(59,130,246,0.2)]"
+                                            >
+                                                <Phone className="w-3.5 h-3.5" />
+                                                {op.phone}
+                                            </a>
+                                        ) : (
+                                            <span
+                                                role="button"
+                                                aria-disabled="true"
+                                                tabIndex={0}
+                                                aria-label="Appeler — Numéro non disponible"
+                                                className="flex items-center justify-center gap-2 py-2 rounded-md bg-white/5 border border-white/10 text-xs font-bold text-accent-steel cursor-not-allowed opacity-50"
+                                                title="Numéro non disponible"
+                                            >
+                                                <Phone className="w-3.5 h-3.5" />
+                                                Appeler
+                                            </span>
+                                        )}
                                     </div>
                                     {vertical === "immo" && (
                                         <button
