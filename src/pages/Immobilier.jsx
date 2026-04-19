@@ -204,7 +204,7 @@ export const Immobilier = () => {
                                                 role="button"
                                                 aria-disabled="true"
                                                 tabIndex={0}
-                                                onKeyDown={e => e.preventDefault()}
+                                                onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') e.preventDefault(); }}
                                                 aria-label="Détails — URL non disponible"
                                                 className="flex items-center justify-center gap-2 py-2 rounded-md bg-white/5 border border-white/10 text-xs font-bold text-accent-steel cursor-not-allowed opacity-50"
                                                 title="URL non disponible"
@@ -226,7 +226,7 @@ export const Immobilier = () => {
                                                 role="button"
                                                 aria-disabled="true"
                                                 tabIndex={0}
-                                                onKeyDown={e => e.preventDefault()}
+                                                onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') e.preventDefault(); }}
                                                 aria-label="Appeler — Numéro non disponible"
                                                 className="flex items-center justify-center gap-2 py-2 rounded-md bg-white/5 border border-white/10 text-xs font-bold text-accent-steel cursor-not-allowed opacity-50"
                                                 title="Numéro non disponible"
