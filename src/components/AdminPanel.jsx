@@ -11,6 +11,7 @@ export const AdminPanel = () => {
     const [apiConfig, setApiConfig] = React.useState({ sms_api_key: '', email_api_key: '' });
     const [configLoading, setConfigLoading] = React.useState(false);
     const [configSaved, setConfigSaved] = React.useState(false);
+    const [configError, setConfigError] = React.useState(false);
 
     React.useEffect(() => {
         Promise.all([
@@ -58,12 +59,14 @@ export const AdminPanel = () => {
 
     const saveApiConfig = async () => {
         setConfigLoading(true);
+        setConfigError(false);
         try {
             await api.put('/admin/config', apiConfig);
             setConfigSaved(true);
             setTimeout(() => setConfigSaved(false), 3000);
         } catch {
-            // ignore
+            setConfigError(true);
+            setTimeout(() => setConfigError(false), 3000);
         } finally {
             setConfigLoading(false);
         }
@@ -260,6 +263,11 @@ export const AdminPanel = () => {
                 {configSaved && (
                     <div className="mb-4 p-3 bg-green-500/10 border border-green-500/20 rounded-lg">
                         <p className="text-green-400 text-sm">Configuration sauvegardée !</p>
+                    </div>
+                )}
+                {configError && (
+                    <div className="mb-4 p-3 bg-red-500/10 border border-red-500/20 rounded-lg">
+                        <p className="text-red-400 text-sm">Erreur lors de la sauvegarde.</p>
                     </div>
                 )}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
