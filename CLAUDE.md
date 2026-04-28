@@ -106,9 +106,10 @@ antigravity-proto/
 ## État actuel du projet (2026-04-28)
 
 - Branch active : `claude`
-- Derniers commits : admin panel (POST `/admin/agencies`, modal nouvelle agence), clés API SMS/email (migration Alembic), campagnes expandables
-- Fichiers modifiés non commités : `AgencyDetails.jsx`, `Login.jsx`, `api.js`, `dealService.js`, `init_db.py`, `package.json`
-- Blockers résolus : `POST /api/leads/notify` ✓, `chat-widget.js` ✓, iCal (`get_busy_slots` + `/api/calendar/slots`) ✓
+- Derniers commits : phase-1 (Yousign), phase-2 (mandats Loi Hoguet), phase-3 (PWA mobile)
+- Phases 1-3 complétées et poussées sur `claude`
+- Nouvelles pages : `/signatures`, `/mandates`
+- Nouvelles migrations Alembic : `c8d9e0f1a2b3` (Lead signature), `d9e0f1a2b3c4` (Mandate table)
 - Blockers restants (phases D-H) : campagnes orphelines, notifications illisibles
 
 ---
