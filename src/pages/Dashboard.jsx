@@ -60,7 +60,7 @@ const DealDetailPanel = ({ deal, onClose, formatPrice, getScoreColor }) => {
     };
 
     return (
-        <div className="fixed inset-0 z-50 overflow-hidden">
+        <div className="fixed inset-0 z-50 overflow-hidden" onWheel={e => e.stopPropagation()}>
             <div className="absolute inset-0 bg-black/60 backdrop-blur-sm transition-opacity" onClick={onClose} />
 
             <div className="absolute inset-y-0 right-0 pl-10 max-w-full flex">
