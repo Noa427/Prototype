@@ -1,5 +1,5 @@
 ---
-généré le : 2026-04-18
+généré le : 2026-04-28
 auteur    : Claude Code (audit automatique)
 branche   : claude
 ---
@@ -100,6 +100,65 @@ branche   : claude
 | Page `/settings/calendar` (CalendarSettings)| ✅  |
 | Composant `MatchingModal.jsx`              | ✅   |
 | Modèle `CalendarConfig` (jours, horaires, pauses) | ✅ |
+
+**Progression : 100%**
+
+---
+
+## NOUVELLES PHASES (1–3) — COMPLÉTÉES (2026-04-28)
+
+### Phase 1 — Signature électronique (Yousign)
+**Commit :** `12f6985`
+
+| Élément                                           | État |
+|---------------------------------------------------|------|
+| `backend/services/yousign_service.py`             | ✅   |
+| `POST /api/documents/deals/{id}/sign`             | ✅   |
+| `GET /api/documents/sign/{id}/status`             | ✅   |
+| `POST /api/documents/sign/webhook`                | ✅   |
+| `GET /api/documents/signatures`                   | ✅   |
+| Lead.signature_request_id + signature_status      | ✅   |
+| Migration Alembic `c8d9e0f1a2b3`                  | ✅   |
+| Mode simulation sans clé Yousign                  | ✅   |
+| `Signatures.jsx` — liste demandes + relancer/annuler | ✅ |
+| Bouton Signer + badge statut sur cartes Kanban    | ✅   |
+
+**Progression : 100%**
+
+---
+
+### Phase 2 — Registre des mandats (Loi Hoguet)
+**Commit :** `e473646`
+
+| Élément                                           | État |
+|---------------------------------------------------|------|
+| Modèle `Mandate` (DB + migration `d9e0f1a2b3c4`)  | ✅   |
+| `POST /api/mandates/` (mandate_number séquentiel) | ✅   |
+| `GET /api/mandates/` (filtres type/statut)        | ✅   |
+| `PUT /api/mandates/{id}` + `DELETE` (soft)        | ✅   |
+| `GET /api/mandates/export` (CSV registre)         | ✅   |
+| `POST /api/mandates/{id}/generate-pdf`            | ✅   |
+| `mandate_service.py` — PDF .docx officiel numéroté | ✅  |
+| `scheduler.py` — job expiration J-30 quotidien    | ✅   |
+| `Mandates.jsx` — registre complet, badges expiration | ✅ |
+
+**Progression : 100%**
+
+---
+
+### Phase 3 — PWA (Progressive Web App)
+**Commit :** `5f0718e`
+
+| Élément                                           | État |
+|---------------------------------------------------|------|
+| `vite-plugin-pwa` + workbox (NetworkFirst / CacheFirst) | ✅ |
+| Icônes SVG 192×192 et 512×512 (AEVUM branding)   | ✅   |
+| `index.html` — meta PWA + Apple mobile           | ✅   |
+| `InstallPWA.jsx` — bannière install + dismiss 7j  | ✅   |
+| `Header.jsx` — hamburger mobile (md:hidden)       | ✅   |
+| `Sidebar.jsx` — drawer slide-in mobile + backdrop | ✅   |
+| `Layout.jsx` — sidebarOpen state, InstallPWA global | ✅  |
+| `Dashboard.jsx` — p-4 md:p-8, flex-wrap mobile    | ✅   |
 
 **Progression : 100%**
 
