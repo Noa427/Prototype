@@ -119,16 +119,6 @@ export const Login = ({ onLogin }) => {
                         </button>
                     </form>
 
-                    {/* Demo Info */}
-                    <div className="mt-8 p-4 bg-accent/5 border border-accent/10 rounded-lg space-y-2">
-                        <p className="text-xs text-accent-steel text-center">
-                            <strong className="text-accent">Comptes de démonstration :</strong>
-                        </p>
-                        <div className="text-xs text-accent-steel text-center space-y-1">
-                            <div><strong>Admin:</strong> admin / admin123</div>
-                            <div><strong>Client:</strong> agent_paris / agent123</div>
-                        </div>
-                    </div>
                 </div>
             </div>
         </div>

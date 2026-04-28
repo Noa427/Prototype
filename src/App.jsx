@@ -16,6 +16,8 @@ import CalendarSettings from './pages/CalendarSettings';
 import Automation from './pages/Automation';
 import Campaigns from './pages/Campaigns';
 import Reporting from './pages/Reporting';
+import Signatures from './pages/Signatures';
+import Mandates from './pages/Mandates';
 
 // Contexte d'authentification
 const AuthContext = createContext();
@@ -145,6 +147,12 @@ function App() {
           </Route>
           <Route path="/reporting" element={<ProtectedRoute roles="staff"><Layout /></ProtectedRoute>}>
             <Route index element={<Reporting />} />
+          </Route>
+          <Route path="/signatures" element={<ProtectedRoute roles="staff"><Layout /></ProtectedRoute>}>
+            <Route index element={<Signatures />} />
+          </Route>
+          <Route path="/mandates" element={<ProtectedRoute roles="staff"><Layout /></ProtectedRoute>}>
+            <Route index element={<Mandates />} />
           </Route>
 
           {/* Redirection par défaut */}

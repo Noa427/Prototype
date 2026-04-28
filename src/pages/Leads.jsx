@@ -1,6 +1,86 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Search, Mail, Phone, Trash2, LayoutList, Columns } from 'lucide-react';
+import { Search, Mail, Phone, Trash2, LayoutList, Columns, PenLine, Clock, CheckCircle, XCircle, X } from 'lucide-react';
 import { getLeads, updateLead, deleteLead } from '../services/dealService';
+import api from '../services/api';
+
+const SIG_BADGE = {
+    pending:  { label: '✍ En attente', cls: 'bg-amber-400/15 text-amber-400 border-amber-400/30' },
+    signed:   { label: '✓ Signé',      cls: 'bg-emerald-400/15 text-emerald-400 border-emerald-400/30' },
+    refused:  { label: '✗ Refusé',     cls: 'bg-rose-400/15 text-rose-400 border-rose-400/30' },
+    expired:  { label: 'Expiré',       cls: 'bg-gray-400/15 text-gray-400 border-gray-400/30' },
+};
+
+// ── Signature Modal ──────────────────────────────────────────────────────────
+const SignatureModal = ({ lead, onClose, onSuccess }) => {
+    const [name, setName] = useState(lead.full_name);
+    const [email, setEmail] = useState(lead.email);
+    const [loading, setLoading] = useState(false);
+    const [signingUrl, setSigningUrl] = useState(null);
+
+    const handleSend = async () => {
+        setLoading(true);
+        try {
+            const res = await api.post(`/api/documents/deals/${lead.deal_id}/sign`, {
+                lead_id: lead.id,
+                signers: [{ name, email }],
+            });
+            setSigningUrl(res.data.signing_url);
+            onSuccess(lead.id);
+        } catch (err) {
+            alert('Erreur : ' + (err.response?.data?.detail || err.message));
+        }
+        setLoading(false);
+    };
+
+    return (
+        <div className="fixed inset-0 z-50 flex items-center justify-center">
+            <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
+            <div className="relative glass border border-white/10 rounded-2xl w-full max-w-sm mx-4 p-6 shadow-2xl">
+                <div className="flex items-center justify-between mb-4">
+                    <h2 className="font-bold text-white flex items-center gap-2">
+                        <PenLine className="w-4 h-4 text-accent" /> Envoyer pour signature
+                    </h2>
+                    <button onClick={onClose} className="text-accent-steel hover:text-white"><X className="w-4 h-4" /></button>
+                </div>
+                {signingUrl ? (
+                    <div className="space-y-4">
+                        <div className="flex items-center gap-2 text-emerald-400 text-sm">
+                            <CheckCircle className="w-4 h-4" /> Demande envoyée avec succès
+                        </div>
+                        {!signingUrl.includes('simulation') && (
+                            <a href={signingUrl} target="_blank" rel="noopener noreferrer"
+                                className="block w-full text-center px-4 py-2.5 bg-accent hover:bg-accent/90 text-white rounded-lg text-sm font-bold transition-colors">
+                                Ouvrir le lien de signature →
+                            </a>
+                        )}
+                        <button onClick={onClose} className="w-full px-4 py-2 bg-white/5 hover:bg-white/10 text-white rounded-lg text-sm transition-colors">Fermer</button>
+                    </div>
+                ) : (
+                    <div className="space-y-4">
+                        <p className="text-accent-steel text-xs">Le compromis de vente sera généré et envoyé au signataire via Yousign.</p>
+                        <div>
+                            <label className="block text-[11px] font-bold uppercase tracking-widest text-accent-steel mb-1">Nom du signataire</label>
+                            <input value={name} onChange={e => setName(e.target.value)}
+                                className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-accent/50" />
+                        </div>
+                        <div>
+                            <label className="block text-[11px] font-bold uppercase tracking-widest text-accent-steel mb-1">Email</label>
+                            <input type="email" value={email} onChange={e => setEmail(e.target.value)}
+                                className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-accent/50" />
+                        </div>
+                        <div className="flex gap-2">
+                            <button onClick={onClose} className="flex-1 px-4 py-2.5 bg-white/5 hover:bg-white/10 text-white rounded-lg text-sm transition-colors">Annuler</button>
+                            <button onClick={handleSend} disabled={loading || !email}
+                                className="flex-1 px-4 py-2.5 bg-accent hover:bg-accent/90 text-white rounded-lg text-sm font-bold transition-colors disabled:opacity-50">
+                                {loading ? 'Envoi...' : 'Envoyer'}
+                            </button>
+                        </div>
+                    </div>
+                )}
+            </div>
+        </div>
+    );
+};
 
 const STATUS_COLS = [
     { key: 'new',            label: 'Nouveau',      color: 'border-blue-400/40',    badge: 'bg-blue-400/10 text-blue-400' },
@@ -13,45 +93,56 @@ const STATUS_COLS = [
 const statusCfg = Object.fromEntries(STATUS_COLS.map(c => [c.key, c]));
 
 // ── Kanban Card ──────────────────────────────────────────────────────────────
-const KanbanCard = ({ lead, onDragStart, onDelete }) => (
-    <div
-        draggable
-        onDragStart={() => onDragStart(lead)}
-        className="glass rounded-lg border border-white/10 p-3 space-y-2 cursor-grab active:cursor-grabbing hover:border-white/20 transition-colors select-none"
-    >
-        <div className="flex items-center justify-between gap-2">
-            <div className="flex items-center gap-2 min-w-0">
-                <div className="w-6 h-6 rounded-full bg-accent/20 flex items-center justify-center text-accent font-bold text-[10px] flex-shrink-0">
-                    {lead.full_name.charAt(0)}
+const KanbanCard = ({ lead, onDragStart, onDelete, onSign }) => {
+    const sigBadge = lead.signature_status && lead.signature_status !== 'none' ? SIG_BADGE[lead.signature_status] : null;
+    return (
+        <div
+            draggable
+            onDragStart={() => onDragStart(lead)}
+            className="glass rounded-lg border border-white/10 p-3 space-y-2 cursor-grab active:cursor-grabbing hover:border-white/20 transition-colors select-none"
+        >
+            <div className="flex items-center justify-between gap-2">
+                <div className="flex items-center gap-2 min-w-0">
+                    <div className="w-6 h-6 rounded-full bg-accent/20 flex items-center justify-center text-accent font-bold text-[10px] flex-shrink-0">
+                        {lead.full_name.charAt(0)}
+                    </div>
+                    <span className="text-sm font-medium text-white truncate">{lead.full_name}</span>
                 </div>
-                <span className="text-sm font-medium text-white truncate">{lead.full_name}</span>
+                <button onClick={() => onDelete(lead.id)} className="text-accent-steel hover:text-rose-400 transition-colors flex-shrink-0">
+                    <Trash2 className="w-3.5 h-3.5" />
+                </button>
             </div>
-            <button
-                onClick={() => onDelete(lead.id)}
-                className="text-accent-steel hover:text-rose-400 transition-colors flex-shrink-0"
-            >
-                <Trash2 className="w-3.5 h-3.5" />
-            </button>
-        </div>
-        <div className="space-y-1">
-            <div className="flex items-center gap-1.5 text-[11px] text-accent-steel">
-                <Mail className="w-3 h-3" /><span className="truncate">{lead.email}</span>
-            </div>
-            {lead.phone && (
+            <div className="space-y-1">
                 <div className="flex items-center gap-1.5 text-[11px] text-accent-steel">
-                    <Phone className="w-3 h-3" /><span>{lead.phone}</span>
+                    <Mail className="w-3 h-3" /><span className="truncate">{lead.email}</span>
                 </div>
-            )}
+                {lead.phone && (
+                    <div className="flex items-center gap-1.5 text-[11px] text-accent-steel">
+                        <Phone className="w-3 h-3" /><span>{lead.phone}</span>
+                    </div>
+                )}
+            </div>
+            <div className="flex items-center justify-between text-[11px]">
+                <span className="font-bold text-white">{(lead.budget || 0).toLocaleString()} €</span>
+                <span className="text-accent-steel">apport {(lead.apport || 0).toLocaleString()} €</span>
+            </div>
+            <div className="flex items-center justify-between">
+                {sigBadge ? (
+                    <span className={`px-1.5 py-0.5 rounded border text-[9px] font-bold ${sigBadge.cls}`}>{sigBadge.label}</span>
+                ) : (
+                    <span />
+                )}
+                <button onClick={(e) => { e.stopPropagation(); onSign(lead); }}
+                    className="flex items-center gap-1 text-[10px] text-accent-steel hover:text-accent transition-colors">
+                    <PenLine className="w-3 h-3" /> Signer
+                </button>
+            </div>
         </div>
-        <div className="flex items-center justify-between text-[11px]">
-            <span className="font-bold text-white">{(lead.budget || 0).toLocaleString()} €</span>
-            <span className="text-accent-steel">apport {(lead.apport || 0).toLocaleString()} €</span>
-        </div>
-    </div>
-);
+    );
+};
 
 // ── Kanban Column ────────────────────────────────────────────────────────────
-const KanbanCol = ({ col, leads, onDragStart, onDrop, onDragOver, onDelete }) => (
+const KanbanCol = ({ col, leads, onDragStart, onDrop, onDragOver, onDelete, onSign }) => (
     <div
         className={`flex flex-col min-w-[220px] flex-1 rounded-xl border ${col.color} bg-white/[0.02] overflow-hidden`}
         onDragOver={e => { e.preventDefault(); onDragOver(col.key); }}
@@ -65,7 +156,7 @@ const KanbanCol = ({ col, leads, onDragStart, onDrop, onDragOver, onDelete }) =>
         </div>
         <div className="flex-1 p-2 space-y-2 min-h-[120px]">
             {leads.map(l => (
-                <KanbanCard key={l.id} lead={l} onDragStart={onDragStart} onDelete={onDelete} />
+                <KanbanCard key={l.id} lead={l} onDragStart={onDragStart} onDelete={onDelete} onSign={onSign} />
             ))}
         </div>
     </div>
@@ -129,6 +220,7 @@ export const Leads = () => {
     const [search, setSearch] = useState('');
     const dragLead = useRef(null);
     const [overCol, setOverCol] = useState(null);
+    const [signModal, setSignModal] = useState(null); // lead | null
 
     const fetchLeads = async () => {
         setLoading(true);
@@ -168,8 +260,19 @@ export const Leads = () => {
             l.email.toLowerCase().includes(search.toLowerCase()))
     );
 
+    const handleSignSuccess = (leadId) => {
+        setLeads(prev => prev.map(l => l.id === leadId ? { ...l, signature_status: 'pending' } : l));
+    };
+
     return (
-        <div className="p-8 space-y-6">
+        <div className="p-4 md:p-8 space-y-6">
+            {signModal && (
+                <SignatureModal
+                    lead={signModal}
+                    onClose={() => setSignModal(null)}
+                    onSuccess={handleSignSuccess}
+                />
+            )}
             {/* Header */}
             <div className="flex items-center justify-between flex-wrap gap-4">
                 <div>
@@ -252,6 +355,7 @@ export const Leads = () => {
                             onDrop={onDrop}
                             onDragOver={setOverCol}
                             onDelete={handleDelete}
+                            onSign={setSignModal}
                         />
                     ))}
                 </div>

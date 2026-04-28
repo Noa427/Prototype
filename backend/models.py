@@ -101,6 +101,8 @@ class Lead(SQLModel, table=True):
     notes: Optional[str] = None
     score_chaleur: int = Field(default=5)
     created_at: datetime = Field(default_factory=datetime.utcnow)
+    signature_request_id: Optional[str] = None
+    signature_status: str = Field(default="none")  # none|pending|signed|refused|expired
 
     # Relationships
     deal_id: int = Field(foreign_key="deal.id")
@@ -149,4 +151,22 @@ class Campaign(SQLModel, table=True):
     type: str # "email", "sms"
     status: str = Field(default="draft") # "draft", "scheduled", "sent", "failed"
     scheduled_at: Optional[datetime] = None
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+
+
+class Mandate(SQLModel, table=True):
+    id: int | None = Field(default=None, primary_key=True)
+    agency_id: int = Field(foreign_key="agency.id", index=True)
+    mandate_number: int
+    mandate_type: str  # vente|recherche|location|gestion
+    property_address: str
+    owner_name: str
+    owner_email: Optional[str] = None
+    owner_phone: Optional[str] = None
+    start_date: datetime
+    end_date: datetime
+    exclusive: bool = Field(default=False)
+    commission_rate: float = Field(default=3.0)
+    status: str = Field(default="actif")  # actif|expiré|annulé|vendu
+    document_path: Optional[str] = None
     created_at: datetime = Field(default_factory=datetime.utcnow)

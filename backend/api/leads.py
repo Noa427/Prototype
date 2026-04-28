@@ -106,6 +106,7 @@ async def notify_lead(
     )
     session.add(notif)
     session.commit()
+    session.refresh(notif)
     return {"message": "Notification créée", "notification_id": notif.id}
 
 

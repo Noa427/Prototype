@@ -74,12 +74,8 @@ export const getStats = async () => {
 export const exportDeals = async (filters = {}) => {
     try {
         const queryParams = new URLSearchParams(filters).toString();
-        const user = localStorage.getItem('aevum_user');
-        const token = user ? JSON.parse(user).access_token : null;
         const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/api/deals/export?${queryParams}`, {
-            headers: {
-                'Authorization': `Bearer ${token}`
-            }
+            credentials: 'include',
         });
         if (!response.ok) throw new Error('Export failed');
         const blob = await response.blob();

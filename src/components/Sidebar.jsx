@@ -1,6 +1,6 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
-import { LayoutDashboard, Building2, Settings, Shield, Map, Users, BarChart3, Zap, Mail, TrendingUp } from 'lucide-react';
+import { LayoutDashboard, Building2, Settings, Shield, Map, Users, BarChart3, Zap, Mail, TrendingUp, PenLine, FileText, X } from 'lucide-react';
 import { clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 import { useAuth } from '../App';
@@ -19,6 +19,8 @@ const clientNavItems = [
     { icon: Settings, label: 'Paramètres', id: 'settings', path: '/settings' },
     { icon: BarChart3, label: 'Calendrier', id: 'calendar', path: '/settings/calendar' },
     { icon: Mail, label: 'Campagnes', id: 'campaigns', path: '/campaigns' },
+    { icon: PenLine, label: 'Signatures', id: 'signatures', path: '/signatures' },
+    { icon: FileText, label: 'Mandats', id: 'mandates', path: '/mandates' },
     { icon: TrendingUp, label: 'Reporting', id: 'reporting', path: '/reporting' },
 ];
 
@@ -30,14 +32,22 @@ const adminNavItems = [
     { icon: Settings, label: 'Paramètres', id: 'settings', path: '/settings' },
 ];
 
-export const Sidebar = () => {
+export const Sidebar = ({ isOpen, onClose }) => {
     const { isAdmin, user } = useAuth();
 
-    // Sélection des éléments de navigation selon le rôle
     const navItems = isAdmin ? adminNavItems : clientNavItems;
 
     return (
-        <aside className="w-64 h-screen glass border-r border-white/5 flex flex-col">
+        <>
+            {/* Mobile backdrop */}
+            {isOpen && (
+                <div className="fixed inset-0 bg-black/50 z-30 md:hidden" onClick={onClose} />
+            )}
+        <aside className={`
+            fixed md:relative z-40 w-64 h-screen glass border-r border-white/5 flex flex-col
+            transition-transform duration-300 ease-in-out
+            ${isOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
+        `}>
             <div className="p-6 flex items-center gap-3">
                 <div className="w-8 h-8 bg-accent rounded flex items-center justify-center">
                     <Shield className="w-5 h-5 text-white" />
@@ -87,5 +97,6 @@ export const Sidebar = () => {
                 </div>
             </div>
         </aside>
+        </>
     );
 };
