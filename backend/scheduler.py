@@ -12,7 +12,7 @@ from .scrapers.auto_scraper import AutoScraper
 from .services.rental_yield import update_yield_for_deal, update_all_yields
 from .services.scoring import update_score_for_deal_deepseek, update_all_scores_deepseek
 from .services.alert_service import check_new_deals_for_alerts
-from .models import Deal, Lead, Notification, Agency
+from .models import Deal, Lead, Notification, Agency, Mandate, User
 
 logger = logging.getLogger(__name__)
 
@@ -312,6 +312,14 @@ def start_scheduler():
             replace_existing=True
         )
 
+        # Mandats expirants — quotidien
+        scheduler.add_job(
+            mandate_expiry_job,
+            trigger=IntervalTrigger(hours=24),
+            id="mandate_expiry_job",
+            replace_existing=True
+        )
+
         scheduler.start()
         logger.info(
             "[SCHEDULER] Démarré — PAP(6h), Leboncoin(6h+30min), alertes(15min), "
@@ -353,6 +361,39 @@ def run_auto_scraper_job():
                 logger.info("[SCHEDULER] Auto - sauvegarde OK")
     except Exception as e:
         logger.exception(f"[SCHEDULER] Erreur scraping auto : {e}")
+
+
+def mandate_expiry_job():
+    """Mandats expirant dans 30 jours → notification aux agents de l'agence."""
+    logger.info("[SCHEDULER] Vérification mandats expirants (30j)...")
+    try:
+        from datetime import datetime, timedelta
+        now = datetime.utcnow()
+        threshold = now + timedelta(days=30)
+        with Session(engine) as session:
+            mandates = session.exec(
+                select(Mandate).where(
+                    Mandate.status == "actif",
+                    Mandate.end_date >= now,
+                    Mandate.end_date <= threshold,
+                )
+            ).all()
+            for m in mandates:
+                days_left = (m.end_date - now).days
+                users = session.exec(select(User).where(User.agency_id == m.agency_id)).all()
+                for u in users:
+                    notif = Notification(
+                        user_id=u.id,
+                        message=(
+                            f"Mandat #{m.mandate_number:04d} — {m.owner_name} "
+                            f"expire dans {days_left} jour(s) ({m.end_date.strftime('%d/%m/%Y')})."
+                        ),
+                    )
+                    session.add(notif)
+            session.commit()
+            logger.info(f"[SCHEDULER] {len(mandates)} mandat(s) proches de l'expiration notifiés")
+    except Exception as e:
+        logger.error(f"[SCHEDULER] Erreur mandat expiry : {e}")
 
 
 def run_all_scrapers():
