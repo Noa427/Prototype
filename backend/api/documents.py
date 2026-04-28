@@ -6,12 +6,15 @@ from pydantic import BaseModel
 import io
 import os
 import json
+import logging
 
 from ..database import get_session
 from ..models import Deal, Lead, User, Notification
 from ..auth import get_current_user
 from ..services.pdf_service import generate_compromis, generate_mandat
 from ..services.yousign_service import send_for_signature, get_signature_status, verify_webhook
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/documents", tags=["documents"])
 
@@ -223,18 +226,23 @@ async def list_signatures(
     current_user: User = Depends(get_current_user),
 ):
     """Liste tous les leads avec une demande de signature."""
-    leads = session.exec(
-        select(Lead).where(Lead.signature_request_id != None)  # noqa: E711
-    ).all()
-    return [
-        {
-            "lead_id": l.id,
-            "lead_name": l.full_name,
-            "email": l.email,
-            "deal_id": l.deal_id,
-            "signature_request_id": l.signature_request_id,
-            "signature_status": l.signature_status,
-            "created_at": l.created_at,
-        }
-        for l in leads
-    ]
+    try:
+        logger.info(f"GET /documents/signatures called by user={current_user.username}")
+        leads = session.exec(
+            select(Lead).where(Lead.signature_request_id != None)  # noqa: E711
+        ).all()
+        return [
+            {
+                "lead_id": l.id,
+                "lead_name": l.full_name,
+                "email": l.email,
+                "deal_id": l.deal_id,
+                "signature_request_id": l.signature_request_id,
+                "signature_status": l.signature_status,
+                "created_at": l.created_at,
+            }
+            for l in leads
+        ]
+    except Exception as e:
+        logger.error(f"Error in GET /documents/signatures: {str(e)}", exc_info=True)
+        raise HTTPException(status_code=500, detail=str(e))

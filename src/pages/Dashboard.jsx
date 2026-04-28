@@ -116,7 +116,7 @@ const DealDetailPanel = ({ deal, onClose, formatPrice, getScoreColor }) => {
                         </div>
 
                         {/* Content */}
-                        <div className="flex-1 overflow-y-auto p-6 space-y-8">
+                        <div className="flex-1 overflow-y-auto p-6 space-y-8" onWheel={e => e.stopPropagation()}>
                             <div className="grid grid-cols-2 gap-4">
                                 <div className="p-4 bg-white/5 rounded-xl border border-white/10">
                                     <p className="text-[10px] text-accent-steel uppercase tracking-widest mb-1">Surface</p>

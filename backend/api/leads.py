@@ -3,10 +3,13 @@ from sqlmodel import Session, select
 from typing import List, Optional
 from datetime import datetime
 from pydantic import BaseModel
+import logging
 
 from ..database import get_session
 from ..models import Lead, Deal, User, Notification
 from ..auth import get_current_user
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/leads", tags=["leads"])
 
@@ -16,21 +19,26 @@ async def read_leads(
     session: Session = Depends(get_session),
     current_user: User = Depends(get_current_user)
 ):
-    statement = select(Lead)
-    
-    # Isolation : les commerciaux ne voient que leurs leads, les admins voient tout
-    if current_user.role == "commercial":
-        statement = statement.where(Lead.assigned_to == current_user.id)
-    elif current_user.role == "client":
-        # Les clients ne devraient probablement pas voir les leads CRM, 
-        # mais si nécessaire, on filtre par leur agence via le deal
-        statement = statement.join(Deal).where(Deal.agency_id == current_user.agency_id)
-    
-    if status:
-        statement = statement.where(Lead.status == status)
-        
-    leads = session.exec(statement.order_by(Lead.created_at.desc())).all()
-    return leads
+    try:
+        logger.info(f"GET /leads/ called by user={current_user.username} role={current_user.role}")
+        statement = select(Lead)
+
+        # Isolation : les commerciaux ne voient que leurs leads, les admins voient tout
+        if current_user.role == "commercial":
+            statement = statement.where(Lead.assigned_to == current_user.id)
+        elif current_user.role == "client":
+            # Les clients ne devraient probablement pas voir les leads CRM,
+            # mais si nécessaire, on filtre par leur agence via le deal
+            statement = statement.join(Deal).where(Deal.agency_id == current_user.agency_id)
+
+        if status:
+            statement = statement.where(Lead.status == status)
+
+        leads = session.exec(statement.order_by(Lead.created_at.desc())).all()
+        return leads
+    except Exception as e:
+        logger.error(f"Error in GET /leads/: {str(e)}", exc_info=True)
+        raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/", response_model=Lead)
 async def create_lead(
@@ -115,25 +123,28 @@ async def get_leads_stats(
     session: Session = Depends(get_session),
     current_user: User = Depends(get_current_user)
 ):
-    from sqlmodel import func
-    base = select(Lead)
-    if current_user.role == "commercial":
-        base = base.where(Lead.assigned_to == current_user.id)
-    elif current_user.role == "client":
-        base = base.join(Deal).where(Deal.agency_id == current_user.agency_id)
+    try:
+        logger.info(f"GET /leads/stats called by user={current_user.username} role={current_user.role}")
+        base = select(Lead)
+        if current_user.role == "commercial":
+            base = base.where(Lead.assigned_to == current_user.id)
+        elif current_user.role == "client":
+            base = base.join(Deal).where(Deal.agency_id == current_user.agency_id)
 
-    leads = session.exec(base).all()
-    total = len(leads)
-    par_statut = {}
-    scores = []
-    for l in leads:
-        par_statut[l.status] = par_statut.get(l.status, 0) + 1
-    converted = par_statut.get("converted", 0)
-    return {
-        "total": total,
-        "par_statut": par_statut,
-        "taux_conversion": round(converted / total * 100, 1) if total else 0,
-    }
+        leads = session.exec(base).all()
+        total = len(leads)
+        par_statut = {}
+        for l in leads:
+            par_statut[l.status] = par_statut.get(l.status, 0) + 1
+        converted = par_statut.get("converted", 0)
+        return {
+            "total": total,
+            "par_statut": par_statut,
+            "taux_conversion": round(converted / total * 100, 1) if total else 0,
+        }
+    except Exception as e:
+        logger.error(f"Error in GET /leads/stats: {str(e)}", exc_info=True)
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 @router.get("/export")
@@ -141,23 +152,28 @@ async def export_leads_csv(
     session: Session = Depends(get_session),
     current_user: User = Depends(get_current_user)
 ):
-    import csv, io
-    from fastapi.responses import StreamingResponse
-    stmt = select(Lead)
-    if current_user.role == "commercial":
-        stmt = stmt.where(Lead.assigned_to == current_user.id)
-    elif current_user.role == "client":
-        stmt = stmt.join(Deal).where(Deal.agency_id == current_user.agency_id)
-    leads = session.exec(stmt).all()
+    try:
+        logger.info(f"GET /leads/export called by user={current_user.username} role={current_user.role}")
+        import csv, io
+        from fastapi.responses import StreamingResponse
+        stmt = select(Lead)
+        if current_user.role == "commercial":
+            stmt = stmt.where(Lead.assigned_to == current_user.id)
+        elif current_user.role == "client":
+            stmt = stmt.join(Deal).where(Deal.agency_id == current_user.agency_id)
+        leads = session.exec(stmt).all()
 
-    output = io.StringIO()
-    writer = csv.writer(output)
-    writer.writerow(["id", "full_name", "email", "phone", "budget", "apport", "delay", "status", "created_at", "deal_id"])
-    for l in leads:
-        writer.writerow([l.id, l.full_name, l.email, l.phone, l.budget, l.apport, l.delay, l.status, l.created_at, l.deal_id])
-    output.seek(0)
-    return StreamingResponse(iter([output.getvalue()]), media_type="text/csv",
-                             headers={"Content-Disposition": "attachment; filename=leads.csv"})
+        output = io.StringIO()
+        writer = csv.writer(output)
+        writer.writerow(["id", "full_name", "email", "phone", "budget", "apport", "delay", "status", "created_at", "deal_id"])
+        for l in leads:
+            writer.writerow([l.id, l.full_name, l.email, l.phone, l.budget, l.apport, l.delay, l.status, l.created_at, l.deal_id])
+        output.seek(0)
+        return StreamingResponse(iter([output.getvalue()]), media_type="text/csv",
+                                 headers={"Content-Disposition": "attachment; filename=leads.csv"})
+    except Exception as e:
+        logger.error(f"Error in GET /leads/export: {str(e)}", exc_info=True)
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 @router.delete("/{lead_id}")

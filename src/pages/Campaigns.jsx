@@ -93,7 +93,7 @@ const NewCampaignForm = ({ leads, onCreated, onClose }) => {
 
     return (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-            <div className="glass rounded-2xl border border-white/10 p-6 w-full max-w-lg space-y-4">
+            <div className="glass rounded-2xl border border-white/10 p-6 w-full max-w-lg space-y-4 max-h-[85vh] overflow-y-auto">
                 <h2 className="font-bold text-white flex items-center gap-2">
                     <Mail className="w-5 h-5 text-accent" />Nouvelle campagne
                 </h2>

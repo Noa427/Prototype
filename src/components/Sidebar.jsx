@@ -76,6 +76,7 @@ export const Sidebar = ({ isOpen, onClose }) => {
                     <NavLink
                         key={item.id}
                         to={item.path}
+                        end={item.path === '/settings'}
                         className={({ isActive }) => cn(
                             "w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200",
                             "text-accent-steel hover:text-white hover:bg-white/5",

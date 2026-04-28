@@ -39,7 +39,7 @@ const MatchingModal = ({ deal, onClose }) => {
     return (
         <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4" onClick={onClose}>
             <div
-                className="glass rounded-2xl border border-white/10 w-full max-w-lg max-h-[80vh] flex flex-col"
+                className="bg-gray-900 border border-white/10 rounded-2xl w-full max-w-lg max-h-[80vh] flex flex-col shadow-2xl"
                 onClick={e => e.stopPropagation()}
             >
                 <div className="flex items-center justify-between p-5 border-b border-white/10">

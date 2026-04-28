@@ -17,7 +17,7 @@ if hasattr(sys.stdout, "reconfigure"):
 
 from sqlmodel import Session, select, func as sqlfunc
 from backend.database import engine
-from backend.models import Agency, User, Deal, Lead, Notification, Campaign, Alert
+from backend.models import Agency, User, Deal, Lead, Notification, Campaign, Alert, Mandate, CalendarConfig
 from backend.auth import get_password_hash
 
 DEMO_AGENCY_NAME = "Agence Dupont Immobilier"
@@ -402,6 +402,94 @@ ALERTS_DATA = [
     {"query": "succession départ rapide", "max_price": None, "min_surface": None, "min_price": None},
 ]
 
+MANDATES_DATA = [
+    {
+        "mandate_number": 1,
+        "mandate_type": "vente",
+        "property_address": "12 rue de la Paix, 69003 Lyon",
+        "owner_name": "Bernard Lefranc",
+        "owner_email": "bernard.lefranc@gmail.com",
+        "owner_phone": "06 10 20 30 40",
+        "start_date": _ago(60),
+        "end_date": _ago(60) + timedelta(days=90),
+        "exclusive": True,
+        "commission_rate": 3.5,
+        "status": "actif",
+    },
+    {
+        "mandate_number": 2,
+        "mandate_type": "vente",
+        "property_address": "8 avenue Foch, 69006 Lyon",
+        "owner_name": "Martine Dubois",
+        "owner_email": "martine.dubois@outlook.fr",
+        "owner_phone": "07 20 30 40 50",
+        "start_date": _ago(45),
+        "end_date": _ago(45) + timedelta(days=90),
+        "exclusive": False,
+        "commission_rate": 3.0,
+        "status": "actif",
+    },
+    {
+        "mandate_number": 3,
+        "mandate_type": "recherche",
+        "property_address": "23 cours Gambetta, 69003 Lyon",
+        "owner_name": "Jean-Marc Aubert",
+        "owner_email": "jm.aubert@gmail.com",
+        "owner_phone": "06 30 40 50 60",
+        "start_date": _ago(30),
+        "end_date": _ago(30) + timedelta(days=90),
+        "exclusive": True,
+        "commission_rate": 2.5,
+        "status": "actif",
+    },
+    {
+        "mandate_number": 4,
+        "mandate_type": "vente",
+        "property_address": "5 rue de la République, 69100 Villeurbanne",
+        "owner_name": "Sylvie Moreau",
+        "owner_email": "sylvie.moreau@gmail.com",
+        "owner_phone": "07 40 50 60 70",
+        "start_date": _ago(100),
+        "end_date": _ago(100) + timedelta(days=90),
+        "exclusive": False,
+        "commission_rate": 3.0,
+        "status": "expiré",
+    },
+    {
+        "mandate_number": 5,
+        "mandate_type": "vente",
+        "property_address": "17 rue Pierre Corneille, 69006 Lyon",
+        "owner_name": "Robert Sanchez",
+        "owner_email": "r.sanchez@outlook.fr",
+        "owner_phone": "06 50 60 70 80",
+        "start_date": _ago(15),
+        "end_date": _ago(15) + timedelta(days=90),
+        "exclusive": True,
+        "commission_rate": 4.0,
+        "status": "actif",
+    },
+]
+
+# lead_idx = index 0-based dans created_leads (après insertion)
+# On utilise les 3 premiers leads (signé, offre, rdv_pris)
+SIGNATURES_DATA = [
+    {
+        "lead_idx": 2,  # Sophie Blanc — signé
+        "signature_request_id": "sim-demo-001",
+        "signature_status": "signed",
+    },
+    {
+        "lead_idx": 0,  # Marie Lefort — offre
+        "signature_request_id": "sim-demo-002",
+        "signature_status": "pending",
+    },
+    {
+        "lead_idx": 3,  # Luc Arnaud — offre
+        "signature_request_id": "sim-demo-003",
+        "signature_status": "pending",
+    },
+]
+
 
 def reset_demo(session: Session) -> None:
     agency = session.exec(
@@ -421,6 +509,8 @@ def reset_demo(session: Session) -> None:
             session.delete(alert)
         for notif in session.exec(select(Notification).where(Notification.user_id == user.id)).all():
             session.delete(notif)
+        for cal in session.exec(select(CalendarConfig).where(CalendarConfig.user_id == user.id)).all():
+            session.delete(cal)
 
     all_camps = session.exec(select(Campaign)).all()
     demo_labels = {"Nouveautés Mai 2026", "Relance prospects tièdes", "Biens coup de cœur semaine"}
@@ -440,6 +530,10 @@ def reset_demo(session: Session) -> None:
         for lead in session.exec(select(Lead).where(Lead.deal_id == deal.id)).all():
             session.delete(lead)
         session.delete(deal)
+
+    # Supprimer les mandats de l'agence
+    for mandate in session.exec(select(Mandate).where(Mandate.agency_id == agency.id)).all():
+        session.delete(mandate)
 
     for user in users:
         session.delete(user)
@@ -476,13 +570,13 @@ def seed_demo() -> None:
         session.add(agency)
         session.flush()
 
-        # --- User agent ---
+        # --- User agent (admin = patron agence, accès complet) ---
         agent = User(
             username="thomas.dupont",
             full_name="Thomas Dupont",
             email=DEMO_EMAIL,
             hashed_password=get_password_hash(DEMO_PASSWORD),
-            role="client",
+            role="admin",
             is_active=True,
             agency_id=agency.id,
         )
@@ -544,6 +638,35 @@ def seed_demo() -> None:
             alert = Alert(user_id=agent.id, **ad)
             session.add(alert)
 
+        # --- Mandates ---
+        for md in MANDATES_DATA:
+            mandate = Mandate(agency_id=agency.id, **md)
+            session.add(mandate)
+
+        # --- Signatures sur leads existants ---
+        created_leads_list = session.exec(select(Lead).where(Lead.assigned_to == agent.id)).all()
+        for sd in SIGNATURES_DATA:
+            idx = sd["lead_idx"]
+            if idx < len(created_leads_list):
+                lead_to_sign = created_leads_list[idx]
+                lead_to_sign.signature_request_id = sd["signature_request_id"]
+                lead_to_sign.signature_status = sd["signature_status"]
+                session.add(lead_to_sign)
+
+        # --- CalendarConfig pour l'agent ---
+        cal_cfg = CalendarConfig(
+            user_id=agent.id,
+            work_days="1,2,3,4,5",
+            start_time="09:00",
+            end_time="18:00",
+            slot_duration=30,
+            lunch_start="12:00",
+            lunch_end="13:00",
+            excluded_dates="",
+            calendar_url=None,
+        )
+        session.add(cal_cfg)
+
         session.commit()
 
     # Compter pour résumé
@@ -555,6 +678,7 @@ def seed_demo() -> None:
         n_camps = s.exec(select(sqlfunc.count(Campaign.id))).one()
         agent_db = s.exec(select(User).where(User.email == DEMO_EMAIL)).first()
         n_alerts = s.exec(select(sqlfunc.count(Alert.id)).where(Alert.user_id == agent_db.id)).one()
+        n_mandates = s.exec(select(sqlfunc.count(Mandate.id)).where(Mandate.agency_id == agency_db.id)).one()
 
     sep = "━" * 27
     print("✅ Agence démo créée")
@@ -563,6 +687,10 @@ def seed_demo() -> None:
     print(f"✅ {n_notifs} notifications insérées")
     print(f"✅ {n_camps} campagnes insérées")
     print(f"✅ {n_alerts} alertes insérées")
+    print(f"✅ {n_mandates} mandats insérés")
+    print(f"✅ CalendarConfig insérée")
+    print(f"✅ 3 demandes de signature insérées")
+    print(f"✅ Rôle compte : admin")
     print(sep)
     print(f"URL app     : http://localhost:5173")
     print(f"Email       : {DEMO_EMAIL}")

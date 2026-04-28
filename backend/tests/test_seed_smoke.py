@@ -27,7 +27,7 @@ def test_agent_user_exists(session):
         select(User).where(User.email == "agent@demo-aevum.fr")
     ).first()
     assert user is not None
-    assert user.role == "client"
+    assert user.role == "admin"
     assert user.is_active is True
 
 
