@@ -17,6 +17,7 @@
     "lucide-react": "^0.577.0",
     "react": "^19.2.4",
     "react-dom": "^19.2.4",
+    "react-is": "^19.2.5",
     "react-leaflet": "^5.0.0",
     "react-router-dom": "^7.13.1",
     "recharts": "^3.8.1",
@@ -32,8 +33,10 @@
     "eslint-plugin-react-hooks": "^7.0.1",
     "eslint-plugin-react-refresh": "^0.5.2",
     "globals": "^17.4.0",
+    "graphify": "^1.0.0",
     "postcss": "^8.5.8",
     "tailwindcss": "^4.2.1",
-    "vite": "^8.0.0"
+    "vite": "^8.0.0",
+    "vite-plugin-pwa": "^1.2.0"
   }
 }

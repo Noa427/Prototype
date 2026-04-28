@@ -318,8 +318,8 @@ export const Dashboard = () => {
     };
 
     return (
-        <div className="p-8 space-y-8">
-            <div className="flex items-center justify-between">
+        <div className="p-4 md:p-8 space-y-6 md:space-y-8">
+            <div className="flex items-center justify-between flex-wrap gap-3">
                 <div>
                     <h1 className="text-3xl font-bold tracking-tight text-white">Bonjour, Agent</h1>
                     <p className="text-accent-steel">Voici l'état de votre secteur aujourd'hui.</p>
