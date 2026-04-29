@@ -213,3 +213,16 @@ class RentalDocument(SQLModel, table=True):
     uploaded_at: datetime = Field(default_factory=datetime.utcnow)
 
     rental: Optional[Rental] = Relationship(back_populates="documents")
+
+
+class PostSaleStep(SQLModel, table=True):
+    id: int | None = Field(default=None, primary_key=True)
+    deal_id: int = Field(foreign_key="deal.id", index=True)
+    step_name: str
+    step_order: int  # 1 à 7
+    due_date: datetime
+    completed_date: Optional[datetime] = None
+    status: str = Field(default="pending")  # pending|completed|overdue
+    notes: Optional[str] = None
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+    updated_at: datetime = Field(default_factory=datetime.utcnow)
