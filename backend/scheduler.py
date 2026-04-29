@@ -4,6 +4,7 @@ import logging
 import asyncio
 from apscheduler.schedulers.background import BackgroundScheduler
 from apscheduler.triggers.interval import IntervalTrigger
+from apscheduler.triggers.cron import CronTrigger
 from sqlmodel import Session, select
 from .database import engine
 from .scrapers.pap_scraper import PapScraper
@@ -320,10 +321,38 @@ def start_scheduler():
             replace_existing=True
         )
 
+        # Gestion locative — 1er du mois 07h00 UTC
+        scheduler.add_job(
+            generate_monthly_rental_payments_job,
+            trigger=CronTrigger(day=1, hour=7, minute=0),
+            id="rental_payments_job",
+            replace_existing=True,
+        )
+        # Relances impayés — 5, 10, 15 du mois à 09h00 UTC
+        scheduler.add_job(
+            lambda: rental_reminder_job(5),
+            trigger=CronTrigger(day=5, hour=9, minute=0),
+            id="rental_reminder_5_job",
+            replace_existing=True,
+        )
+        scheduler.add_job(
+            lambda: rental_reminder_job(10),
+            trigger=CronTrigger(day=10, hour=9, minute=0),
+            id="rental_reminder_10_job",
+            replace_existing=True,
+        )
+        scheduler.add_job(
+            lambda: rental_reminder_job(15),
+            trigger=CronTrigger(day=15, hour=9, minute=0),
+            id="rental_reminder_15_job",
+            replace_existing=True,
+        )
+
         scheduler.start()
         logger.info(
             "[SCHEDULER] Démarré — PAP(6h), Leboncoin(6h+30min), alertes(15min), "
-            "relances leads(24h), baisse prix(24h), DPE(24h), heartbeat(5min)"
+            "relances leads(24h), baisse prix(24h), DPE(24h), heartbeat(5min), "
+            "rental_payments(1er mois), rental_reminders(5/10/15)"
         )
 
 def shutdown_scheduler():
@@ -394,6 +423,83 @@ def mandate_expiry_job():
             logger.info(f"[SCHEDULER] {len(mandates)} mandat(s) proches de l'expiration notifiés")
     except Exception as e:
         logger.error(f"[SCHEDULER] Erreur mandat expiry : {e}")
+
+
+def generate_monthly_rental_payments_job():
+    """1er du mois : génère les lignes de paiement pour le mois en cours."""
+    logger.info("[SCHEDULER] Génération paiements locatifs mensuels...")
+    try:
+        from datetime import datetime
+        from .models import Rental, RentalPayment
+        today = datetime.utcnow()
+        first_of_month = datetime(today.year, today.month, 1)
+        with Session(engine) as session:
+            active_rentals = session.exec(
+                select(Rental).where(Rental.status == "active")
+            ).all()
+            created = 0
+            for rental in active_rentals:
+                exists = session.exec(
+                    select(RentalPayment).where(
+                        RentalPayment.rental_id == rental.id,
+                        RentalPayment.month == first_of_month,
+                    )
+                ).first()
+                if not exists:
+                    payment = RentalPayment(
+                        rental_id=rental.id,
+                        month=first_of_month,
+                        amount=rental.monthly_rent + rental.charges,
+                    )
+                    session.add(payment)
+                    created += 1
+            session.commit()
+            logger.info(f"[SCHEDULER] {created} lignes de paiement créées")
+    except Exception as e:
+        logger.error(f"[SCHEDULER] Erreur génération paiements : {e}")
+
+
+def rental_reminder_job(reminder_type: int):
+    """J+N du mois : envoie relances pour loyers impayés du mois précédent."""
+    logger.info(f"[SCHEDULER] Relances impayés J+{reminder_type}...")
+    try:
+        from datetime import datetime
+        from .models import Rental, RentalPayment
+        from .services.rental_service import send_payment_reminder
+        today = datetime.utcnow()
+        if today.month == 1:
+            target_month = datetime(today.year - 1, 12, 1)
+        else:
+            target_month = datetime(today.year, today.month - 1, 1)
+        with Session(engine) as session:
+            late_payments = session.exec(
+                select(RentalPayment).where(
+                    RentalPayment.month == target_month,
+                    RentalPayment.status.in_(["pending", "late"]),
+                )
+            ).all()
+            for payment in late_payments:
+                rental = session.get(Rental, payment.rental_id)
+                if rental and rental.status == "active":
+                    key = f"J+{reminder_type}"
+                    already_sent = any(key in d for d in (payment.reminder_sent_dates or []))
+                    if not already_sent:
+                        send_payment_reminder(rental, payment, reminder_type)
+                        dates = list(payment.reminder_sent_dates or [])
+                        dates.append(f"{key}:{datetime.utcnow().isoformat()}")
+                        payment.reminder_sent_dates = dates
+                        payment.status = "late"
+                        session.add(payment)
+                        notif = Notification(
+                            user_id=1,
+                            message=f"Loyer impayé J+{reminder_type} : {rental.tenant_name} "
+                                    f"({rental.monthly_rent + rental.charges:.0f} €/mois) — relance envoyée.",
+                        )
+                        session.add(notif)
+            session.commit()
+            logger.info(f"[SCHEDULER] Relances J+{reminder_type} envoyées pour {len(late_payments)} paiements")
+    except Exception as e:
+        logger.error(f"[SCHEDULER] Erreur relances J+{reminder_type} : {e}")
 
 
 def run_all_scrapers():
