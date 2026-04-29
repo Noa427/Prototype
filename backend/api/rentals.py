@@ -8,9 +8,10 @@ from datetime import datetime
 import io
 import os
 import shutil
+import uuid
 
 from ..database import get_session
-from ..models import Rental, RentalPayment, RentalDocument, User, Notification
+from ..models import Rental, RentalPayment, RentalDocument, User
 from ..auth import get_current_user
 from ..services.rental_service import (
     generate_receipt_pdf,
@@ -245,6 +246,8 @@ async def get_owner_report(
     current_user: User = Depends(get_current_user),
 ):
     rental = _get_rental(rental_id, current_user, session)
+    if not (1 <= month <= 12):
+        raise HTTPException(status_code=422, detail="Mois invalide (1–12)")
     month_dt = datetime(year, month, 1)
     payments = session.exec(
         select(RentalPayment).where(
@@ -273,10 +276,11 @@ async def upload_document(
     rental = _get_rental(rental_id, current_user, session)
     upload_dir = os.path.join(UPLOADS_DIR, str(rental_id))
     os.makedirs(upload_dir, exist_ok=True)
-    file_path = os.path.join(upload_dir, file.filename)
+    safe_filename = f"{uuid.uuid4()}_{os.path.basename(file.filename)}"
+    file_path = os.path.join(upload_dir, safe_filename)
     with open(file_path, "wb") as f:
         shutil.copyfileobj(file.file, f)
-    relative_path = f"uploads/rentals/{rental_id}/{file.filename}"
+    relative_path = f"uploads/rentals/{rental_id}/{safe_filename}"
     doc = RentalDocument(
         rental_id=rental_id,
         doc_type=doc_type,
