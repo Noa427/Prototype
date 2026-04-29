@@ -170,3 +170,46 @@ class Mandate(SQLModel, table=True):
     status: str = Field(default="actif")  # actif|expiré|annulé|vendu
     document_path: Optional[str] = None
     created_at: datetime = Field(default_factory=datetime.utcnow)
+
+
+class Rental(SQLModel, table=True):
+    id: int | None = Field(default=None, primary_key=True)
+    agency_id: int = Field(foreign_key="agency.id", index=True)
+    deal_id: Optional[int] = Field(default=None, foreign_key="deal.id")
+    tenant_name: str
+    tenant_email: str
+    tenant_phone: Optional[str] = None
+    monthly_rent: float
+    charges: float = Field(default=0.0)
+    deposit: float = Field(default=0.0)
+    start_date: datetime
+    end_date: Optional[datetime] = None
+    notice_period_days: int = Field(default=90)
+    status: str = Field(default="active")  # active|terminated
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+
+    payments: List["RentalPayment"] = Relationship(back_populates="rental")
+    documents: List["RentalDocument"] = Relationship(back_populates="rental")
+
+
+class RentalPayment(SQLModel, table=True):
+    id: int | None = Field(default=None, primary_key=True)
+    rental_id: int = Field(foreign_key="rental.id", index=True)
+    month: datetime  # Premier jour du mois concerné
+    amount: float
+    paid_date: Optional[datetime] = None
+    status: str = Field(default="pending")  # pending|paid|late|partial
+    reminder_sent_dates: List[str] = Field(default=[], sa_column=Column(JSON))
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+
+    rental: Optional[Rental] = Relationship(back_populates="payments")
+
+
+class RentalDocument(SQLModel, table=True):
+    id: int | None = Field(default=None, primary_key=True)
+    rental_id: int = Field(foreign_key="rental.id", index=True)
+    doc_type: str  # inventory_in|inventory_out|receipt
+    file_path: str
+    uploaded_at: datetime = Field(default_factory=datetime.utcnow)
+
+    rental: Optional[Rental] = Relationship(back_populates="documents")
