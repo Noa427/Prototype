@@ -43,6 +43,7 @@ from .api.campaigns import router as campaigns_router
 from .api.chat_public import router as chat_public_router
 from .api.booking import router as booking_router
 from .api.mandates import router as mandates_router
+from .api.rentals import router as rentals_router
 from .models import Alert
 
 # Rate limiter
@@ -94,6 +95,7 @@ app.include_router(campaigns_router, prefix="/api")
 app.include_router(chat_public_router, prefix="/api")
 app.include_router(booking_router)  # /booking/{license_key} sans prefix /api
 app.include_router(mandates_router, prefix="/api")
+app.include_router(rentals_router, prefix="/api")
 
 # Fichiers statiques (chat-widget.js, etc.)
 _static_dir = Path(__file__).parent / "static"
