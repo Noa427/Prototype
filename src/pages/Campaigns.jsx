@@ -93,56 +93,62 @@ const NewCampaignForm = ({ leads, onCreated, onClose }) => {
 
     return (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-            <div className="glass rounded-2xl border border-white/10 p-6 w-full max-w-lg space-y-4 max-h-[85vh] overflow-y-auto">
-                <h2 className="font-bold text-white flex items-center gap-2">
-                    <Mail className="w-5 h-5 text-accent" />Nouvelle campagne
-                </h2>
-
-                <div className="space-y-1.5">
-                    <label className="text-[10px] font-bold uppercase tracking-widest text-accent-steel">Nom</label>
-                    <input value={name} onChange={e => setName(e.target.value)}
-                        className="w-full bg-white/5 border border-white/10 rounded-lg py-2 px-3 text-sm text-white focus:outline-none focus:border-accent/50" />
+            <div className="glass rounded-2xl border border-white/10 w-full max-w-lg max-h-[85vh] flex flex-col shadow-2xl">
+                {/* Header — toujours visible, hors scroll */}
+                <div className="px-6 py-4 border-b border-white/10 flex-shrink-0">
+                    <h2 className="font-bold text-white flex items-center gap-2">
+                        <Mail className="w-5 h-5 text-accent" />Nouvelle campagne
+                    </h2>
                 </div>
 
-                <div className="flex gap-3">
-                    {['email', 'sms'].map(t => (
-                        <button key={t} onClick={() => setType(t)}
-                            className={`flex-1 py-2 rounded-lg border text-sm font-medium transition-colors ${type === t ? 'bg-accent/20 border-accent/40 text-accent' : 'bg-white/5 border-white/10 text-accent-steel hover:text-white'}`}>
-                            {t.toUpperCase()}
-                        </button>
-                    ))}
-                </div>
-
-                <div className="space-y-1.5">
-                    <label className="text-[10px] font-bold uppercase tracking-widest text-accent-steel">Message</label>
-                    <textarea value={message} onChange={e => setMessage(e.target.value)} rows={4}
-                        className="w-full bg-white/5 border border-white/10 rounded-lg py-2 px-3 text-sm text-white focus:outline-none focus:border-accent/50 resize-none" />
-                </div>
-
-                <div className="space-y-2">
-                    <label className="text-[10px] font-bold uppercase tracking-widest text-accent-steel">Destinataires ({selectedLeads.length} sélectionné(s))</label>
-                    <div className="max-h-40 overflow-y-auto space-y-1">
-                        {leads.map(l => (
-                            <label key={l.id} className="flex items-center gap-3 px-3 py-2 rounded-lg bg-white/5 cursor-pointer hover:bg-white/10 transition-colors">
-                                <input type="checkbox" checked={selectedLeads.includes(l.id)} onChange={() => toggle(l.id)}
-                                    className="accent-accent" />
-                                <span className="text-sm text-white flex-1">{l.full_name}</span>
-                                <span className="text-xs text-accent-steel">{l.email}</span>
-                            </label>
-                        ))}
-                        {leads.length === 0 && <p className="text-xs text-accent-steel text-center py-3">Aucun lead disponible</p>}
+                {/* Zone scrollable */}
+                <div className="overflow-y-auto flex-1 overscroll-contain px-6 py-4 space-y-4">
+                    <div className="space-y-1.5">
+                        <label className="text-[10px] font-bold uppercase tracking-widest text-accent-steel">Nom</label>
+                        <input value={name} onChange={e => setName(e.target.value)}
+                            className="w-full bg-white/5 border border-white/10 rounded-lg py-2 px-3 text-sm text-white focus:outline-none focus:border-accent/50" />
                     </div>
-                </div>
 
-                <div className="flex gap-3 pt-2">
-                    <button onClick={onClose} className="flex-1 py-2 rounded-lg bg-white/5 border border-white/10 text-accent-steel text-sm hover:text-white transition-colors">
-                        Annuler
-                    </button>
-                    <button onClick={submit} disabled={saving || !name.trim() || !message.trim()}
-                        className="flex-1 py-2 rounded-lg bg-accent text-white text-sm font-medium hover:opacity-90 transition-colors disabled:opacity-50">
-                        {saving ? 'Création…' : 'Créer la campagne'}
-                    </button>
-                </div>
+                    <div className="flex gap-3">
+                        {['email', 'sms'].map(t => (
+                            <button key={t} onClick={() => setType(t)}
+                                className={`flex-1 py-2 rounded-lg border text-sm font-medium transition-colors ${type === t ? 'bg-accent/20 border-accent/40 text-accent' : 'bg-white/5 border-white/10 text-accent-steel hover:text-white'}`}>
+                                {t.toUpperCase()}
+                            </button>
+                        ))}
+                    </div>
+
+                    <div className="space-y-1.5">
+                        <label className="text-[10px] font-bold uppercase tracking-widest text-accent-steel">Message</label>
+                        <textarea value={message} onChange={e => setMessage(e.target.value)} rows={4}
+                            className="w-full bg-white/5 border border-white/10 rounded-lg py-2 px-3 text-sm text-white focus:outline-none focus:border-accent/50 resize-none" />
+                    </div>
+
+                    <div className="space-y-2">
+                        <label className="text-[10px] font-bold uppercase tracking-widest text-accent-steel">Destinataires ({selectedLeads.length} sélectionné(s))</label>
+                        <div className="max-h-40 overflow-y-auto space-y-1">
+                            {leads.map(l => (
+                                <label key={l.id} className="flex items-center gap-3 px-3 py-2 rounded-lg bg-white/5 cursor-pointer hover:bg-white/10 transition-colors">
+                                    <input type="checkbox" checked={selectedLeads.includes(l.id)} onChange={() => toggle(l.id)}
+                                        className="accent-accent" />
+                                    <span className="text-sm text-white flex-1">{l.full_name}</span>
+                                    <span className="text-xs text-accent-steel">{l.email}</span>
+                                </label>
+                            ))}
+                            {leads.length === 0 && <p className="text-xs text-accent-steel text-center py-3">Aucun lead disponible</p>}
+                        </div>
+                    </div>
+
+                    <div className="flex gap-3 pt-2">
+                        <button onClick={onClose} className="flex-1 py-2 rounded-lg bg-white/5 border border-white/10 text-accent-steel text-sm hover:text-white transition-colors">
+                            Annuler
+                        </button>
+                        <button onClick={submit} disabled={saving || !name.trim() || !message.trim()}
+                            className="flex-1 py-2 rounded-lg bg-accent text-white text-sm font-medium hover:opacity-90 transition-colors disabled:opacity-50">
+                            {saving ? 'Création…' : 'Créer la campagne'}
+                        </button>
+                    </div>
+                </div>{/* fin zone scrollable */}
             </div>
         </div>
     );

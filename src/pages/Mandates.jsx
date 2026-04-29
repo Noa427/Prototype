@@ -47,15 +47,18 @@ const MandateModal = ({ onClose, onSaved }) => {
     };
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
             <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
-            <div className="relative glass border border-white/10 rounded-2xl w-full max-w-lg mx-4 p-6 shadow-2xl max-h-[90vh] overflow-y-auto">
-                <div className="flex items-center justify-between mb-6">
+            <div className="relative glass border border-white/10 rounded-2xl w-full max-w-lg shadow-2xl max-h-[90vh] flex flex-col">
+                {/* Header — toujours visible, hors scroll */}
+                <div className="flex items-center justify-between px-6 py-4 border-b border-white/10 flex-shrink-0">
                     <h2 className="text-lg font-bold text-white">Nouveau mandat</h2>
                     <button onClick={onClose} className="text-accent-steel hover:text-white transition-colors">
                         <X className="w-5 h-5" />
                     </button>
                 </div>
+                {/* Zone scrollable */}
+                <div className="overflow-y-auto flex-1 overscroll-contain px-6 py-4">
                 <form onSubmit={handleSubmit} className="space-y-4">
                     <div className="grid grid-cols-2 gap-4">
                         <div>
@@ -135,6 +138,7 @@ const MandateModal = ({ onClose, onSaved }) => {
                         </button>
                     </div>
                 </form>
+                </div>{/* fin zone scrollable */}
             </div>
         </div>
     );

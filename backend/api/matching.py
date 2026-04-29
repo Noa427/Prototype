@@ -21,10 +21,12 @@ async def get_matching_leads(
     try:
         logger.info(f"GET /matching/deals/{deal_id}/leads called by user={current_user.username}")
         deal = session.get(Deal, deal_id)
-        if not deal:
+        if not deal or deal.agency_id != current_user.agency_id:
             raise HTTPException(status_code=404, detail="Bien introuvable")
 
-        leads = session.exec(select(Lead)).all()
+        leads = session.exec(
+            select(Lead).where(Lead.agency_id == current_user.agency_id)
+        ).all()
 
         matched = []
         for lead in leads:

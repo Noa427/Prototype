@@ -36,10 +36,14 @@ const MatchingModal = ({ deal, onClose }) => {
         }
     };
 
+    const priceDisplay = typeof deal.price === 'number'
+        ? deal.price.toLocaleString('fr-FR') + ' €'
+        : deal.price ?? '—';
+
     return (
         <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4" onClick={onClose}>
             <div
-                className="bg-gray-900 border border-white/10 rounded-2xl w-full max-w-lg max-h-[80vh] flex flex-col shadow-2xl"
+                className="bg-[#1c1f2e] border border-white/15 rounded-2xl w-full max-w-lg max-h-[80vh] flex flex-col shadow-2xl"
                 onClick={e => e.stopPropagation()}
             >
                 <div className="flex items-center justify-between p-5 border-b border-white/10">
@@ -47,7 +51,7 @@ const MatchingModal = ({ deal, onClose }) => {
                         <Users className="w-5 h-5 text-accent" />
                         <div>
                             <h2 className="font-bold text-white text-sm">Clients matchés</h2>
-                            <p className="text-xs text-accent-steel">{deal.city} — {deal.price?.toLocaleString()} €</p>
+                            <p className="text-xs text-accent-steel">{deal.city} — {priceDisplay}</p>
                         </div>
                     </div>
                     <button onClick={onClose} className="p-1.5 rounded-lg hover:bg-white/10 text-accent-steel hover:text-white transition-colors">
@@ -55,19 +59,25 @@ const MatchingModal = ({ deal, onClose }) => {
                     </button>
                 </div>
 
-                <div className="overflow-y-auto flex-1 p-5 space-y-3">
+                <div className="overflow-y-auto flex-1 p-5 space-y-3 overscroll-contain">
                     {loading && (
-                        <div className="flex justify-center py-8">
-                            <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-accent" />
+                        <div className="flex flex-col items-center justify-center py-10 gap-3">
+                            <div className="animate-spin rounded-full h-8 w-8 border-2 border-accent border-t-transparent" />
+                            <p className="text-sm text-accent-steel">Recherche de clients compatibles…</p>
                         </div>
                     )}
                     {error && (
-                        <p className="text-center text-red-400 text-sm py-8">
-                            Erreur lors du chargement des clients matchés.
-                        </p>
+                        <div className="flex flex-col items-center gap-2 py-10">
+                            <p className="text-red-400 font-bold text-sm">Erreur de chargement</p>
+                            <p className="text-red-400/70 text-xs text-center">Impossible de récupérer les clients matchés.</p>
+                        </div>
                     )}
                     {!loading && !error && data?.matches?.length === 0 && (
-                        <p className="text-center text-accent-steel text-sm py-8">Aucun client avec un budget suffisant.</p>
+                        <div className="flex flex-col items-center gap-2 py-10">
+                            <Users className="w-8 h-8 text-accent-steel/50" />
+                            <p className="text-white font-semibold text-sm">Aucun client compatible</p>
+                            <p className="text-accent-steel text-xs text-center">Aucun lead n'a un budget suffisant pour ce bien.</p>
+                        </div>
                     )}
                     {!loading && !error && data?.matches?.map(lead => (
                         <div key={lead.id} className="bg-white/[0.03] rounded-xl border border-white/5 p-4 space-y-3">
