@@ -1,0 +1,23 @@
+name: leboncoin
+urls:
+  - https://www.leboncoin.fr/recherche?category=9&locations=Paris&immo_sell_type=old,new&owner_type=all
+  - https://www.leboncoin.fr/recherche?category=9&locations=Paris__75001,Paris__75002,Paris__75003,Paris__75004,Paris__75005&immo_sell_type=old,new&owner_type=all
+  - https://www.leboncoin.fr/recherche?category=9&locations=Paris__75006,Paris__75007,Paris__75008,Paris__75009,Paris__75010&immo_sell_type=old,new&owner_type=all
+
+# Délai aléatoire entre les requêtes (en secondes) pour éviter le blocage
+request_delay_min: 2
+request_delay_max: 5
+
+selectors:
+  # Conteneur de chaque annonce dans la liste
+  ad_container: "[data-test-id='ad']"
+  # Titre de l'annonce
+  title: "[data-test-id='ad-title']"
+  # Prix
+  price: "[data-test-id='price']"
+  # Localisation (ville / arrondissement)
+  location: "[data-test-id='ad-location']"
+  # Attributs (surface, pièces, etc.)
+  attributes: "[data-test-id='criteria']"
+  # Lien vers la page de détail
+  link: "a[data-test-id='event-from-search']"

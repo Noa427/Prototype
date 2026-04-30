@@ -1,0 +1,26 @@
+{
+  "nodes": [
+    {"id": "debug_pap_pap_listing_page", "label": "PAP Listing Page (Paris)", "file_type": "image", "source_file": "debug_pap.png", "source_location": null, "source_url": null, "captured_at": null, "author": null, "contributor": null},
+    {"id": "debug_pap_gdpr_consent_modal", "label": "GDPR Cookie Consent Modal", "file_type": "image", "source_file": "debug_pap.png", "source_location": null, "source_url": null, "captured_at": null, "author": null, "contributor": null},
+    {"id": "debug_pap_v2_pap_listing_page_v2", "label": "PAP Listing Page v2 (Paris)", "file_type": "image", "source_file": "debug_pap_v2.png", "source_location": null, "source_url": null, "captured_at": null, "author": null, "contributor": null},
+    {"id": "debug_bienici_bienici_map_listing", "label": "Bien'ici Map-Based Listing (Paris)", "file_type": "image", "source_file": "debug\\test_bien'ici.png", "source_location": null, "source_url": null, "captured_at": null, "author": null, "contributor": null},
+    {"id": "debug_leboncoin_bot_detection_block", "label": "Leboncoin Bot Detection Block", "file_type": "image", "source_file": "debug\\test_leboncoin.png", "source_location": null, "source_url": null, "captured_at": null, "author": null, "contributor": null},
+    {"id": "debug_scraper_target_pap", "label": "PAP.fr Scraper Target", "file_type": "image", "source_file": "debug_pap.png", "source_location": null, "source_url": null, "captured_at": null, "author": null, "contributor": null},
+    {"id": "debug_scraper_target_bienici", "label": "Bien'ici Scraper Target", "file_type": "image", "source_file": "debug\\test_bien'ici.png", "source_location": null, "source_url": null, "captured_at": null, "author": null, "contributor": null},
+    {"id": "debug_scraper_target_leboncoin", "label": "Leboncoin Scraper Target (Blocked)", "file_type": "image", "source_file": "debug\\test_leboncoin.png", "source_location": null, "source_url": null, "captured_at": null, "author": null, "contributor": null}
+  ],
+  "edges": [
+    {"source": "debug_pap_pap_listing_page", "target": "debug_pap_gdpr_consent_modal", "relation": "references", "confidence": "EXTRACTED", "confidence_score": 1.0, "source_file": "debug_pap.png", "source_location": null, "weight": 1.0},
+    {"source": "debug_pap_v2_pap_listing_page_v2", "target": "debug_pap_gdpr_consent_modal", "relation": "references", "confidence": "EXTRACTED", "confidence_score": 1.0, "source_file": "debug_pap_v2.png", "source_location": null, "weight": 1.0},
+    {"source": "debug_pap_pap_listing_page", "target": "debug_scraper_target_pap", "relation": "conceptually_related_to", "confidence": "EXTRACTED", "confidence_score": 1.0, "source_file": "debug_pap.png", "source_location": null, "weight": 1.0},
+    {"source": "debug_pap_pap_listing_page", "target": "debug_pap_v2_pap_listing_page_v2", "relation": "semantically_similar_to", "confidence": "EXTRACTED", "confidence_score": 0.95, "source_file": "debug_pap.png", "source_location": null, "weight": 1.0},
+    {"source": "debug_leboncoin_bot_detection_block", "target": "debug_scraper_target_leboncoin", "relation": "conceptually_related_to", "confidence": "EXTRACTED", "confidence_score": 1.0, "source_file": "debug\\test_leboncoin.png", "source_location": null, "weight": 1.0},
+    {"source": "debug_scraper_target_pap", "target": "debug_scraper_target_bienici", "relation": "semantically_similar_to", "confidence": "INFERRED", "confidence_score": 0.85, "source_file": "debug_pap.png", "source_location": null, "weight": 1.0},
+    {"source": "debug_scraper_target_pap", "target": "debug_scraper_target_leboncoin", "relation": "semantically_similar_to", "confidence": "INFERRED", "confidence_score": 0.8, "source_file": "debug_pap.png", "source_location": null, "weight": 1.0}
+  ],
+  "hyperedges": [
+    {"id": "real_estate_scraper_targets", "label": "Real Estate Portal Scraper Targets", "nodes": ["debug_scraper_target_pap", "debug_scraper_target_bienici", "debug_scraper_target_leboncoin"], "relation": "participate_in", "confidence": "INFERRED", "confidence_score": 0.9, "source_file": "debug_pap.png"}
+  ],
+  "input_tokens": 0,
+  "output_tokens": 0
+}
