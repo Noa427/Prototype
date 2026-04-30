@@ -58,7 +58,7 @@ const DealDetailPanel = ({ deal, onClose, formatPrice, getScoreColor }) => {
         if (!deal.id) return;
         setLoadingSteps(true);
         try {
-            const r = await api.get();
+            const r = await api.get(`/api/deals/${deal.id}/post-sale-steps`);
             setPostSaleSteps(r.data);
         } catch { setPostSaleSteps([]); }
         setLoadingSteps(false);
@@ -68,7 +68,7 @@ const DealDetailPanel = ({ deal, onClose, formatPrice, getScoreColor }) => {
         if (!compromiseDate) return;
         setStartingPostSale(true);
         try {
-            await api.post(, { compromise_date: compromiseDate });
+            await api.post(`/api/deals/${deal.id}/start-post-sale`, { compromise_date: compromiseDate });
             await loadPostSaleSteps();
         } catch (e) { alert('Erreur : ' + (e.response?.data?.detail || e.message)); }
         setStartingPostSale(false);
@@ -76,7 +76,7 @@ const DealDetailPanel = ({ deal, onClose, formatPrice, getScoreColor }) => {
 
     const handleCompleteStep = async (stepId) => {
         try {
-            await api.put();
+            await api.put(`/api/deals/${deal.id}/post-sale-steps/${stepId}/complete`);
             await loadPostSaleSteps();
         } catch { alert('Erreur'); }
     };
@@ -86,7 +86,7 @@ const DealDetailPanel = ({ deal, onClose, formatPrice, getScoreColor }) => {
         if (!newDate) return;
         const reason = window.prompt('Raison du report :', '') || '';
         try {
-            await api.put(, { new_due_date: newDate, reason });
+            await api.put(`/api/deals/${deal.id}/post-sale-steps/${stepId}/postpone`, { new_due_date: newDate, reason });
             await loadPostSaleSteps();
         } catch { alert('Erreur'); }
     };
