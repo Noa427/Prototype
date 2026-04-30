@@ -1,6 +1,6 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
-import { LayoutDashboard, Building2, Settings, Shield, Map, Users, BarChart3, Zap, Mail, TrendingUp, PenLine, FileText, X } from 'lucide-react';
+import { LayoutDashboard, Building2, Settings, Shield, Map, Users, BarChart3, Zap, Mail, TrendingUp, PenLine, FileText, Home, X } from 'lucide-react';
 import { clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 import { useAuth } from '../App';
@@ -21,6 +21,7 @@ const clientNavItems = [
     { icon: Mail, label: 'Campagnes', id: 'campaigns', path: '/campaigns' },
     { icon: PenLine, label: 'Signatures', id: 'signatures', path: '/signatures' },
     { icon: FileText, label: 'Mandats', id: 'mandates', path: '/mandates' },
+    { icon: Home, label: 'Gestion locative', id: 'rentals', path: '/rentals' },
     { icon: TrendingUp, label: 'Reporting', id: 'reporting', path: '/reporting' },
 ];
 

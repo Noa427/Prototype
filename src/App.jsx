@@ -18,6 +18,7 @@ import Campaigns from './pages/Campaigns';
 import Reporting from './pages/Reporting';
 import Signatures from './pages/Signatures';
 import Mandates from './pages/Mandates';
+import Rentals from './pages/Rentals';
 
 // Contexte d'authentification
 const AuthContext = createContext();
@@ -153,6 +154,9 @@ function App() {
           </Route>
           <Route path="/mandates" element={<ProtectedRoute roles="staff"><Layout /></ProtectedRoute>}>
             <Route index element={<Mandates />} />
+          </Route>
+          <Route path="/rentals" element={<ProtectedRoute roles="staff"><Layout /></ProtectedRoute>}>
+            <Route index element={<Rentals />} />
           </Route>
 
           {/* Redirection par défaut */}
