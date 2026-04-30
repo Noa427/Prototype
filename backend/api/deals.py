@@ -1,13 +1,13 @@
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import StreamingResponse
-from sqlmodel import Session, select, or_
+from sqlmodel import Session, select
 from typing import List, Optional
 import csv
 import io
 from datetime import datetime, timedelta
 
 from ..database import get_session
-from ..models import Deal, User, PostSaleStep, Notification
+from ..models import Deal, User, PostSaleStep
 from ..auth import get_current_user
 
 router = APIRouter(prefix="/deals", tags=["deals"])
@@ -192,6 +192,8 @@ async def complete_post_sale_step(
     if not step or step.deal_id != deal_id:
         raise HTTPException(status_code=404, detail="Étape introuvable")
     deal = session.get(Deal, deal_id)
+    if not deal:
+        raise HTTPException(status_code=404, detail="Deal introuvable")
     if current_user.role != "admin" and deal.agency_id != current_user.agency_id:
         raise HTTPException(status_code=403, detail="Accès interdit")
     now = datetime.utcnow()
@@ -217,6 +219,8 @@ async def postpone_post_sale_step(
     if not step or step.deal_id != deal_id:
         raise HTTPException(status_code=404, detail="Étape introuvable")
     deal = session.get(Deal, deal_id)
+    if not deal:
+        raise HTTPException(status_code=404, detail="Deal introuvable")
     if current_user.role != "admin" and deal.agency_id != current_user.agency_id:
         raise HTTPException(status_code=403, detail="Accès interdit")
     try:

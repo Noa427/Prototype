@@ -60,6 +60,7 @@ class Deal(SQLModel, table=True):
     agency_id: Optional[int] = Field(default=None, foreign_key="agency.id")
     agency: Optional["Agency"] = Relationship(back_populates="deals")
     leads: List["Lead"] = Relationship(back_populates="deal")
+    post_sale_steps: List["PostSaleStep"] = Relationship(back_populates="deal")
 
 class Notification(SQLModel, table=True):
     id: int | None = Field(default=None, primary_key=True)
@@ -226,3 +227,5 @@ class PostSaleStep(SQLModel, table=True):
     notes: Optional[str] = None
     created_at: datetime = Field(default_factory=datetime.utcnow)
     updated_at: datetime = Field(default_factory=datetime.utcnow)
+
+    deal: Optional["Deal"] = Relationship(back_populates="post_sale_steps")
