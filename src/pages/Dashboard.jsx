@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { Building2, AlertCircle, TrendingUp, ArrowUpRight, Clock, MapPin, Zap, Activity, Wifi, WifiOff, X, ExternalLink, Maximize2, ChevronLeft, ChevronRight, UserPlus } from 'lucide-react';
+import { Building2, AlertCircle, TrendingUp, ArrowUpRight, Clock, MapPin, Zap, Activity, Wifi, WifiOff, X, ExternalLink, Maximize2, ChevronLeft, ChevronRight, UserPlus, ClipboardList, CheckCircle, Calendar } from 'lucide-react';
 import { generateRandomDeal, getScoreColor, getScoreLabel, getNextDeal, createLead } from '../services/dealService';
+import api from '../services/api';
 
 const metrics = [
     { label: "Nouveaux Biens", value: "14", sub: "Dernières 24h", icon: Building2, color: "text-accent" },
@@ -47,6 +48,52 @@ const getValuationBadges = (deal) => {
 
 const DealDetailPanel = ({ deal, onClose, formatPrice, getScoreColor }) => {
     const [activePhotoIndex, setActivePhotoIndex] = React.useState(0);
+    const [postSaleSteps, setPostSaleSteps] = React.useState(null);
+    const [loadingSteps, setLoadingSteps] = React.useState(false);
+    const [showPostSale, setShowPostSale] = React.useState(false);
+    const [startingPostSale, setStartingPostSale] = React.useState(false);
+    const [compromiseDate, setCompromiseDate] = React.useState('');
+
+    const loadPostSaleSteps = React.useCallback(async () => {
+        if (!deal.id) return;
+        setLoadingSteps(true);
+        try {
+            const r = await api.get();
+            setPostSaleSteps(r.data);
+        } catch { setPostSaleSteps([]); }
+        setLoadingSteps(false);
+    }, [deal.id]);
+
+    const handleStartPostSale = async () => {
+        if (!compromiseDate) return;
+        setStartingPostSale(true);
+        try {
+            await api.post(, { compromise_date: compromiseDate });
+            await loadPostSaleSteps();
+        } catch (e) { alert('Erreur : ' + (e.response?.data?.detail || e.message)); }
+        setStartingPostSale(false);
+    };
+
+    const handleCompleteStep = async (stepId) => {
+        try {
+            await api.put();
+            await loadPostSaleSteps();
+        } catch { alert('Erreur'); }
+    };
+
+    const handlePostponeStep = async (stepId, currentDueDate) => {
+        const newDate = window.prompt('Nouvelle date (YYYY-MM-DD) :', currentDueDate?.split('T')[0]);
+        if (!newDate) return;
+        const reason = window.prompt('Raison du report :', '') || '';
+        try {
+            await api.put(, { new_due_date: newDate, reason });
+            await loadPostSaleSteps();
+        } catch { alert('Erreur'); }
+    };
+
+    React.useEffect(() => {
+        if (deal.id) loadPostSaleSteps();
+    }, [deal.id, loadPostSaleSteps]);
     const photos = deal.photos && deal.photos.length > 0 ? deal.photos : ["https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80"];
 
     const nextPhoto = (e) => {
@@ -223,6 +270,92 @@ const DealDetailPanel = ({ deal, onClose, formatPrice, getScoreColor }) => {
                                 </div>
                             </div>
 
+                            {/* Section Suivi post-compromis */}
+                            <div className="space-y-3">
+                                <button
+                                    onClick={() => setShowPostSale(v => !v)}
+                                    className="w-full flex items-center justify-between py-3 px-4 bg-white/5 hover:bg-white/10 rounded-xl border border-white/10 transition-colors">
+                                    <span className="flex items-center gap-2 text-sm font-bold text-white uppercase tracking-widest">
+                                        <ClipboardList className="w-4 h-4 text-accent" />
+                                        Suivi post-compromis
+                                    </span>
+                                    <ChevronLeft className={`w-4 h-4 text-accent-steel transition-transform ${showPostSale ? '-rotate-90' : 'rotate-180'}`} />
+                                </button>
+                                {showPostSale && (
+                                    <div className="space-y-3">
+                                        {loadingSteps ? (
+                                            <div className="flex justify-center py-4">
+                                                <div className="w-5 h-5 border-2 border-accent border-t-transparent rounded-full animate-spin" />
+                                            </div>
+                                        ) : postSaleSteps && postSaleSteps.length > 0 ? (
+                                            <>
+                                                {(() => {
+                                                    const completed = postSaleSteps.filter(s => s.status === 'completed').length;
+                                                    const pct = Math.round(completed / postSaleSteps.length * 100);
+                                                    return (
+                                                        <div className="p-3 bg-white/5 rounded-xl border border-white/10">
+                                                            <div className="flex justify-between text-xs text-accent-steel mb-2">
+                                                                <span>{completed}/{postSaleSteps.length} étapes</span>
+                                                                <span className="font-bold text-white">{pct}%</span>
+                                                            </div>
+                                                            <div className="w-full bg-white/10 rounded-full h-1.5">
+                                                                <div className="bg-accent h-1.5 rounded-full transition-all" style={{ width: `${pct}%` }} />
+                                                            </div>
+                                                        </div>
+                                                    );
+                                                })()}
+                                                {postSaleSteps.map(s => {
+                                                    const dueDate = new Date(s.due_date);
+                                                    const daysLeft = Math.ceil((dueDate - new Date()) / (1000 * 3600 * 24));
+                                                    const statusColor = s.status === 'completed' ? 'text-emerald-400' : s.status === 'overdue' ? 'text-rose-400' : 'text-accent-steel';
+                                                    const bgColor = s.status === 'overdue' ? 'bg-rose-500/5 border-rose-500/20' : s.status === 'completed' ? 'bg-emerald-500/5 border-emerald-500/20' : 'bg-white/5 border-white/10';
+                                                    return (
+                                                        <div key={s.id} className={`p-3 rounded-xl border ${bgColor}`}>
+                                                            <div className="flex items-start justify-between gap-2 mb-1">
+                                                                <span className="text-xs font-medium text-white leading-tight">{s.step_name}</span>
+                                                                <span className={`text-[10px] font-bold shrink-0 ${statusColor}`}>
+                                                                    {s.status === 'completed' ? '✓ Fait' : s.status === 'overdue' ? 'Dépassé' : daysLeft > 0 ? `J-${daysLeft}` : "Aujourd'hui"}
+                                                                </span>
+                                                            </div>
+                                                            <p className="text-[10px] text-accent-steel mb-2">
+                                                                Échéance : {dueDate.toLocaleDateString('fr-FR')}
+                                                            </p>
+                                                            {s.status !== 'completed' && (
+                                                                <div className="flex gap-2">
+                                                                    <button onClick={() => handleCompleteStep(s.id)}
+                                                                        className="flex items-center gap-1 px-2 py-1 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/20 rounded text-[10px] font-medium transition-colors">
+                                                                        <CheckCircle className="w-3 h-3" /> Compléter
+                                                                    </button>
+                                                                    <button onClick={() => handlePostponeStep(s.id, s.due_date)}
+                                                                        className="flex items-center gap-1 px-2 py-1 bg-white/5 hover:bg-white/10 text-accent-steel hover:text-white border border-white/10 rounded text-[10px] font-medium transition-colors">
+                                                                        <Calendar className="w-3 h-3" /> Reporter
+                                                                    </button>
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                    );
+                                                })}
+                                            </>
+                                        ) : (
+                                            <div className="p-4 bg-white/5 rounded-xl border border-white/10 space-y-3">
+                                                <p className="text-xs text-accent-steel">Compromis signé ? Démarrez le suivi pour générer les 7 étapes légales automatiquement.</p>
+                                                <input
+                                                    type="date"
+                                                    value={compromiseDate}
+                                                    onChange={e => setCompromiseDate(e.target.value)}
+                                                    className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-accent/50"
+                                                />
+                                                <button
+                                                    onClick={handleStartPostSale}
+                                                    disabled={!compromiseDate || startingPostSale}
+                                                    className="w-full py-2.5 bg-accent hover:bg-accent/90 text-white rounded-lg text-sm font-bold transition-colors disabled:opacity-50">
+                                                    {startingPostSale ? 'Démarrage...' : 'Démarrer le suivi'}
+                                                </button>
+                                            </div>
+                                        )}
+                                    </div>
+                                )}
+                            </div>
                             <button
                                 onClick={() => window.open(deal.url, '_blank', 'noopener,noreferrer')}
                                 className="w-full py-4 bg-slate-800 hover:bg-slate-700 text-white font-bold rounded-xl transition-all flex items-center justify-center gap-3 border border-white/10 group"
@@ -271,6 +404,7 @@ export const Dashboard = () => {
     const [flashingDeal, setFlashingDeal] = useState(null);
     const [sortBy, setSortBy] = useState('score-desc');
     const [selectedDeal, setSelectedDeal] = useState(null);
+    const [postSaleIds, setPostSaleIds] = useState(new Set());
 
     useEffect(() => {
         const initialize = async () => {
@@ -278,6 +412,9 @@ export const Dashboard = () => {
             if (result.deals) setDeals(result.deals);
         };
         initialize();
+        api.get('/api/deals/post-sale-active-ids')
+            .then(r => setPostSaleIds(new Set(r.data.deal_ids)))
+            .catch(() => {});
 
         const interval = setInterval(async () => {
             const result = await getNextDeal();
@@ -408,6 +545,12 @@ export const Dashboard = () => {
                                                 {badge.label}
                                             </div>
                                         ))}
+                                        {postSaleIds.has(deal.id) && (
+                                            <div className="flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold border bg-blue-500/20 text-blue-400 border-blue-500/30">
+                                                <ClipboardList className="w-3 h-3" />
+                                                SUIVI ACTIF
+                                            </div>
+                                        )}
                                     </div>
                                     <div className="flex items-center justify-between mb-3">
                                         <div className="flex items-center gap-2">
