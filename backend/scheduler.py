@@ -13,7 +13,7 @@ from .scrapers.auto_scraper import AutoScraper
 from .services.rental_yield import update_yield_for_deal, update_all_yields
 from .services.scoring import update_score_for_deal_deepseek, update_all_scores_deepseek
 from .services.alert_service import check_new_deals_for_alerts
-from .models import Deal, Lead, Notification, Agency, Mandate, User
+from .models import Deal, Lead, Notification, Agency, Mandate, User, PostSaleStep
 
 logger = logging.getLogger(__name__)
 
@@ -348,11 +348,19 @@ def start_scheduler():
             replace_existing=True,
         )
 
+        # Post-sale alerts — quotidien 08h00 UTC
+        scheduler.add_job(
+            post_sale_alerts_job,
+            trigger=CronTrigger(hour=8, minute=0),
+            id="post_sale_alerts_job",
+            replace_existing=True,
+        )
+
         scheduler.start()
         logger.info(
             "[SCHEDULER] Démarré — PAP(6h), Leboncoin(6h+30min), alertes(15min), "
             "relances leads(24h), baisse prix(24h), DPE(24h), heartbeat(5min), "
-            "rental_payments(1er mois), rental_reminders(5/10/15)"
+            "rental_payments(1er mois), rental_reminders(5/10/15), post_sale_alerts(08h)"
         )
 
 def shutdown_scheduler():
@@ -500,6 +508,59 @@ def rental_reminder_job(reminder_type: int):
             logger.info(f"[SCHEDULER] Relances J+{reminder_type} envoyées pour {len(late_payments)} paiements")
     except Exception as e:
         logger.error(f"[SCHEDULER] Erreur relances J+{reminder_type} : {e}")
+
+
+def post_sale_alerts_job():
+    """Quotidien 08h00 : notifications J-7/J-3/J-1 + marque overdue les étapes dépassées."""
+    logger.info("[SCHEDULER] Vérification étapes post-sale...")
+    try:
+        from datetime import datetime, timedelta
+        today = datetime.utcnow().date()
+        with Session(engine) as session:
+            steps = session.exec(
+                select(PostSaleStep).where(PostSaleStep.status == "pending")
+            ).all()
+            overdue_count = 0
+            notif_count = 0
+            for step in steps:
+                due = step.due_date.date()
+                delta = (due - today).days
+                if delta < 0:
+                    step.status = "overdue"
+                    step.updated_at = datetime.utcnow()
+                    session.add(step)
+                    overdue_count += 1
+                elif delta in (7, 3, 1):
+                    deal = session.get(Deal, step.deal_id)
+                    if not deal:
+                        continue
+                    users = session.exec(
+                        select(User).where(User.agency_id == deal.agency_id)
+                    ).all()
+                    for u in users:
+                        existing = session.exec(
+                            select(Notification).where(
+                                Notification.user_id == u.id,
+                                Notification.deal_id == step.deal_id,
+                                Notification.message.contains(f"J-{delta}"),
+                                Notification.message.contains(step.step_name),
+                            )
+                        ).first()
+                        if not existing:
+                            notif = Notification(
+                                user_id=u.id,
+                                deal_id=step.deal_id,
+                                message=(
+                                    f"Post-compromis J-{delta} : \"{step.step_name}\" "
+                                    f"— échéance le {step.due_date.strftime('%d/%m/%Y')}."
+                                ),
+                            )
+                            session.add(notif)
+                            notif_count += 1
+            session.commit()
+            logger.info(f"[SCHEDULER] Post-sale : {overdue_count} overdue, {notif_count} notifications créées")
+    except Exception as e:
+        logger.error(f"[SCHEDULER] Erreur post_sale_alerts_job : {e}")
 
 
 def run_all_scrapers():
