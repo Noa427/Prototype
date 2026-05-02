@@ -38,7 +38,7 @@ class Deal(SQLModel, table=True):
     aevum_score: int | None = Field(default=None)
     url: str
     description: Optional[str] = None
-    photos: List[str] = Field(default=[], sa_column=Column(JSON))
+    photos: List[str] = Field(default_factory=list, sa_column=Column(JSON))
     timestamp: datetime = Field(default_factory=datetime.utcnow)
 
     # Champs géocodage & enrichissement
@@ -146,6 +146,44 @@ class CalendarConfig(SQLModel, table=True):
     calendar_url: Optional[str] = None              # iCal / Google link
 
 
+class CalendarBlock(SQLModel, table=True):
+    id: int | None = Field(default=None, primary_key=True)
+    agency_id: int = Field(foreign_key="agency.id", index=True)
+    user_id: Optional[int] = Field(default=None, foreign_key="user.id")
+    block_type: str  # "vacation" | "appointment" | "personal"
+    start_datetime: datetime
+    end_datetime: datetime
+    reason: Optional[str] = None
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+
+
+class ChannelAccount(SQLModel, table=True):
+    id: int | None = Field(default=None, primary_key=True)
+    agency_id: int = Field(foreign_key="agency.id", index=True)
+    user_id: int = Field(foreign_key="user.id")
+    channel_type: str  # "whatsapp" | "sms" | "email"
+    credentials_encrypted: str
+    phone_number: Optional[str] = None
+    email_address: Optional[str] = None
+    is_active: bool = Field(default=True)
+    last_sync: Optional[datetime] = None
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+
+
+class ChannelConversation(SQLModel, table=True):
+    id: int | None = Field(default=None, primary_key=True)
+    agency_id: int = Field(foreign_key="agency.id", index=True)
+    channel_account_id: int = Field(foreign_key="channelaccount.id")
+    external_id: str = Field(index=True)
+    sender_identity: str
+    lead_id: Optional[int] = Field(default=None, foreign_key="lead.id")
+    messages: List[dict] = Field(default_factory=list, sa_column=Column(JSON))
+    last_message_at: datetime = Field(default_factory=datetime.utcnow)
+    status: str = Field(default="active")  # "active" | "lead_created" | "closed"
+    agent_takeover: bool = Field(default=False)
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+
+
 class Campaign(SQLModel, table=True):
     id: int | None = Field(default=None, primary_key=True)
     name: str
@@ -200,7 +238,7 @@ class RentalPayment(SQLModel, table=True):
     amount: float
     paid_date: Optional[datetime] = None
     status: str = Field(default="pending")  # pending|paid|late|partial
-    reminder_sent_dates: List[str] = Field(default=[], sa_column=Column(JSON))
+    reminder_sent_dates: List[str] = Field(default_factory=list, sa_column=Column(JSON))
     created_at: datetime = Field(default_factory=datetime.utcnow)
 
     rental: Optional[Rental] = Relationship(back_populates="payments")
