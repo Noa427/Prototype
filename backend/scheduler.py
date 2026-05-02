@@ -13,7 +13,7 @@ from .scrapers.auto_scraper import AutoScraper
 from .services.rental_yield import update_yield_for_deal, update_all_yields
 from .services.scoring import update_score_for_deal_deepseek, update_all_scores_deepseek
 from .services.alert_service import check_new_deals_for_alerts
-from .models import Deal, Lead, Notification, Agency, Mandate, User, PostSaleStep
+from .models import Deal, Lead, Notification, Agency, Mandate, User, PostSaleStep, ChannelAccount, ChannelConversation
 
 logger = logging.getLogger(__name__)
 
@@ -356,11 +356,20 @@ def start_scheduler():
             replace_existing=True,
         )
 
+        # Email polling — toutes les 5 min
+        scheduler.add_job(
+            poll_email_inboxes,
+            trigger=IntervalTrigger(minutes=5),
+            id="email_poll_job",
+            replace_existing=True,
+        )
+
         scheduler.start()
         logger.info(
             "[SCHEDULER] Démarré — PAP(6h), Leboncoin(6h+30min), alertes(15min), "
             "relances leads(24h), baisse prix(24h), DPE(24h), heartbeat(5min), "
-            "rental_payments(1er mois), rental_reminders(5/10/15), post_sale_alerts(08h)"
+            "rental_payments(1er mois), rental_reminders(5/10/15), post_sale_alerts(08h), "
+            "email_poll(5min)"
         )
 
 def shutdown_scheduler():
@@ -561,6 +570,54 @@ def post_sale_alerts_job():
             logger.info(f"[SCHEDULER] Post-sale : {overdue_count} overdue, {notif_count} notifications créées")
     except Exception as e:
         logger.error(f"[SCHEDULER] Erreur post_sale_alerts_job : {e}")
+
+
+def poll_email_inboxes():
+    """Toutes les 5 min : traite les emails entrants UNSEEN pour tous les ChannelAccount email actifs."""
+    logger.info("[SCHEDULER] Polling boîtes email...")
+    from datetime import datetime
+    import re
+    from .services.email_inbox import fetch_new_emails, send_reply, extract_email_address
+    from .services.omnichannel_ai import qualify_and_respond
+
+    with Session(engine) as session:
+        accounts = session.exec(
+            select(ChannelAccount).where(
+                ChannelAccount.channel_type == "email",
+                ChannelAccount.is_active == True,
+            )
+        ).all()
+        for account in accounts:
+            try:
+                emails = fetch_new_emails(account)
+                for em in emails:
+                    email_addr = extract_email_address(em["from"])
+                    conv = session.exec(
+                        select(ChannelConversation).where(
+                            ChannelConversation.channel_account_id == account.id,
+                            ChannelConversation.external_id == email_addr,
+                        )
+                    ).first()
+                    if not conv:
+                        conv = ChannelConversation(
+                            agency_id=account.agency_id,
+                            channel_account_id=account.id,
+                            external_id=email_addr,
+                            sender_identity=email_addr,
+                        )
+                        session.add(conv)
+                        session.commit()
+                        session.refresh(conv)
+                    if conv.agent_takeover:
+                        continue
+                    reply_text = qualify_and_respond(em["body"], account, conv, session)
+                    subject = f"Re: {em['subject']}" if em["subject"] else "Votre demande"
+                    send_reply(account, email_addr, subject, reply_text)
+                account.last_sync = datetime.utcnow()
+                session.add(account)
+                session.commit()
+            except Exception as e:
+                logger.error(f"[SCHEDULER] Email poll error account {account.id}: {e}")
 
 
 def run_all_scrapers():
