@@ -19,6 +19,8 @@ import Reporting from './pages/Reporting';
 import Signatures from './pages/Signatures';
 import Mandates from './pages/Mandates';
 import Rentals from './pages/Rentals';
+import Conversations from './pages/Conversations';
+import ChannelSettings from './pages/ChannelSettings';
 
 // Contexte d'authentification
 const AuthContext = createContext();
@@ -157,6 +159,12 @@ function App() {
           </Route>
           <Route path="/rentals" element={<ProtectedRoute roles="staff"><Layout /></ProtectedRoute>}>
             <Route index element={<Rentals />} />
+          </Route>
+          <Route path="/conversations" element={<ProtectedRoute roles="staff"><Layout /></ProtectedRoute>}>
+            <Route index element={<Conversations />} />
+          </Route>
+          <Route path="/settings/canaux" element={<ProtectedRoute roles="staff"><Layout /></ProtectedRoute>}>
+            <Route index element={<ChannelSettings />} />
           </Route>
 
           {/* Redirection par défaut */}

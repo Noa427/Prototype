@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
-import { LayoutDashboard, Building2, Settings, Shield, Map, Users, BarChart3, Zap, Mail, TrendingUp, PenLine, FileText, Home, ChevronDown } from 'lucide-react';
+import { LayoutDashboard, Building2, Settings, Shield, Map, Users, BarChart3, Zap, Mail, TrendingUp, PenLine, FileText, Home, ChevronDown, MessageSquare, Plug } from 'lucide-react';
 import { clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 import { useAuth } from '../App';
@@ -42,6 +42,15 @@ const clientSections = [
       { icon: PenLine, label: 'Signatures', path: '/signatures' },
       { icon: FileText, label: 'Mandats', path: '/mandates' },
       { icon: Home, label: 'Gestion locative', path: '/rentals' },
+    ],
+  },
+  {
+    id: 'omnichannel',
+    label: 'Chat IA',
+    emoji: '💬',
+    items: [
+      { icon: MessageSquare, label: 'Conversations', path: '/conversations' },
+      { icon: Plug, label: 'Canaux', path: '/settings/canaux' },
     ],
   },
   {
