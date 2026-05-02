@@ -4,8 +4,10 @@ Cache en mémoire de 15 minutes.
 """
 import time
 import logging
-from datetime import datetime, date, timedelta
+from datetime import datetime, date, timedelta, time as time_type
 from typing import List, Optional
+from sqlmodel import Session, select
+from sqlalchemy import or_
 
 logger = logging.getLogger(__name__)
 
@@ -81,6 +83,7 @@ def get_available_slots(
     lunch_end: str,
     excluded_dates: List[str],
     calendar_url: Optional[str] = None,
+    blocked_ranges: Optional[List[tuple]] = None,
 ) -> List[str]:
     """
     Retourne les créneaux disponibles pour une date donnée (format HH:MM).
@@ -119,6 +122,9 @@ def get_available_slots(
                     e = ev["end"].hour * 60 + ev["end"].minute
                     busy_ranges.append((s, e))
 
+    if blocked_ranges:
+        busy_ranges.extend(blocked_ranges)
+
     slots = []
     cur = day_start_min
     while cur + slot_duration <= day_end_min:
@@ -134,3 +140,34 @@ def get_available_slots(
         cur += slot_duration
 
     return slots
+
+
+def get_blocked_ranges(
+    session: Session,
+    user_id: int,
+    agency_id: int,
+    target_date: date,
+) -> List[tuple]:
+    """Retourne les plages bloquées (start_min, end_min) pour un agent et une date."""
+    from ..models import CalendarBlock  # pas de cycle : models.py n'importe pas calendar_service
+
+    day_start = datetime.combine(target_date, time_type(0, 0, 0))
+    day_end = datetime.combine(target_date, time_type(23, 59, 59))
+
+    blocks = session.exec(
+        select(CalendarBlock).where(
+            CalendarBlock.agency_id == agency_id,
+            or_(CalendarBlock.user_id == user_id, CalendarBlock.user_id == None),
+            CalendarBlock.start_datetime <= day_end,
+            CalendarBlock.end_datetime >= day_start,
+        )
+    ).all()
+
+    ranges = []
+    for b in blocks:
+        s = max(b.start_datetime, day_start)
+        e = min(b.end_datetime, day_end)
+        start_min = s.hour * 60 + s.minute
+        end_min = e.hour * 60 + e.minute
+        ranges.append((start_min, end_min if end_min > start_min else 24 * 60))
+    return ranges
