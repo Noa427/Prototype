@@ -5,15 +5,16 @@ Authentification via license_key uniquement.
 import os
 import logging
 import httpx
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Depends
 from pydantic import BaseModel
 from typing import Optional
 from sqlmodel import Session, select
-from datetime import datetime
+from datetime import datetime, date as date_type
 
-from ..database import engine
-from ..models import Agency, Lead, Deal
+from ..database import engine, get_session
+from ..models import Agency, Lead, Deal, CalendarConfig, User
 from ..services.email_service import send_email
+from ..services.calendar_service import get_available_slots, get_blocked_ranges
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/chat", tags=["chat-public"])
@@ -158,3 +159,48 @@ async def book_slot(payload: BookSlotPayload):
     )
 
     return {"lead_id": lead_id, "message": "Demande enregistrée, confirmation envoyée par email."}
+
+
+@router.get("/slots/{license_key}")
+async def public_slots(
+    license_key: str,
+    date: str,
+    session: Session = Depends(get_session),
+):
+    """Créneaux disponibles pour le widget public (sans JWT)."""
+    agency = _get_agency(license_key)
+    try:
+        target = date_type.fromisoformat(date)
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Format date invalide (YYYY-MM-DD)")
+
+    # Premier agent actif de l'agence
+    user = session.exec(
+        select(User).where(User.agency_id == agency.id, User.is_active == True)
+    ).first()
+    if not user:
+        return {"date": date, "slots": []}
+
+    cfg = session.exec(
+        select(CalendarConfig).where(CalendarConfig.user_id == user.id)
+    ).first()
+    if not cfg:
+        return {"date": date, "slots": []}
+
+    work_days = [int(d) for d in cfg.work_days.split(",") if d]
+    excluded = [d for d in cfg.excluded_dates.split(",") if d]
+    blocked = get_blocked_ranges(session, user.id, agency.id, target)
+
+    slots = get_available_slots(
+        target_date=target,
+        work_days=work_days,
+        start_time=cfg.start_time,
+        end_time=cfg.end_time,
+        slot_duration=cfg.slot_duration,
+        lunch_start=cfg.lunch_start,
+        lunch_end=cfg.lunch_end,
+        excluded_dates=excluded,
+        calendar_url=cfg.calendar_url,
+        blocked_ranges=blocked,
+    )
+    return {"date": date, "slots": slots}
