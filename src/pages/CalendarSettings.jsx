@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Calendar, Clock, Save, CheckCircle, Link2, ChevronLeft, ChevronRight, X } from 'lucide-react';
+import { Calendar, Clock, Save, CheckCircle, Link2, ChevronLeft, ChevronRight, X, Ban, PlusCircle } from 'lucide-react';
 import api from '../services/api';
 
 const DAYS = [
@@ -238,6 +238,38 @@ const CalendarSettings = () => {
         }
     };
 
+  const [blocks, setBlocks] = useState([]);
+  const [showBlockModal, setShowBlockModal] = useState(false);
+  const [newBlock, setNewBlock] = useState({ block_type: 'vacation', start_datetime: '', end_datetime: '', reason: '' });
+  const [savingBlock, setSavingBlock] = useState(false);
+
+  useEffect(() => {
+    api.get('/api/calendar/blocks').then(r => setBlocks(r.data)).catch(() => {});
+  }, []);
+
+  const handleCreateBlock = async () => {
+    setSavingBlock(true);
+    try {
+      await api.post('/api/calendar/blocks', newBlock);
+      const r = await api.get('/api/calendar/blocks');
+      setBlocks(r.data);
+      setShowBlockModal(false);
+      setNewBlock({ block_type: 'vacation', start_datetime: '', end_datetime: '', reason: '' });
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setSavingBlock(false);
+    }
+  };
+
+  const handleDeleteBlock = async (id) => {
+    if (!window.confirm('Supprimer cette indisponibilité ?')) return;
+    await api.delete(`/api/calendar/blocks/${id}`);
+    setBlocks(b => b.filter(x => x.id !== id));
+  };
+
+  const BLOCK_LABELS = { vacation: 'Congés', appointment: 'RDV perso', personal: 'Autre' };
+
     if (loading) return (
         <div className="flex items-center justify-center h-64">
             <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-accent" />
@@ -401,6 +433,102 @@ const CalendarSettings = () => {
                     </div>
                 </div>
             </div>
+
+      {/* ── Indisponibilités ── */}
+      <div className="glass rounded-xl border border-white/10 p-5 space-y-4">
+        <div className="flex items-center justify-between">
+          <h2 className="font-bold text-white text-sm flex items-center gap-2">
+            <Ban className="w-4 h-4 text-accent" />Indisponibilités
+          </h2>
+          <button
+            onClick={() => setShowBlockModal(true)}
+            className="text-xs px-3 py-1.5 rounded-lg bg-accent/20 text-accent border border-accent/30 hover:bg-accent/30 transition-colors flex items-center gap-1.5"
+          >
+            <PlusCircle className="w-3.5 h-3.5" />Ajouter
+          </button>
+        </div>
+
+        {blocks.length === 0 ? (
+          <p className="text-[11px] text-accent-steel">Aucune indisponibilité configurée.</p>
+        ) : (
+          <div className="space-y-2">
+            {blocks.map(b => (
+              <div key={b.id} className="flex items-center justify-between bg-white/5 border border-white/10 rounded-lg px-4 py-2.5">
+                <div>
+                  <span className="text-xs font-medium text-white">{BLOCK_LABELS[b.block_type] || b.block_type}</span>
+                  <p className="text-[11px] text-accent-steel">
+                    {new Date(b.start_datetime).toLocaleDateString('fr-FR')} →{' '}
+                    {new Date(b.end_datetime).toLocaleDateString('fr-FR')}
+                    {b.reason && ` — ${b.reason}`}
+                  </p>
+                </div>
+                <button
+                  onClick={() => handleDeleteBlock(b.id)}
+                  className="p-1.5 rounded hover:bg-red-500/20 text-accent-steel hover:text-red-400 transition-colors"
+                >
+                  <X className="w-3.5 h-3.5" />
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* ── Modal ajout block ── */}
+      {showBlockModal && (
+        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
+          <div className="glass border border-white/10 rounded-2xl w-full max-w-sm p-6 space-y-4">
+            <div className="flex items-center justify-between">
+              <h3 className="font-bold text-white text-sm">Ajouter une indisponibilité</h3>
+              <button onClick={() => setShowBlockModal(false)} className="p-1.5 rounded hover:bg-white/10 text-accent-steel">
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+            <div className="space-y-3">
+              <div className="space-y-1">
+                <label className="text-[11px] text-accent-steel uppercase font-bold tracking-wider">Type</label>
+                <select
+                  value={newBlock.block_type}
+                  onChange={e => setNewBlock(v => ({ ...v, block_type: e.target.value }))}
+                  className="w-full bg-white/5 border border-white/10 rounded-lg py-2 px-3 text-sm text-white focus:outline-none"
+                >
+                  <option value="vacation">Congés</option>
+                  <option value="appointment">RDV perso</option>
+                  <option value="personal">Autre</option>
+                </select>
+              </div>
+              {[['start_datetime', 'Début'], ['end_datetime', 'Fin']].map(([k, label]) => (
+                <div key={k} className="space-y-1">
+                  <label className="text-[11px] text-accent-steel uppercase font-bold tracking-wider">{label}</label>
+                  <input
+                    type="datetime-local"
+                    value={newBlock[k]}
+                    onChange={e => setNewBlock(v => ({ ...v, [k]: e.target.value }))}
+                    className="w-full bg-white/5 border border-white/10 rounded-lg py-2 px-3 text-sm text-white focus:outline-none"
+                  />
+                </div>
+              ))}
+              <div className="space-y-1">
+                <label className="text-[11px] text-accent-steel uppercase font-bold tracking-wider">Raison (optionnel)</label>
+                <input
+                  type="text"
+                  value={newBlock.reason}
+                  onChange={e => setNewBlock(v => ({ ...v, reason: e.target.value }))}
+                  placeholder="Ex: Séminaire, médecin..."
+                  className="w-full bg-white/5 border border-white/10 rounded-lg py-2 px-3 text-sm text-white focus:outline-none"
+                />
+              </div>
+            </div>
+            <button
+              onClick={handleCreateBlock}
+              disabled={savingBlock || !newBlock.start_datetime || !newBlock.end_datetime}
+              className="w-full py-2.5 rounded-lg bg-accent text-black font-bold text-sm hover:bg-accent/80 transition-colors disabled:opacity-40"
+            >
+              {savingBlock ? 'Enregistrement...' : 'Enregistrer'}
+            </button>
+          </div>
+        </div>
+      )}
         </div>
     );
 };
