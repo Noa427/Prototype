@@ -9,7 +9,7 @@ class User(SQLModel, table=True):
     full_name: str
     email: str = Field(unique=True)
     hashed_password: str
-    role: str = Field(default="client") # "admin", "client", or "commercial"
+    role: str = Field(default="agent")  # "admin" | "gérant" | "agent"
     is_active: bool = Field(default=True)
     last_login: Optional[datetime] = None
     alert_threshold: int = Field(default=8)
@@ -144,6 +144,7 @@ class CalendarConfig(SQLModel, table=True):
     lunch_end: str = Field(default="13:00")
     excluded_dates: str = Field(default="")         # CSV YYYY-MM-DD
     calendar_url: Optional[str] = None              # iCal / Google link
+    day_overrides: Optional[str] = Field(default=None)  # JSON: {"5": {"start_time": "09:00", "end_time": "17:00", ...}}
 
 
 class CalendarBlock(SQLModel, table=True):

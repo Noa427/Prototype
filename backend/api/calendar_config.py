@@ -32,6 +32,7 @@ class BlockOut(BaseModel):
 
 
 def _config_to_dict(cfg: CalendarConfig) -> Dict[str, Any]:
+    import json
     return {
         "work_days": [int(d) for d in cfg.work_days.split(",") if d],
         "start_time": cfg.start_time,
@@ -41,6 +42,7 @@ def _config_to_dict(cfg: CalendarConfig) -> Dict[str, Any]:
         "lunch_end": cfg.lunch_end,
         "excluded_dates": [d for d in cfg.excluded_dates.split(",") if d],
         "calendar_url": cfg.calendar_url,
+        "day_overrides": json.loads(cfg.day_overrides) if cfg.day_overrides else {},
     }
 
 
@@ -63,6 +65,7 @@ async def get_calendar_config(
             "lunch_end": "13:00",
             "excluded_dates": [],
             "calendar_url": None,
+            "day_overrides": {},
         }
     return _config_to_dict(cfg)
 
@@ -89,6 +92,9 @@ async def save_calendar_config(
     excluded = body.get("excluded_dates", [])
     cfg.excluded_dates = ",".join(excluded)
     cfg.calendar_url = body.get("calendar_url") or None
+    import json
+    day_overrides = body.get("day_overrides", {})
+    cfg.day_overrides = json.dumps(day_overrides) if day_overrides else None
 
     session.add(cfg)
     session.commit()
