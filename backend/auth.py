@@ -75,3 +75,11 @@ def get_admin_user(current_user: User = Depends(get_current_user)):
             detail="The user doesn't have enough privileges"
         )
     return current_user
+
+def get_gerant_user(current_user: User = Depends(get_current_user)):
+    if current_user.role not in ("gérant", "admin"):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Accès réservé au gérant de l'agence"
+        )
+    return current_user

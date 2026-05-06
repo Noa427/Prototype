@@ -36,11 +36,44 @@ def client_fixture(session: Session):
     session.refresh(agency)
 
     user = User(
-        username="test_agent",
-        full_name="Agent Test",
-        email="agent@test.com",
+        username="test_gerant",
+        full_name="Gérant Test",
+        email="gerant@test.com",
         hashed_password=get_password_hash("password"),
-        role="client",
+        role="gérant",
+        agency_id=agency.id,
+    )
+    session.add(user)
+    session.commit()
+    session.refresh(user)
+
+    def _get_current_user():
+        return user
+
+    app.dependency_overrides[get_session] = _get_session
+    app.dependency_overrides[get_current_user] = _get_current_user
+
+    yield TestClient(app), user, agency
+
+    app.dependency_overrides.clear()
+
+
+@pytest.fixture(name="client_agent", scope="function")
+def client_agent_fixture(session: Session):
+    def _get_session():
+        return session
+
+    agency = Agency(name="Test Agence Agent", location="Lyon", status="active", license_key="agent-key-456")
+    session.add(agency)
+    session.commit()
+    session.refresh(agency)
+
+    user = User(
+        username="test_agent_role",
+        full_name="Agent Employé",
+        email="agent_role@test.com",
+        hashed_password=get_password_hash("password"),
+        role="agent",
         agency_id=agency.id,
     )
     session.add(user)

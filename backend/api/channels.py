@@ -8,7 +8,7 @@ from pydantic import BaseModel
 from sqlalchemy import or_
 
 from ..database import get_session
-from ..auth import get_current_user, User
+from ..auth import get_current_user, get_gerant_user, User
 from ..models import ChannelAccount, ChannelConversation
 from ..services.fernet_utils import encrypt_credentials, decrypt_credentials
 from ..services.omnichannel_ai import qualify_and_respond
@@ -198,7 +198,7 @@ class AccountCreate(BaseModel):
 async def create_account(
     body: AccountCreate,
     session: Session = Depends(get_session),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(get_gerant_user),
 ):
     acc = ChannelAccount(
         agency_id=current_user.agency_id,
@@ -217,7 +217,7 @@ async def create_account(
 @router.get("/accounts")
 async def list_accounts(
     session: Session = Depends(get_session),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(get_gerant_user),
 ):
     accounts = session.exec(
         select(ChannelAccount).where(
@@ -240,7 +240,7 @@ async def list_accounts(
 async def delete_account(
     acc_id: int,
     session: Session = Depends(get_session),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(get_gerant_user),
 ):
     acc = session.get(ChannelAccount, acc_id)
     if not acc or acc.agency_id != current_user.agency_id:
@@ -255,7 +255,7 @@ async def delete_account(
 async def test_account(
     acc_id: int,
     session: Session = Depends(get_session),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(get_gerant_user),
 ):
     acc = session.get(ChannelAccount, acc_id)
     if not acc or acc.agency_id != current_user.agency_id:
