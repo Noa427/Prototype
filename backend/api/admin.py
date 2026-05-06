@@ -26,7 +26,7 @@ async def get_sales_kpis(
     - taux de conversion (converted / total leads)
     """
     # Récupérer tous les commerciaux
-    statement = select(User).where(User.role == "commercial")
+    statement = select(User).where(User.role.in_(["gérant", "agent"]))
     commerciaux = session.exec(statement).all()
     
     kpis = []
@@ -195,6 +195,24 @@ async def get_agency_users(
         }
         for u in users
     ]
+
+
+@router.put("/users/{user_id}/toggle")
+async def toggle_user_active(
+    user_id: int,
+    session: Session = Depends(get_session),
+    admin_user: User = Depends(get_admin_user)
+):
+    """Super-admin : active ou désactive un utilisateur."""
+    user = session.get(User, user_id)
+    if not user:
+        raise HTTPException(status_code=404, detail="Utilisateur introuvable")
+    if user.role == "admin":
+        raise HTTPException(status_code=400, detail="Impossible de désactiver un superadmin")
+    user.is_active = not user.is_active
+    session.add(user)
+    session.commit()
+    return {"id": user.id, "username": user.username, "is_active": user.is_active}
 
 
 @router.post("/update_yield")

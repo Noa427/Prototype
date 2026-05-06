@@ -1,5 +1,5 @@
 import React from 'react';
-import { Users, Shield, Plus, AlertTriangle, Activity, Bell, ChevronRight, X, AlertCircle, Info, Key } from 'lucide-react';
+import { Users, Shield, Plus, AlertTriangle, Activity, Bell, ChevronRight, X, AlertCircle, Info } from 'lucide-react';
 import { AgencyDetails } from './AgencyDetails';
 import api from '../services/api';
 
@@ -75,23 +75,15 @@ export const AdminPanel = () => {
     const [notifications, setNotifications] = React.useState([]);
     const [loading, setLoading] = React.useState(true);
     const [showNewAgency, setShowNewAgency] = React.useState(false);
-    const [apiConfig, setApiConfig] = React.useState({ sms_api_key: '', email_api_key: '' });
-    const [configLoading, setConfigLoading] = React.useState(false);
-    const [configSaved, setConfigSaved] = React.useState(false);
-    const [configError, setConfigError] = React.useState(false);
 
     React.useEffect(() => {
         Promise.all([
-            api.get('/admin/agencies/stats'),
-            api.get('/notifications/'),
+            api.get('/api/admin/agencies/stats'),
+            api.get('/api/notifications/'),
         ]).then(([agenciesRes, notifRes]) => {
             setAgencies(agenciesRes.data.filter(a => a.id !== null));
             setNotifications(notifRes.data.slice(0, 5));
         }).catch(console.error).finally(() => setLoading(false));
-
-        api.get('/api/admin/config')
-            .then(res => setApiConfig(res.data))
-            .catch(console.error);
     }, []);
 
     const getAgencyHealth = (agency) => {
@@ -119,25 +111,10 @@ export const AdminPanel = () => {
 
     const dismissNotification = async (notifId) => {
         try {
-            await api.put(`/notifications/${notifId}/read`);
+            await api.put(`/api/notifications/${notifId}/read`);
             setNotifications(notifications.filter(n => n.id !== notifId));
         } catch {
             setNotifications(notifications.filter(n => n.id !== notifId));
-        }
-    };
-
-    const saveApiConfig = async () => {
-        setConfigLoading(true);
-        setConfigError(false);
-        try {
-            await api.put('/api/admin/config', apiConfig);
-            setConfigSaved(true);
-            setTimeout(() => setConfigSaved(false), 3000);
-        } catch {
-            setConfigError(true);
-            setTimeout(() => setConfigError(false), 3000);
-        } finally {
-            setConfigLoading(false);
         }
     };
 
@@ -327,63 +304,12 @@ export const AdminPanel = () => {
                 )}
             </div>
 
-            <div className="glass rounded-xl border border-white/10 p-6">
-                <div className="flex items-center gap-3 mb-6">
-                    <Key className="w-5 h-5 text-accent" />
-                    <h2 className="text-xl font-bold text-white">Configuration des Services</h2>
-                </div>
-                {configSaved && (
-                    <div className="mb-4 p-3 bg-green-500/10 border border-green-500/20 rounded-lg">
-                        <p className="text-green-400 text-sm">Configuration sauvegardée !</p>
-                    </div>
-                )}
-                {configError && (
-                    <div className="mb-4 p-3 bg-red-500/10 border border-red-500/20 rounded-lg">
-                        <p className="text-red-400 text-sm">Erreur lors de la sauvegarde.</p>
-                    </div>
-                )}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                    <div className="space-y-2">
-                        <label className="text-[10px] font-bold uppercase tracking-widest text-accent-steel">Clé API SMS (Twilio)</label>
-                        <input
-                            type="password"
-                            value={apiConfig.sms_api_key}
-                            onChange={e => setApiConfig(c => ({ ...c, sms_api_key: e.target.value }))}
-                            placeholder="SK••••••••••••••••"
-                            className="w-full bg-white/5 border border-white/10 rounded-lg py-2 px-4 text-sm text-white focus:outline-none focus:border-accent/50"
-                        />
-                    </div>
-                    <div className="space-y-2">
-                        <label className="text-[10px] font-bold uppercase tracking-widest text-accent-steel">Clé API Email (SendGrid)</label>
-                        <input
-                            type="password"
-                            value={apiConfig.email_api_key}
-                            onChange={e => setApiConfig(c => ({ ...c, email_api_key: e.target.value }))}
-                            placeholder="SG.••••••••••••••••"
-                            className="w-full bg-white/5 border border-white/10 rounded-lg py-2 px-4 text-sm text-white focus:outline-none focus:border-accent/50"
-                        />
-                    </div>
-                </div>
-                <button
-                    onClick={saveApiConfig}
-                    disabled={configLoading}
-                    className="flex items-center gap-2 px-4 py-2 bg-accent hover:bg-accent/90 disabled:opacity-50 text-white rounded-lg transition-all text-sm font-medium"
-                >
-                    {configLoading ? (
-                        <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                    ) : (
-                        <Key className="w-4 h-4" />
-                    )}
-                    Sauvegarder les clés
-                </button>
-            </div>
-
             {showNewAgency && (
                 <NewAgencyModal
                     onClose={() => setShowNewAgency(false)}
                     onCreated={() => {
                         setShowNewAgency(false);
-                        api.get('/admin/agencies/stats').then(r => setAgencies(r.data.filter(a => a.id !== null))).catch(console.error);
+                        api.get('/api/admin/agencies/stats').then(r => setAgencies(r.data.filter(a => a.id !== null))).catch(console.error);
                     }}
                 />
             )}
