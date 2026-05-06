@@ -40,7 +40,7 @@ const ProtectedRoute = ({ children, roles = null }) => {
   if (!user) return <Navigate to="/login" replace />;
   if (roles === "admin" && user.role !== "admin") return <Navigate to="/dashboard" replace />;
   if (roles === "gerant" && !["gérant", "admin"].includes(user.role)) return <Navigate to="/dashboard" replace />;
-  if (roles === "staff" && !["client", "commercial", "admin", "gérant", "agent"].includes(user.role)) return <Navigate to="/login" replace />;
+  if (roles === "staff" && !["admin", "gérant", "agent"].includes(user.role)) return <Navigate to="/login" replace />;
   return children;
 };
 
@@ -98,7 +98,6 @@ function App() {
     isAuthenticated: !!user,
     isAdmin: user?.role === 'admin',
     isGerant: user?.role === 'gérant',
-    isClient: user?.role === 'client'
   };
 
   return (
@@ -124,7 +123,7 @@ function App() {
             <Route index element={<AdminAgencies />} />
           </Route>
 
-          {/* Staff (client + commercial + admin) */}
+          {/* Staff (agent + gérant + admin) */}
           <Route path="/dashboard" element={<ProtectedRoute roles="staff"><Layout /></ProtectedRoute>}>
             <Route index element={<Dashboard />} />
           </Route>
