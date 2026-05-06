@@ -50,7 +50,6 @@ const clientSections = [
     emoji: '💬',
     items: [
       { icon: MessageSquare, label: 'Conversations', path: '/conversations' },
-      { icon: Plug, label: 'Canaux', path: '/settings/canaux' },
     ],
   },
   {
@@ -79,6 +78,17 @@ const adminNavItems = [
     { icon: BarChart3, label: 'Admin KPI', id: 'kpi', path: '/admin/kpi' },
     { icon: Building2, label: 'Agences', id: 'agencies', path: '/admin/agencies' },
     { icon: Settings, label: 'Paramètres', id: 'settings', path: '/settings', end: true },
+];
+
+const gerantSections = [
+  {
+    id: 'mon-agence',
+    label: 'Mon Agence',
+    emoji: '🏢',
+    items: [
+      { icon: Plug, label: 'Canaux', path: '/settings/canaux' },
+    ],
+  },
 ];
 
 function SidebarSection({ section, isOpen, onToggle }) {
@@ -121,7 +131,7 @@ function SidebarSection({ section, isOpen, onToggle }) {
 }
 
 export const Sidebar = ({ isOpen, onClose }) => {
-    const { isAdmin, user } = useAuth();
+    const { isAdmin, isGerant, user } = useAuth();
     const location = useLocation();
 
     const [openSections, setOpenSections] = useState(() => {
@@ -132,9 +142,10 @@ export const Sidebar = ({ isOpen, onClose }) => {
         } catch {
             // ignore corrupted storage
         }
-        const validIds = new Set(clientSections.map(s => s.id));
+        const allSections = [...clientSections, ...gerantSections];
+        const validIds = new Set(allSections.map(s => s.id));
         const safe = new Set(stored.filter(id => validIds.has(id)));
-        const activeSection = clientSections.find(s =>
+        const activeSection = allSections.find(s =>
             s.items.some(item =>
                 location.pathname === item.path ||
                 location.pathname.startsWith(item.path + '/')
@@ -179,15 +190,21 @@ export const Sidebar = ({ isOpen, onClose }) => {
                         <div className={`flex items-center gap-2 px-3 py-2 rounded-lg ${
                             isAdmin
                                 ? 'bg-accent/10 border border-accent/20'
+                                : isGerant
+                                ? 'bg-orange-500/10 border border-orange-500/20'
                                 : 'bg-blue-500/10 border border-blue-500/20'
                         }`}>
                             {isAdmin ? (
                                 <Shield className="w-4 h-4 text-accent" />
+                            ) : isGerant ? (
+                                <Shield className="w-4 h-4 text-orange-400" />
                             ) : (
                                 <LayoutDashboard className="w-4 h-4 text-blue-400" />
                             )}
-                            <span className={`text-xs font-medium ${isAdmin ? 'text-accent' : 'text-blue-400'}`}>
-                                {isAdmin ? 'Mode Administrateur' : 'Mode Client'}
+                            <span className={`text-xs font-medium ${
+                                isAdmin ? 'text-accent' : isGerant ? 'text-orange-400' : 'text-blue-400'
+                            }`}>
+                                {isAdmin ? 'Mode Administrateur' : isGerant ? 'Mode Gérant' : 'Mode Agent'}
                             </span>
                         </div>
                     </div>
@@ -213,6 +230,14 @@ export const Sidebar = ({ isOpen, onClose }) => {
                     ) : (
                         <div className="space-y-3">
                             {clientSections.map((section) => (
+                                <SidebarSection
+                                    key={section.id}
+                                    section={section}
+                                    isOpen={openSections.has(section.id)}
+                                    onToggle={() => toggleSection(section.id)}
+                                />
+                            ))}
+                            {isGerant && gerantSections.map((section) => (
                                 <SidebarSection
                                     key={section.id}
                                     section={section}

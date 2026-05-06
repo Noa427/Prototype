@@ -34,12 +34,13 @@ export const useAuth = () => {
 };
 
 // Composant de protection des routes
-// roles: null = tout le monde connecté, "admin" = admin seulement, "staff" = client+commercial
+// roles: null = tout le monde connecté, "admin" = superadmin, "gerant" = gérant+admin, "staff" = tous
 const ProtectedRoute = ({ children, roles = null }) => {
   const { user } = useAuth();
   if (!user) return <Navigate to="/login" replace />;
   if (roles === "admin" && user.role !== "admin") return <Navigate to="/dashboard" replace />;
-  if (roles === "staff" && !["client", "commercial", "admin"].includes(user.role)) return <Navigate to="/login" replace />;
+  if (roles === "gerant" && !["gérant", "admin"].includes(user.role)) return <Navigate to="/dashboard" replace />;
+  if (roles === "staff" && !["client", "commercial", "admin", "gérant", "agent"].includes(user.role)) return <Navigate to="/login" replace />;
   return children;
 };
 
@@ -96,6 +97,7 @@ function App() {
     updateUserSettings,
     isAuthenticated: !!user,
     isAdmin: user?.role === 'admin',
+    isGerant: user?.role === 'gérant',
     isClient: user?.role === 'client'
   };
 
@@ -163,7 +165,7 @@ function App() {
           <Route path="/conversations" element={<ProtectedRoute roles="staff"><Layout /></ProtectedRoute>}>
             <Route index element={<Conversations />} />
           </Route>
-          <Route path="/settings/canaux" element={<ProtectedRoute roles="staff"><Layout /></ProtectedRoute>}>
+          <Route path="/settings/canaux" element={<ProtectedRoute roles="gerant"><Layout /></ProtectedRoute>}>
             <Route index element={<ChannelSettings />} />
           </Route>
 
