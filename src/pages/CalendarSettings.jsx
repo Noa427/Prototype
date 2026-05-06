@@ -20,10 +20,9 @@ const FRENCH_HOLIDAYS_2026 = [
 ];
 
 const BLOCK_TYPE_CONFIG = {
-    vacation:    { label: 'Congés',     emoji: '🏖', color: 'text-blue-400',   bg: 'bg-blue-500/10 border-blue-500/20' },
-    personal:    { label: 'RDV perso',  emoji: '📌', color: 'text-purple-400', bg: 'bg-purple-500/10 border-purple-500/20' },
-    single_date: { label: 'Jour exclu', emoji: '🚫', color: 'text-amber-400',  bg: 'bg-amber-500/10 border-amber-500/20' },
-    holiday:     { label: 'Férié',      emoji: '🇫🇷', color: 'text-red-400',    bg: 'bg-red-500/10 border-red-500/20' },
+    vacation: { label: 'Congés',         emoji: '🏖', color: 'text-blue-400',   bg: 'bg-blue-500/10 border-blue-500/20' },
+    personal: { label: 'RDV personnel',  emoji: '📌', color: 'text-purple-400', bg: 'bg-purple-500/10 border-purple-500/20' },
+    holiday:  { label: 'Férié',          emoji: '🇫🇷', color: 'text-red-400',    bg: 'bg-red-500/10 border-red-500/20' },
 };
 
 // ── Résoudre les horaires effectifs d'un jour (override ou défaut) ───────────
@@ -275,7 +274,7 @@ const CalendarSettings = () => {
     // Construire la liste unifiée des indisponibilités
     const singleDateItems = cfg.excluded_dates
         .filter(d => !FRENCH_HOLIDAYS_2026.includes(d))
-        .map(d => ({ _type: 'single_date', _key: 'exc:' + d, date: d }));
+        .map(d => ({ _type: 'vacation', _key: 'exc:' + d, date: d }));
     const holidayItems = cfg.excluded_dates
         .filter(d => FRENCH_HOLIDAYS_2026.includes(d))
         .map(d => ({ _type: 'holiday', _key: 'hol:' + d, date: d }));
@@ -299,16 +298,6 @@ const CalendarSettings = () => {
     const handleCreateBlock = async () => {
         setSavingBlock(true);
         try {
-            if (modalType === 'single_date') {
-                if (!newBlock.start) return;
-                setCfg(c => ({
-                    ...c,
-                    excluded_dates: [...new Set([...c.excluded_dates, newBlock.start])].sort(),
-                }));
-                setShowModal(false);
-                return;
-            }
-            // vacation : date pickers → transform to datetime
             let start_dt = newBlock.start;
             let end_dt   = newBlock.end;
             if (modalType === 'vacation') {
@@ -502,13 +491,9 @@ const CalendarSettings = () => {
                                     className="flex items-center gap-1.5 text-[10px] font-bold px-2.5 py-1.5 rounded-lg bg-blue-500/10 border border-blue-500/20 text-blue-400 hover:bg-blue-500/20 transition-colors">
                                     <Plus className="w-3 h-3" />Congés
                                 </button>
-                                <button onClick={() => openModal('single_date')}
-                                    className="flex items-center gap-1.5 text-[10px] font-bold px-2.5 py-1.5 rounded-lg bg-amber-500/10 border border-amber-500/20 text-amber-400 hover:bg-amber-500/20 transition-colors">
-                                    <Plus className="w-3 h-3" />Jour
-                                </button>
                                 <button onClick={() => openModal('personal')}
                                     className="flex items-center gap-1.5 text-[10px] font-bold px-2.5 py-1.5 rounded-lg bg-purple-500/10 border border-purple-500/20 text-purple-400 hover:bg-purple-500/20 transition-colors">
-                                    <Plus className="w-3 h-3" />RDV
+                                    <Plus className="w-3 h-3" />RDV personnel
                                 </button>
                             </div>
                         </div>
@@ -591,9 +576,7 @@ const CalendarSettings = () => {
                     <div className="glass border border-white/10 rounded-2xl w-full max-w-sm p-6 space-y-4">
                         <div className="flex items-center justify-between">
                             <h3 className="font-bold text-white text-sm">
-                                {modalType === 'vacation'    && '🏖 Ajouter des congés'}
-                                {modalType === 'single_date' && '🚫 Exclure un jour'}
-                                {modalType === 'personal'    && '📌 RDV personnel'}
+                                {modalType === 'vacation' ? '🏖 Congés' : '📌 RDV personnel'}
                             </h3>
                             <button onClick={() => setShowModal(false)} className="p-1.5 rounded hover:bg-white/10 text-accent-steel">
                                 <X className="w-4 h-4" />
@@ -601,14 +584,6 @@ const CalendarSettings = () => {
                         </div>
 
                         <div className="space-y-3">
-                            {modalType === 'single_date' && (
-                                <div className="space-y-1">
-                                    <label className="text-[11px] text-accent-steel uppercase font-bold tracking-wider">Date</label>
-                                    <input type="date" value={newBlock.start}
-                                        onChange={e => setNewBlock(v => ({...v, start: e.target.value}))}
-                                        className="w-full bg-white/5 border border-white/10 rounded-lg py-2 px-3 text-sm text-white focus:outline-none focus:border-accent/50" />
-                                </div>
-                            )}
                             {modalType === 'vacation' && (
                                 <>
                                     <div className="space-y-1">
@@ -639,20 +614,19 @@ const CalendarSettings = () => {
                                             onChange={e => setNewBlock(v => ({...v, end: e.target.value}))}
                                             className="w-full bg-white/5 border border-white/10 rounded-lg py-2 px-3 text-sm text-white focus:outline-none focus:border-accent/50" />
                                     </div>
+                                    <div className="space-y-1">
+                                        <label className="text-[11px] text-accent-steel uppercase font-bold tracking-wider">Précision (optionnel)</label>
+                                        <input type="text" value={newBlock.reason}
+                                            onChange={e => setNewBlock(v => ({...v, reason: e.target.value}))}
+                                            placeholder="Ex: médecin, administration…"
+                                            className="w-full bg-white/5 border border-white/10 rounded-lg py-2 px-3 text-sm text-white focus:outline-none focus:border-accent/50" />
+                                    </div>
                                 </>
-                            )}
-                            {modalType !== 'single_date' && (
-                                <div className="space-y-1">
-                                    <label className="text-[11px] text-accent-steel uppercase font-bold tracking-wider">Raison (optionnel)</label>
-                                    <input type="text" value={newBlock.reason}
-                                        onChange={e => setNewBlock(v => ({...v, reason: e.target.value}))}
-                                        placeholder="Ex: Séminaire, médecin…"
-                                        className="w-full bg-white/5 border border-white/10 rounded-lg py-2 px-3 text-sm text-white focus:outline-none focus:border-accent/50" />
-                                </div>
                             )}
                         </div>
 
-                        <button onClick={handleCreateBlock} disabled={savingBlock || !newBlock.start || (modalType !== 'single_date' && modalType !== 'personal' ? !newBlock.end : false)}
+                        <button onClick={handleCreateBlock}
+                            disabled={savingBlock || !newBlock.start || !newBlock.end}
                             className="w-full py-2.5 rounded-lg bg-accent text-white font-bold text-sm hover:bg-accent/80 transition-colors disabled:opacity-40">
                             {savingBlock ? 'Enregistrement…' : 'Confirmer'}
                         </button>
