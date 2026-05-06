@@ -17,18 +17,100 @@ if hasattr(sys.stdout, "reconfigure"):
 
 from sqlmodel import Session, select, func as sqlfunc
 from backend.database import engine
-from backend.models import Agency, User, Deal, Lead, Notification, Campaign, Alert, Mandate, CalendarConfig
+from backend.models import (
+    Agency, User, Deal, Lead, Notification, Campaign, Alert, Mandate,
+    CalendarConfig, CalendarBlock, ChannelAccount, ChannelConversation,
+    Rental, RentalPayment, RentalDocument, PostSaleStep,
+)
 from backend.auth import get_password_hash
+from backend.services.fernet_utils import encrypt_credentials
 
 DEMO_AGENCY_NAME = "Agence Dupont Immobilier"
-DEMO_EMAIL = "agent@demo-aevum.fr"
+DEMO_GERANT_USERNAME = "thomas.dupont"
+DEMO_GERANT_EMAIL = "thomas.dupont@agence-demo.fr"
+DEMO_AGENT_USERNAME = "julie.martin"
+DEMO_AGENT_EMAIL = "julie.martin@agence-demo.fr"
 DEMO_PASSWORD = "Demo2026!"
+# Alias conservé pour compatibilité reset
+DEMO_EMAIL = DEMO_GERANT_EMAIL
+
+SUPERADMIN_USERNAME = "noa.aevum"
+SUPERADMIN_EMAIL = "noa.aevum@aevum.io"
 
 _NOW = datetime.utcnow()
 
 
 def _ago(days: int) -> datetime:
     return _NOW - timedelta(days=days)
+
+
+EXTRA_AGENCIES_DATA = [
+    {
+        "name": "Moreau Immobilier",
+        "location": "Paris",
+        "status": "active",
+        "gerant": {"username": "sophie.moreau", "full_name": "Sophie Moreau", "email": "sophie.moreau@moreau-immo.fr"},
+        "deals": [
+            {"url": "https://demo/moreau-1", "city": "Paris", "district": "Paris 8e", "property_type": "appartement", "price": 780000, "surface": 85.0, "price_per_m2": 9176, "dpe": "C", "aevum_score": 7, "vertical": "immo", "timestamp": _ago(5)},
+            {"url": "https://demo/moreau-2", "city": "Paris", "district": "Paris 16e", "property_type": "appartement", "price": 1200000, "surface": 120.0, "price_per_m2": 10000, "dpe": "B", "aevum_score": 8, "vertical": "immo", "timestamp": _ago(10)},
+            {"url": "https://demo/moreau-3", "city": "Paris", "district": "Paris 11e", "property_type": "appartement", "price": 450000, "surface": 58.0, "price_per_m2": 7758, "dpe": "D", "aevum_score": 6, "vertical": "immo", "timestamp": _ago(15)},
+            {"url": "https://demo/moreau-4", "city": "Neuilly-sur-Seine", "district": None, "property_type": "maison", "price": 2100000, "surface": 220.0, "price_per_m2": 9545, "dpe": "A", "aevum_score": 9, "vertical": "immo", "timestamp": _ago(3)},
+            {"url": "https://demo/moreau-5", "city": "Paris", "district": "Paris 6e", "property_type": "appartement", "price": 950000, "surface": 75.0, "price_per_m2": 12667, "dpe": "C", "aevum_score": 7, "vertical": "immo", "timestamp": _ago(20)},
+            {"url": "https://demo/moreau-6", "city": "Paris", "district": "Paris 9e", "property_type": "appartement", "price": 620000, "surface": 70.0, "price_per_m2": 8857, "dpe": "E", "aevum_score": 5, "vertical": "immo", "timestamp": _ago(8)},
+            {"url": "https://demo/moreau-7", "city": "Levallois-Perret", "district": None, "property_type": "appartement", "price": 580000, "surface": 65.0, "price_per_m2": 8923, "dpe": "B", "aevum_score": 8, "vertical": "immo", "timestamp": _ago(12)},
+            {"url": "https://demo/moreau-8", "city": "Paris", "district": "Paris 17e", "property_type": "appartement", "price": 730000, "surface": 80.0, "price_per_m2": 9125, "dpe": "D", "aevum_score": 6, "vertical": "immo", "timestamp": _ago(25)},
+        ],
+    },
+    {
+        "name": "Côte d'Azur Prestige",
+        "location": "Nice",
+        "status": "active",
+        "gerant": {"username": "marc.ferrari", "full_name": "Marc Ferrari", "email": "marc.ferrari@cda-prestige.fr"},
+        "deals": [
+            {"url": "https://demo/nice-1", "city": "Nice", "district": "Carré d'Or", "property_type": "appartement", "price": 890000, "surface": 95.0, "price_per_m2": 9368, "dpe": "B", "aevum_score": 8, "vertical": "immo", "timestamp": _ago(4)},
+            {"url": "https://demo/nice-2", "city": "Cannes", "district": None, "property_type": "appartement", "price": 1400000, "surface": 130.0, "price_per_m2": 10769, "dpe": "A", "aevum_score": 9, "vertical": "immo", "timestamp": _ago(7)},
+            {"url": "https://demo/nice-3", "city": "Nice", "district": "Cimiez", "property_type": "maison", "price": 1800000, "surface": 200.0, "price_per_m2": 9000, "dpe": "C", "aevum_score": 7, "vertical": "immo", "timestamp": _ago(14)},
+            {"url": "https://demo/nice-4", "city": "Antibes", "district": None, "property_type": "appartement", "price": 560000, "surface": 68.0, "price_per_m2": 8235, "dpe": "D", "aevum_score": 6, "vertical": "immo", "timestamp": _ago(18)},
+            {"url": "https://demo/nice-5", "city": "Monaco", "district": None, "property_type": "appartement", "price": 3200000, "surface": 110.0, "price_per_m2": 29090, "dpe": "A", "aevum_score": 9, "vertical": "immo", "timestamp": _ago(2)},
+        ],
+    },
+    {
+        "name": "Cabinet Rivière",
+        "location": "Bordeaux",
+        "status": "suspended",
+        "gerant": {"username": "claire.riviere", "full_name": "Claire Rivière", "email": "claire.riviere@cabinet-riviere.fr"},
+        "deals": [
+            {"url": "https://demo/bdx-1", "city": "Bordeaux", "district": "Chartrons", "property_type": "appartement", "price": 380000, "surface": 80.0, "price_per_m2": 4750, "dpe": "D", "aevum_score": 6, "vertical": "immo", "timestamp": _ago(45)},
+            {"url": "https://demo/bdx-2", "city": "Bordeaux", "district": "Bacalan", "property_type": "appartement", "price": 290000, "surface": 65.0, "price_per_m2": 4461, "dpe": "E", "aevum_score": 5, "vertical": "immo", "timestamp": _ago(60)},
+            {"url": "https://demo/bdx-3", "city": "Mérignac", "district": None, "property_type": "maison", "price": 450000, "surface": 120.0, "price_per_m2": 3750, "dpe": "C", "aevum_score": 7, "vertical": "immo", "timestamp": _ago(55)},
+        ],
+    },
+    {
+        "name": "Zénith Immo",
+        "location": "Marseille",
+        "status": "active",
+        "gerant": {"username": "david.zenit", "full_name": "David Zénith", "email": "david.zenit@zenith-immo.fr"},
+        "deals": [
+            {"url": "https://demo/mrs-1", "city": "Marseille", "district": "6e arrondissement", "property_type": "appartement", "price": 420000, "surface": 90.0, "price_per_m2": 4666, "dpe": "C", "aevum_score": 7, "vertical": "immo", "timestamp": _ago(3)},
+            {"url": "https://demo/mrs-2", "city": "Marseille", "district": "Vieux-Port", "property_type": "appartement", "price": 310000, "surface": 65.0, "price_per_m2": 4769, "dpe": "E", "aevum_score": 5, "vertical": "immo", "timestamp": _ago(7)},
+            {"url": "https://demo/mrs-3", "city": "Marseille", "district": "Endoume", "property_type": "appartement", "price": 680000, "surface": 110.0, "price_per_m2": 6181, "dpe": "B", "aevum_score": 8, "vertical": "immo", "timestamp": _ago(10)},
+            {"url": "https://demo/mrs-4", "city": "Aix-en-Provence", "district": None, "property_type": "maison", "price": 760000, "surface": 160.0, "price_per_m2": 4750, "dpe": "A", "aevum_score": 9, "vertical": "immo", "timestamp": _ago(5)},
+            {"url": "https://demo/mrs-5", "city": "Marseille", "district": "Mazargues", "property_type": "appartement", "price": 250000, "surface": 55.0, "price_per_m2": 4545, "dpe": "D", "aevum_score": 5, "vertical": "immo", "timestamp": _ago(15)},
+            {"url": "https://demo/mrs-6", "city": "Marseille", "district": "Les Goudes", "property_type": "maison", "price": 890000, "surface": 150.0, "price_per_m2": 5933, "dpe": "C", "aevum_score": 8, "vertical": "immo", "timestamp": _ago(20)},
+            {"url": "https://demo/mrs-7", "city": "Cassis", "district": None, "property_type": "maison", "price": 1100000, "surface": 180.0, "price_per_m2": 6111, "dpe": "B", "aevum_score": 7, "vertical": "immo", "timestamp": _ago(12)},
+            {"url": "https://demo/mrs-8", "city": "Marseille", "district": "Montredon", "property_type": "appartement", "price": 340000, "surface": 72.0, "price_per_m2": 4722, "dpe": "D", "aevum_score": 6, "vertical": "immo", "timestamp": _ago(25)},
+            {"url": "https://demo/mrs-9", "city": "La Ciotat", "district": None, "property_type": "maison", "price": 620000, "surface": 140.0, "price_per_m2": 4428, "dpe": "C", "aevum_score": 7, "vertical": "immo", "timestamp": _ago(30)},
+            {"url": "https://demo/mrs-10", "city": "Marseille", "district": "Sainte-Anne", "property_type": "appartement", "price": 290000, "surface": 60.0, "price_per_m2": 4833, "dpe": "E", "aevum_score": 4, "vertical": "immo", "timestamp": _ago(35)},
+        ],
+    },
+]
+
+
+def _next_monday() -> datetime:
+    days_ahead = 7 - _NOW.weekday()
+    if _NOW.weekday() == 0:
+        days_ahead = 7
+    return _NOW + timedelta(days=days_ahead)
 
 
 DEALS_DATA = [
@@ -359,12 +441,16 @@ NOTIFICATIONS_DATA = [
     {"message": "Nouveau lead chaud détecté : Marie Lefort, score 9/10", "is_read": False, "deal_idx": 2},
     {"message": "Pépite détectée : T4 Lyon 6e Foch, estimé 18% sous le marché", "is_read": False, "deal_idx": 2},
     {"message": "RDV confirmé : Jean-Pierre Martin, vendredi 14h — Villeurbanne", "is_read": False, "deal_idx": 9},
+    {"message": "Loyer impayé : Appartement rue Garibaldi — locataire Claire Fontaine", "is_read": False, "deal_idx": None},
+    {"message": "Nouveau message WhatsApp de +33 6 45 23 67 89 — prospect Lyon 6e", "is_read": False, "deal_idx": None},
     # Lues
     {"message": "Lead non contacté depuis 7 jours : Sophie Blanc", "is_read": True, "deal_idx": 3},
     {"message": "Nouvelle baisse de prix : Maison Caluire -12 000€", "is_read": True, "deal_idx": 10},
     {"message": "Score mis à jour : 3 biens recalculés automatiquement", "is_read": True, "deal_idx": None},
     {"message": "Rapport mensuel disponible — Agence Dupont Immobilier", "is_read": True, "deal_idx": None},
     {"message": "Campagne 'Nouveautés Mai 2026' envoyée à 8 leads avec succès", "is_read": True, "deal_idx": None},
+    {"message": "Mandat n°7 expire dans 15 jours : Maison Villeurbanne — Sylvie Moreau", "is_read": True, "deal_idx": None},
+    {"message": "Signature complétée : Sophie Blanc — Compromis T3 Lyon 6e Brotteaux", "is_read": True, "deal_idx": 3},
 ]
 
 CAMPAIGNS_DATA = [
@@ -385,10 +471,10 @@ CAMPAIGNS_DATA = [
         "scheduled_at": None,
     },
     {
-        "label": "Biens coup de cœur semaine",
+        "label": "Offres exceptionnelles semaine",
         "message": "Cette semaine, notre sélection coup de cœur : des biens d'exception à des prix attractifs. Contactez-nous vite !",
         "leads_ids": [],
-        "type": "email",
+        "type": "sms",
         "status": "scheduled",
         "scheduled_at": None,  # remplacé par demain 09:00 lors de l'insertion
     },
@@ -468,10 +554,48 @@ MANDATES_DATA = [
         "commission_rate": 4.0,
         "status": "actif",
     },
+    {
+        "mandate_number": 6,
+        "mandate_type": "location",
+        "property_address": "42 rue de Marseille, 69007 Lyon",
+        "owner_name": "Christine Lebrun",
+        "owner_email": "c.lebrun@gmail.com",
+        "owner_phone": "07 60 70 80 90",
+        "start_date": _ago(20),
+        "end_date": _ago(20) + timedelta(days=90),
+        "exclusive": False,
+        "commission_rate": 5.0,
+        "status": "actif",
+    },
+    {
+        "mandate_number": 7,
+        "mandate_type": "vente",
+        "property_address": "3 impasse des Lilas, 69100 Villeurbanne",
+        "owner_name": "Paul Vigneron",
+        "owner_email": "paul.vigneron@outlook.fr",
+        "owner_phone": "06 70 80 90 01",
+        "start_date": _ago(110),
+        "end_date": _ago(110) + timedelta(days=90),
+        "exclusive": True,
+        "commission_rate": 3.5,
+        "status": "expiré",
+    },
+    {
+        "mandate_number": 8,
+        "mandate_type": "vente",
+        "property_address": "9 rue du Docteur Bouchut, 69007 Lyon",
+        "owner_name": "Hélène Garnier",
+        "owner_email": "helene.garnier@gmail.com",
+        "owner_phone": "07 80 90 01 12",
+        "start_date": _ago(90),
+        "end_date": _ago(90) + timedelta(days=90),
+        "exclusive": True,
+        "commission_rate": 3.0,
+        "status": "vendu",
+    },
 ]
 
 # lead_idx = index 0-based dans created_leads (après insertion)
-# On utilise les 3 premiers leads (signé, offre, rdv_pris)
 SIGNATURES_DATA = [
     {
         "lead_idx": 2,  # Sophie Blanc — signé
@@ -488,60 +612,404 @@ SIGNATURES_DATA = [
         "signature_request_id": "sim-demo-003",
         "signature_status": "pending",
     },
+    {
+        "lead_idx": 6,  # Isabelle Faure — refusé (Franck Dupuis est assigné à julie.martin)
+        "signature_request_id": "sim-demo-004",
+        "signature_status": "refused",
+    },
 ]
 
 
+# ── Nouvelles fonctions seed ──────────────────────────────────────────────────
+
+_POST_SALE_STEPS = [
+    "Signature du compromis de vente",
+    "Obtention du financement bancaire",
+    "Levée des conditions suspensives",
+    "Constitution du dossier notarial",
+    "Signature de l'acte authentique",
+    "Remise des clés",
+    "Publication au cadastre",
+]
+_POST_SALE_OFFSETS = [0, 10, 30, 45, 60, 61, 75]  # jours après base
+
+
+def seed_rentals(session: Session, agency_id: int, deals: list) -> list:
+    tenants = [
+        {"name": "Martin Beaulieu", "email": "martin.beaulieu@gmail.com", "phone": "06 11 22 33 44", "rent": 980.0, "deal_idx": 0, "status": "active"},
+        {"name": "Claire Fontaine", "email": "claire.fontaine@outlook.fr", "phone": "07 22 33 44 55", "rent": 650.0, "deal_idx": 1, "status": "active"},
+        {"name": "Nicolas Vidal", "email": "nicolas.vidal@gmail.com", "phone": "06 33 44 55 66", "rent": 1300.0, "deal_idx": 5, "status": "active"},
+        {"name": "Amélie Renard", "email": "amelie.renard@gmail.com", "phone": "07 44 55 66 77", "rent": 590.0, "deal_idx": 16, "status": "terminated"},
+        {"name": "Stéphane Moulin", "email": "stephane.moulin@outlook.fr", "phone": "06 55 66 77 88", "rent": 710.0, "deal_idx": 7, "status": "terminated"},
+    ]
+    created = []
+    for t in tenants:
+        start = _ago(365) if t["status"] == "active" else _ago(730)
+        end = _ago(30) if t["status"] == "terminated" else None
+        rental = Rental(
+            agency_id=agency_id,
+            deal_id=deals[t["deal_idx"]].id,
+            tenant_name=t["name"],
+            tenant_email=t["email"],
+            tenant_phone=t["phone"],
+            monthly_rent=t["rent"],
+            charges=80.0,
+            deposit=t["rent"] * 2,
+            start_date=start,
+            end_date=end,
+            notice_period_days=90,
+            status=t["status"],
+        )
+        session.add(rental)
+        created.append(rental)
+    session.flush()
+
+    # 6 paiements par bail actif (mix paid/late/pending)
+    payment_patterns = [
+        ("paid", -5), ("paid", -4), ("paid", -3), ("paid", -2),
+        ("late", -1), ("pending", 0),
+    ]
+    for rental in created[:3]:
+        for pay_status, months_offset in payment_patterns:
+            base = _NOW.replace(day=1)
+            month_date = (base + timedelta(days=32 * months_offset)).replace(day=1)
+            paid_date = month_date + timedelta(days=5) if pay_status == "paid" else None
+            session.add(RentalPayment(
+                rental_id=rental.id,
+                month=month_date,
+                amount=rental.monthly_rent,
+                paid_date=paid_date,
+                status=pay_status,
+            ))
+
+    # 2 documents par bail
+    for rental in created:
+        session.add(RentalDocument(
+            rental_id=rental.id,
+            doc_type="inventory_in",
+            file_path=f"/docs/rentals/{rental.id}/etat_lieux_entree.pdf",
+        ))
+        session.add(RentalDocument(
+            rental_id=rental.id,
+            doc_type="receipt",
+            file_path=f"/docs/rentals/{rental.id}/quittance_mai_2026.pdf",
+        ))
+
+    return created
+
+
+def seed_post_sale(session: Session, deals: list) -> None:
+    configs = [
+        {"deal_idx": 0, "completed_count": 2},
+        {"deal_idx": 3, "completed_count": 5},
+        {"deal_idx": 2, "completed_count": 7},
+    ]
+    for cfg in configs:
+        deal = deals[cfg["deal_idx"]]
+        base = _ago(75)
+        for i, (name, offset) in enumerate(zip(_POST_SALE_STEPS, _POST_SALE_OFFSETS)):
+            order = i + 1
+            due = base + timedelta(days=offset)
+            done = order <= cfg["completed_count"]
+            session.add(PostSaleStep(
+                deal_id=deal.id,
+                step_name=name,
+                step_order=order,
+                due_date=due,
+                completed_date=due - timedelta(days=2) if done else None,
+                status="completed" if done else ("overdue" if due < _NOW else "pending"),
+                notes=f"Étape {order} validée." if done else None,
+            ))
+
+
+def seed_extra_agencies(session: Session) -> None:
+    for ag_data in EXTRA_AGENCIES_DATA:
+        agency = Agency(
+            name=ag_data["name"],
+            location=ag_data["location"],
+            status=ag_data["status"],
+        )
+        session.add(agency)
+        session.flush()
+
+        gerant = User(
+            username=ag_data["gerant"]["username"],
+            full_name=ag_data["gerant"]["full_name"],
+            email=ag_data["gerant"]["email"],
+            hashed_password=get_password_hash(DEMO_PASSWORD),
+            role="gérant",
+            is_active=True,
+            agency_id=agency.id,
+        )
+        session.add(gerant)
+        session.flush()
+
+        for d in ag_data["deals"]:
+            deal = Deal(agency_id=agency.id, **d)
+            session.add(deal)
+        session.flush()
+
+
+def seed_calendar_blocks(session: Session, agency_id: int, user_id: int) -> None:
+    tomorrow_14h = (_NOW + timedelta(days=1)).replace(hour=14, minute=0, second=0, microsecond=0)
+    next_mon_9h = _next_monday().replace(hour=9, minute=0, second=0, microsecond=0)
+    blocks = [
+        CalendarBlock(
+            agency_id=agency_id, user_id=user_id,
+            block_type="vacation",
+            start_datetime=datetime(2026, 6, 15, 0, 0),
+            end_datetime=datetime(2026, 6, 20, 23, 59),
+            reason="Congés d'été",
+        ),
+        CalendarBlock(
+            agency_id=agency_id, user_id=user_id,
+            block_type="personal",
+            start_datetime=tomorrow_14h,
+            end_datetime=tomorrow_14h + timedelta(hours=2),
+            reason="Rendez-vous personnel",
+        ),
+        CalendarBlock(
+            agency_id=agency_id, user_id=user_id,
+            block_type="appointment",
+            start_datetime=next_mon_9h,
+            end_datetime=next_mon_9h + timedelta(hours=3),
+            reason="Formation gestion locative",
+        ),
+    ]
+    for b in blocks:
+        session.add(b)
+
+
+def seed_channels(session: Session, agency_id: int, user_id: int) -> list:
+    accounts_cfg = [
+        {
+            "channel_type": "whatsapp",
+            "phone_number": "+33612345678",
+            "email_address": None,
+            "credentials": {"simulated": True, "account_sid": "SIM_WA_DEMO_001", "auth_token": "sim_tok_wa_demo"},
+        },
+        {
+            "channel_type": "email",
+            "phone_number": None,
+            "email_address": "contact@agence-demo.fr",
+            "credentials": {"simulated": True, "imap_host": "imap.demo-aevum.fr", "imap_port": 993, "imap_user": "contact@agence-demo.fr", "imap_pass": "sim_demo_pass"},
+        },
+        {
+            "channel_type": "sms",
+            "phone_number": "+33698765432",
+            "email_address": None,
+            "credentials": {"simulated": True, "account_sid": "SIM_SMS_DEMO_001", "auth_token": "sim_tok_sms_demo"},
+        },
+    ]
+    created = []
+    for a in accounts_cfg:
+        acc = ChannelAccount(
+            agency_id=agency_id,
+            user_id=user_id,
+            channel_type=a["channel_type"],
+            credentials_encrypted=encrypt_credentials(a["credentials"]),
+            phone_number=a["phone_number"],
+            email_address=a["email_address"],
+            is_active=True,
+            last_sync=_ago(1),
+        )
+        session.add(acc)
+        created.append(acc)
+    session.flush()
+    return created
+
+
+def seed_conversations(
+    session: Session, agency_id: int, channels: list, leads: list
+) -> None:
+    wa, email_acc, sms = channels[0], channels[1], channels[2]
+
+    def _ts(days_ago: int, hour: int = 10) -> str:
+        return _ago(days_ago).replace(hour=hour, minute=0, second=0, microsecond=0).isoformat()
+
+    convs = [
+        # Conv 1 — WhatsApp, lead qualifié, lead_created
+        ChannelConversation(
+            agency_id=agency_id, channel_account_id=wa.id,
+            external_id="whatsapp:+33645236789", sender_identity="+33645236789",
+            lead_id=leads[1].id if len(leads) > 1 else None,
+            messages=[
+                {"role": "user", "content": "Bonjour, l'appartement Lyon 6e est-il disponible ?", "ts": _ts(2, 10)},
+                {"role": "assistant", "content": "Bonjour, je suis l'assistant virtuel d'Agence Dupont Immobilier. Oui, il est disponible ! Quel est votre budget d'achat ?", "ts": _ts(2, 10)},
+                {"role": "user", "content": "Mon budget est de 480 000€ avec 80 000€ d'apport", "ts": _ts(2, 11)},
+                {"role": "assistant", "content": "Excellent projet ! Et quel est votre délai d'achat idéal ?", "ts": _ts(2, 11)},
+                {"role": "user", "content": "Je cherche pour cet été, dans les 3 mois maximum", "ts": _ts(2, 14)},
+                {"role": "assistant", "content": "Parfait ! Voici des créneaux disponibles :\n• Lundi 14h\n• Mardi 10h\n• Mercredi 11h\nLequel vous convient ?", "ts": _ts(2, 14)},
+            ],
+            status="lead_created",
+            last_message_at=_ago(2),
+        ),
+        # Conv 2 — Email, prospect froid, active
+        ChannelConversation(
+            agency_id=agency_id, channel_account_id=email_acc.id,
+            external_id="email:prospect-lyon7@exemple.fr", sender_identity="prospect-lyon7@exemple.fr",
+            lead_id=None,
+            messages=[
+                {"role": "user", "content": "Bonjour, avez-vous des biens sous 300 000€ dans Lyon 7e ?", "ts": _ts(1, 9)},
+                {"role": "assistant", "content": "Bonjour ! Oui, nous avons plusieurs biens dans ce secteur. Avez-vous un apport disponible pour votre projet ?", "ts": _ts(1, 9)},
+            ],
+            status="active",
+            last_message_at=_ago(1),
+        ),
+        # Conv 3 — SMS, active, en cours de qualification
+        ChannelConversation(
+            agency_id=agency_id, channel_account_id=sms.id,
+            external_id="+33677889900", sender_identity="+33677889900",
+            lead_id=None,
+            messages=[
+                {"role": "user", "content": "Bonjour info sur T3 Gerland", "ts": _ts(1, 15)},
+                {"role": "assistant", "content": "Bonjour ! Le T3 Gerland est à 259 000€, 65m², DPE C. Quel est votre budget pour cet achat ?", "ts": _ts(1, 15)},
+                {"role": "user", "content": "Budget 260k apport 40k", "ts": _ts(1, 16)},
+                {"role": "assistant", "content": "Bien noté ! Et quel est votre délai d'achat idéal ?", "ts": _ts(1, 16)},
+            ],
+            status="active",
+            last_message_at=_ago(1),
+        ),
+        # Conv 4 — WhatsApp, active, cherche maison
+        ChannelConversation(
+            agency_id=agency_id, channel_account_id=wa.id,
+            external_id="whatsapp:+33688774455", sender_identity="+33688774455",
+            lead_id=None,
+            messages=[
+                {"role": "user", "content": "Bonjour je cherche une maison pour famille nombreuse secteur Lyon", "ts": _ts(3, 11)},
+                {"role": "assistant", "content": "Bonjour ! Nous avons de très belles maisons autour de Lyon. Quel est votre budget d'achat ?", "ts": _ts(3, 11)},
+                {"role": "user", "content": "Environ 400 000€", "ts": _ts(3, 11)},
+                {"role": "assistant", "content": "Parfait ! Avez-vous un apport disponible ?", "ts": _ts(3, 12)},
+            ],
+            status="active",
+            last_message_at=_ago(3),
+        ),
+        # Conv 5 — Email, fermée
+        ChannelConversation(
+            agency_id=agency_id, channel_account_id=email_acc.id,
+            external_id="email:ancien-prospect@exemple.fr", sender_identity="ancien-prospect@exemple.fr",
+            lead_id=None,
+            messages=[
+                {"role": "user", "content": "Je ne suis finalement plus intéressé par vos services, merci.", "ts": _ts(5, 10)},
+                {"role": "assistant", "content": "Merci pour votre message. N'hésitez pas à nous recontacter si votre projet évolue. Bonne journée !", "ts": _ts(5, 10)},
+            ],
+            status="closed",
+            last_message_at=_ago(5),
+        ),
+        # Conv 6 — SMS, agent takeover (urgence)
+        ChannelConversation(
+            agency_id=agency_id, channel_account_id=sms.id,
+            external_id="+33601122334", sender_identity="+33601122334",
+            lead_id=leads[0].id if leads else None,
+            messages=[
+                {"role": "user", "content": "Urgence : vendeur veut une réponse ce soir pour le T4 Père-Lachaise", "ts": _ts(0, 17)},
+                {"role": "assistant", "content": "Je transmets immédiatement votre message à votre agent. Restez disponible.", "ts": _ts(0, 17)},
+                {"role": "user", "content": "Merci, il accepte de baisser à 580 000€", "ts": _ts(0, 17)},
+            ],
+            status="active",
+            agent_takeover=True,
+            last_message_at=_NOW,
+        ),
+    ]
+    for c in convs:
+        session.add(c)
+
+
+# ── Reset ─────────────────────────────────────────────────────────────────────
+
 def reset_demo(session: Session) -> None:
+    from sqlalchemy import text
+
     agency = session.exec(
         select(Agency).where(Agency.name == DEMO_AGENCY_NAME)
     ).first()
     if not agency:
         return
 
-    users = session.exec(
-        select(User).where(User.agency_id == agency.id)
-    ).all()
+    aid = agency.id
+    uids = [u.id for u in session.exec(select(User).where(User.agency_id == aid)).all()]
+    deal_ids = [d.id for d in session.exec(select(Deal).where(Deal.agency_id == aid)).all()]
+    rental_ids = [r.id for r in session.exec(select(Rental).where(Rental.agency_id == aid)).all()]
 
-    for user in users:
-        for lead in session.exec(select(Lead).where(Lead.assigned_to == user.id)).all():
-            session.delete(lead)
-        for alert in session.exec(select(Alert).where(Alert.user_id == user.id)).all():
-            session.delete(alert)
-        for notif in session.exec(select(Notification).where(Notification.user_id == user.id)).all():
-            session.delete(notif)
-        for cal in session.exec(select(CalendarConfig).where(CalendarConfig.user_id == user.id)).all():
-            session.delete(cal)
+    conn = session.connection()
 
+    demo_labels = {
+        "Nouveautés Mai 2026", "Relance prospects tièdes",
+        "Offres exceptionnelles semaine", "Biens coup de cœur semaine",
+    }
+
+    def _del(table: str, where: str, params: dict) -> None:
+        conn.execute(text(f"DELETE FROM {table} WHERE {where}"), params)
+
+    def _in(ids: list) -> str:
+        return f"({','.join(str(i) for i in ids)})" if ids else "(NULL)"
+
+    if rental_ids:
+        conn.execute(text(f"DELETE FROM rentalpayment WHERE rental_id IN {_in(rental_ids)}"))
+        conn.execute(text(f"DELETE FROM rentaldocument WHERE rental_id IN {_in(rental_ids)}"))
+
+    conn.execute(text(f"DELETE FROM channelconversation WHERE agency_id = {aid}"))
+    conn.execute(text(f"DELETE FROM channelaccount WHERE agency_id = {aid}"))
+
+    if uids:
+        conn.execute(text(f"DELETE FROM notification WHERE user_id IN {_in(uids)}"))
+
+    if deal_ids:
+        conn.execute(text(f"DELETE FROM postsalestep WHERE deal_id IN {_in(deal_ids)}"))
+        conn.execute(text(f"DELETE FROM lead WHERE deal_id IN {_in(deal_ids)}"))
+
+    if uids:
+        conn.execute(text(f"DELETE FROM lead WHERE assigned_to IN {_in(uids)}"))
+        conn.execute(text(f"DELETE FROM alert WHERE user_id IN {_in(uids)}"))
+        conn.execute(text(f"DELETE FROM calendarconfig WHERE user_id IN {_in(uids)}"))
+
+    conn.execute(text(f"DELETE FROM calendarblock WHERE agency_id = {aid}"))
+    conn.execute(text(f"DELETE FROM rental WHERE agency_id = {aid}"))
+
+    if deal_ids:
+        conn.execute(text(f"DELETE FROM deal WHERE id IN {_in(deal_ids)}"))
+
+    conn.execute(text(f"DELETE FROM mandate WHERE agency_id = {aid}"))
+
+    # Campaigns démo (filtrées par label JSON)
     all_camps = session.exec(select(Campaign)).all()
-    demo_labels = {"Nouveautés Mai 2026", "Relance prospects tièdes", "Biens coup de cœur semaine"}
+    camp_ids = []
     for c in all_camps:
         try:
-            meta = json.loads(c.name)
-            if meta.get("label") in demo_labels:
-                session.delete(c)
+            label = json.loads(c.name).get("label", "")
         except (json.JSONDecodeError, TypeError):
-            if c.name in demo_labels:
-                session.delete(c)
+            label = c.name
+        if label in demo_labels:
+            camp_ids.append(c.id)
+    if camp_ids:
+        conn.execute(text(f"DELETE FROM campaign WHERE id IN {_in(camp_ids)}"))
 
-    deals = session.exec(
-        select(Deal).where(Deal.agency_id == agency.id)
-    ).all()
-    for deal in deals:
-        for lead in session.exec(select(Lead).where(Lead.deal_id == deal.id)).all():
-            session.delete(lead)
-        session.delete(deal)
+    if uids:
+        conn.execute(text(f"DELETE FROM \"user\" WHERE id IN {_in(uids)}"))
 
-    # Supprimer les mandats de l'agence
-    for mandate in session.exec(select(Mandate).where(Mandate.agency_id == agency.id)).all():
-        session.delete(mandate)
+    conn.execute(text(f"DELETE FROM agency WHERE id = {aid}"))
 
-    for user in users:
-        session.delete(user)
+    # Supprimer agences extras + leurs users et deals
+    for ag_name in [ag["name"] for ag in EXTRA_AGENCIES_DATA]:
+        extra_ag = session.exec(select(Agency).where(Agency.name == ag_name)).first()
+        if not extra_ag:
+            continue
+        extra_deal_ids = [d.id for d in session.exec(select(Deal).where(Deal.agency_id == extra_ag.id)).all()]
+        extra_uid = [u.id for u in session.exec(select(User).where(User.agency_id == extra_ag.id)).all()]
+        if extra_deal_ids:
+            conn.execute(text(f"DELETE FROM deal WHERE id IN {_in(extra_deal_ids)}"))
+        if extra_uid:
+            conn.execute(text(f'DELETE FROM "user" WHERE id IN {_in(extra_uid)}'))
+        conn.execute(text(f"DELETE FROM agency WHERE id = {extra_ag.id}"))
 
-    session.delete(agency)
+    # Supprimer superadmin
+    conn.execute(text(f"DELETE FROM \"user\" WHERE username = '{SUPERADMIN_USERNAME}'"))
+
     session.commit()
     print("🗑️  Données démo supprimées.")
 
+
+# ── Seed principal ────────────────────────────────────────────────────────────
 
 def seed_demo() -> None:
     do_reset = "--reset" in sys.argv
@@ -570,18 +1038,46 @@ def seed_demo() -> None:
         session.add(agency)
         session.flush()
 
-        # --- User agent (admin = patron agence, accès complet) ---
+        # --- Gérant (manager de l'agence) ---
         agent = User(
-            username="thomas.dupont",
+            username=DEMO_GERANT_USERNAME,
             full_name="Thomas Dupont",
-            email=DEMO_EMAIL,
+            email=DEMO_GERANT_EMAIL,
             hashed_password=get_password_hash(DEMO_PASSWORD),
-            role="admin",
+            role="gérant",
             is_active=True,
             agency_id=agency.id,
         )
         session.add(agent)
+
+        # --- Agent (employé standard) ---
+        agent2 = User(
+            username=DEMO_AGENT_USERNAME,
+            full_name="Julie Martin",
+            email=DEMO_AGENT_EMAIL,
+            hashed_password=get_password_hash(DEMO_PASSWORD),
+            role="agent",
+            is_active=True,
+            agency_id=agency.id,
+        )
+        session.add(agent2)
         session.flush()
+
+        # --- Superadmin AEVUM ---
+        superadmin = User(
+            username=SUPERADMIN_USERNAME,
+            full_name="Noa AEVUM",
+            email=SUPERADMIN_EMAIL,
+            hashed_password=get_password_hash(DEMO_PASSWORD),
+            role="admin",
+            is_active=True,
+            agency_id=None,
+        )
+        session.add(superadmin)
+        session.flush()
+
+        # --- Agences supplémentaires (vue superadmin) ---
+        seed_extra_agencies(session)
 
         # --- Deals ---
         created_deals: list[Deal] = []
@@ -591,18 +1087,20 @@ def seed_demo() -> None:
             session.flush()
             created_deals.append(deal)
 
-        # --- Leads ---
-        for ld in LEADS_DATA:
+        # --- Leads --- leads[0-6] → thomas (gérant), leads[7+] → julie (agent)
+        for i, ld in enumerate(LEADS_DATA):
             ld_copy = dict(ld)
             deal_idx = ld_copy.pop("deal_idx")
             days_ago = ld_copy.pop("days_ago")
+            assigned = agent2.id if i >= 7 else agent.id
             lead = Lead(
                 deal_id=created_deals[deal_idx].id,
-                assigned_to=agent.id,
+                assigned_to=assigned,
                 created_at=now - timedelta(days=days_ago),
                 **ld_copy,
             )
             session.add(lead)
+        session.flush()
 
         # --- Notifications ---
         for nd in NOTIFICATIONS_DATA:
@@ -659,13 +1157,29 @@ def seed_demo() -> None:
             work_days="1,2,3,4,5",
             start_time="09:00",
             end_time="18:00",
-            slot_duration=30,
+            slot_duration=45,
             lunch_start="12:00",
-            lunch_end="13:00",
+            lunch_end="13:30",
             excluded_dates="",
             calendar_url=None,
         )
         session.add(cal_cfg)
+
+        # --- CalendarBlocks ---
+        seed_calendar_blocks(session, agency.id, agent.id)
+
+        # --- Canaux omnicanal ---
+        channel_accounts = seed_channels(session, agency.id, agent.id)
+
+        # --- Conversations ---
+        all_leads = session.exec(select(Lead).where(Lead.assigned_to == agent.id)).all()
+        seed_conversations(session, agency.id, channel_accounts, list(all_leads))
+
+        # --- Gestion locative ---
+        seed_rentals(session, agency.id, created_deals)
+
+        # --- Suivi post-compromis ---
+        seed_post_sale(session, created_deals)
 
         session.commit()
 
@@ -679,22 +1193,36 @@ def seed_demo() -> None:
         agent_db = s.exec(select(User).where(User.email == DEMO_EMAIL)).first()
         n_alerts = s.exec(select(sqlfunc.count(Alert.id)).where(Alert.user_id == agent_db.id)).one()
         n_mandates = s.exec(select(sqlfunc.count(Mandate.id)).where(Mandate.agency_id == agency_db.id)).one()
+        n_rentals = s.exec(select(sqlfunc.count(Rental.id)).where(Rental.agency_id == agency_db.id)).one()
+        n_post_sale = s.exec(select(sqlfunc.count(PostSaleStep.id))).one()
+        n_blocks = s.exec(select(sqlfunc.count(CalendarBlock.id)).where(CalendarBlock.agency_id == agency_db.id)).one()
+        n_channels = s.exec(select(sqlfunc.count(ChannelAccount.id)).where(ChannelAccount.agency_id == agency_db.id)).one()
+        n_convs = s.exec(select(sqlfunc.count(ChannelConversation.id)).where(ChannelConversation.agency_id == agency_db.id)).one()
+
+    n_extra_agencies = len(EXTRA_AGENCIES_DATA)
+    n_extra_deals = sum(len(ag["deals"]) for ag in EXTRA_AGENCIES_DATA)
 
     sep = "━" * 27
-    print("✅ Agence démo créée")
+    print(f"✅ Agence démo créée (Dupont Immobilier)")
     print(f"✅ {n_deals} deals insérés")
-    print(f"✅ {n_leads} leads insérés")
-    print(f"✅ {n_notifs} notifications insérées")
-    print(f"✅ {n_camps} campagnes insérées")
-    print(f"✅ {n_alerts} alertes insérées")
-    print(f"✅ {n_mandates} mandats insérés")
-    print(f"✅ CalendarConfig insérée")
-    print(f"✅ 3 demandes de signature insérées")
-    print(f"✅ Rôle compte : admin")
+    print(f"✅ {n_leads} leads insérés (7 → thomas.dupont / 8 → julie.martin)")
+    print(f"✅ {n_rentals} baux locatifs créés (3 actifs, 2 terminés)")
+    print(f"✅ 3 suivis post-compromis ({n_post_sale} étapes)")
+    print(f"✅ {n_mandates} mandats enregistrés")
+    print(f"✅ 4 demandes de signature")
+    print(f"✅ {n_camps} campagnes")
+    print(f"✅ Calendrier configuré + {n_blocks} blocs d'indisponibilité")
+    print(f"✅ {n_channels} canaux connectés (simulation)")
+    print(f"✅ {n_convs} conversations omnicanal")
+    print(f"✅ {n_notifs} notifications")
+    print(f"✅ Superadmin créé : {SUPERADMIN_USERNAME} / {DEMO_PASSWORD}")
+    print(f"✅ {n_extra_agencies} agences supplémentaires ({n_extra_deals} deals synthétiques)")
     print(sep)
-    print(f"URL app     : http://localhost:5173")
-    print(f"Email       : {DEMO_EMAIL}")
-    print(f"Password    : {DEMO_PASSWORD}")
+    print(f"Comptes démo prêts :")
+    print(f"  Gérant   : thomas.dupont / {DEMO_PASSWORD}")
+    print(f"  Agent    : julie.martin / {DEMO_PASSWORD}")
+    print(f"  Superadmin : {SUPERADMIN_USERNAME} / {DEMO_PASSWORD}")
+    print(f"  URL      : http://localhost:5173")
     print(sep)
 
 
