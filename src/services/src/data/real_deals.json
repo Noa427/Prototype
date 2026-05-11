@@ -1,0 +1,14 @@
+[
+    {
+        "id": "fallback-001",
+        "villes": "Paris",
+        "type": "Appartement",
+        "prix": 350000,
+        "surface": 35,
+        "rendement": 4.5,
+        "score": 65,
+        "url": "https://www.pap.fr",
+        "photos": [],
+        "description": "Données de secours - Scanner en cours de redémarrage"
+    }
+]

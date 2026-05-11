@@ -1,0 +1,38 @@
+# Dépendances
+node_modules/
+.venv/
+
+# Compilé/généré
+dist/
+build/
+graphify-out/
+
+# Base de données
+*.db
+*.sqlite
+
+# Images/médias
+*.png
+*.jpg
+*.jpeg
+*.gif
+
+# Aider
+.aider.chat.history.md
+.aider.input.history
+.aider.tags.cache.v4/
+
+# Cache/temp
+.pytest_cache/
+debug/
+__pycache__/
+*.pyc
+
+# Graphify
+.graphify_ast.json
+.graphify_cached.json
+.graphify_detect.json
+.graphify_uncached.txt
+
+# Env
+.env

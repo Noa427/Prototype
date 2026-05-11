@@ -1,0 +1,7 @@
+name: leboncoin_auto
+vertical: auto
+urls:
+  - https://www.leboncoin.fr/recherche?category=2&locations=Paris_75000__48.8566_2.3522_30000&price=1000-30000&mileage=0-150000
+  - https://www.leboncoin.fr/recherche?category=2&locations=Lyon_69000__45.7485_4.8467_20000&price=1000-25000
+
+selectors: {}

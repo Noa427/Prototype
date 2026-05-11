@@ -1,0 +1,87 @@
+name: CI
+
+on:
+  push:
+    branches: [claude, main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: admin123
+          POSTGRES_DB: antigravity
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run migrations
+        env:
+          DATABASE_URL: postgresql://postgres:admin123@localhost:5432/antigravity
+        run: python -m alembic upgrade head
+
+      - name: Init test DB
+        env:
+          DATABASE_URL: postgresql://postgres:admin123@localhost:5432/antigravity
+        run: python -m backend.init_db
+
+      - name: Start API server
+        env:
+          DATABASE_URL: postgresql://postgres:admin123@localhost:5432/antigravity
+          SECRET_KEY: ci-secret-key
+          ALLOWED_ORIGINS: http://localhost:5173
+        run: uvicorn backend.main:app --host 0.0.0.0 --port 8000 &
+          sleep 3
+
+      - name: Run tests
+        env:
+          DATABASE_URL: postgresql://postgres:admin123@localhost:5432/antigravity
+        run: pytest backend/tests/ -v
+
+  build:
+    runs-on: ubuntu-latest
+    needs: test
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build backend image
+        run: docker build -f backend/Dockerfile -t aevum-backend:${{ github.sha }} .
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Build frontend
+        run: |
+          npm ci
+          npm run build
+
+  # deploy:
+  #   runs-on: ubuntu-latest
+  #   needs: build
+  #   if: github.ref == 'refs/heads/claude'
+  #   steps:
+  #     - name: Deploy to production
+  #       # TODO: configurer SSH/SCP ou docker push vers registry
+  #       run: echo "Deploy step — à configurer avec domaine cible"

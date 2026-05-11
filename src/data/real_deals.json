@@ -1,0 +1,889 @@
+[
+    {
+        "id": "pap-462002982",
+        "villes": "Paris",
+        "type": "Paris 3E (75003)",
+        "prix": 159000,
+        "surface": 13.0,
+        "dpe": "D",
+        "defects": [],
+        "map_query": "Paris 75003",
+        "location": {
+            "address": "Paris",
+            "lat": 48.859,
+            "lng": 2.347
+        },
+        "url": "https://www.pap.fr/annonces/appartement-paris-3e-75003-r462002982",
+        "description": "Situation exceptionnelle pour un étudiant, un pied-à-terre à Paris ou un placement locatif : le calme (à côté du Commissariat), dans un endroit les plus sympathiques de Paris (50 mètres du Marché des...",
+        "photos": [
+            "https://cdn.pap.fr/photos/pap/f6/ee/f6eeee0144a2793f4bc4255507d3a25e/f-p2.webp",
+            "https://cdn.pap.fr/photos/pap/15/97/1597c544464da33dd3583e2bc2f1c2ce/1-p2.webp",
+            "https://cdn.pap.fr/photos/pap/6a/1b/6a1b5cc812b687ffbcc92492b9820098/6-p2.webp",
+            "https://cdn.pap.fr/photos/pap/11/b2/11b23a5efeaeae31e2cf78325d82e8f9/1-p2.webp",
+            "https://cdn.pap.fr/photos/pap/f6/ee/f6eeee0144a2793f4bc4255507d3a25e/f-p2.webp",
+            "https://cdn.pap.fr/photos/pap/15/97/1597c544464da33dd3583e2bc2f1c2ce/1-p2.webp",
+            "https://cdn.pap.fr/photos/pap/6a/1b/6a1b5cc812b687ffbcc92492b9820098/6-p2.webp",
+            "https://cdn.pap.fr/photos/pap/11/b2/11b23a5efeaeae31e2cf78325d82e8f9/1-p2.webp"
+        ],
+        "source": "PAP.fr",
+        "sources": [
+            {
+                "name": "PAP.fr",
+                "url": "https://www.pap.fr/annonces/appartement-paris-3e-75003-r462002982"
+            }
+        ],
+        "price_per_m2": 12231,
+        "price_vs_market": -12.6,
+        "market_price_ref": 14000,
+        "estimated_monthly_charges": 32,
+        "estimated_annual_tax": 117,
+        "rendement": 5.2,
+        "score": 80
+    },
+    {
+        "id": "pap-461902830",
+        "villes": "Paris",
+        "type": "Paris 15E (75015)",
+        "prix": 585000,
+        "surface": 52.0,
+        "dpe": "D",
+        "defects": [],
+        "map_query": "Paris 75015",
+        "location": {
+            "address": "Paris",
+            "lat": 48.859,
+            "lng": 2.347
+        },
+        "url": "https://www.pap.fr/annonces/appartement-paris-15e-75015-r461902830",
+        "description": "À vendre appartement T3 52m² AGENCES S'ABSTENIR DE TOUT CONTACT - MERCI Appartement rénové au calme – lumineux – beaux volumes Situé en rez-de-chaussée surélevé sur grande cour intérieure, cet...",
+        "photos": [
+            "https://cdn.pap.fr/photos/pap/da/e6/dae6c419c3f556be7f727e6b6747649a/d-p2.webp",
+            "https://cdn.pap.fr/photos/pap/7c/4f/7c4f3c2170798bba28108119889cf816/7-p2.webp",
+            "https://cdn.pap.fr/photos/pap/65/9a/659a5d260ce689b5c16d6208e9ade070/6-p2.webp",
+            "https://cdn.pap.fr/photos/pap/fd/67/fd67f2d8009852b4575c82c2103c54d6/f-p2.webp",
+            "https://cdn.pap.fr/photos/pap/ef/51/ef510487c3b69b50e3418bd300f65799/e-p2.webp",
+            "https://cdn.pap.fr/photos/pap/70/28/70285d4ccfa603f533ff255db2086396/7-p2.webp",
+            "https://cdn.pap.fr/photos/pap/59/ec/59ec87e94d5e9d019d3b657648caf6c5/5-p2.webp",
+            "https://cdn.pap.fr/photos/pap/aa/78/aa78ac86ea448e538783256405d83ae1/a-p2.webp",
+            "https://cdn.pap.fr/photos/pap/bd/64/bd6435f16472fd7ec01ad72b8bcee571/b-p2.webp",
+            "https://cdn.pap.fr/photos/pap/a0/62/a062621e5ecfc440d2efaa82148f79ea/a-p2.webp",
+            "https://cdn.pap.fr/photos/pap/6b/e1/6be1f833712ec4fc9ebb967020756cb4/6-p2.webp",
+            "https://cdn.pap.fr/photos/pap/3c/de/3cde0e77f8fd01a6cf1eb33349dcc583/3-p2.webp",
+            "https://cdn.pap.fr/photos/pap/da/e6/dae6c419c3f556be7f727e6b6747649a/d-p2.webp",
+            "https://cdn.pap.fr/photos/pap/7c/4f/7c4f3c2170798bba28108119889cf816/7-p2.webp",
+            "https://cdn.pap.fr/photos/pap/65/9a/659a5d260ce689b5c16d6208e9ade070/6-p2.webp",
+            "https://cdn.pap.fr/photos/pap/fd/67/fd67f2d8009852b4575c82c2103c54d6/f-p2.webp",
+            "https://cdn.pap.fr/photos/pap/ef/51/ef510487c3b69b50e3418bd300f65799/e-p2.webp",
+            "https://cdn.pap.fr/photos/pap/70/28/70285d4ccfa603f533ff255db2086396/7-p2.webp",
+            "https://cdn.pap.fr/photos/pap/59/ec/59ec87e94d5e9d019d3b657648caf6c5/5-p2.webp",
+            "https://cdn.pap.fr/photos/pap/aa/78/aa78ac86ea448e538783256405d83ae1/a-p2.webp",
+            "https://cdn.pap.fr/photos/pap/bd/64/bd6435f16472fd7ec01ad72b8bcee571/b-p2.webp",
+            "https://cdn.pap.fr/photos/pap/a0/62/a062621e5ecfc440d2efaa82148f79ea/a-p2.webp",
+            "https://cdn.pap.fr/photos/pap/6b/e1/6be1f833712ec4fc9ebb967020756cb4/6-p2.webp",
+            "https://cdn.pap.fr/photos/pap/3c/de/3cde0e77f8fd01a6cf1eb33349dcc583/3-p2.webp"
+        ],
+        "source": "PAP.fr",
+        "sources": [
+            {
+                "name": "PAP.fr",
+                "url": "https://www.pap.fr/annonces/appartement-paris-15e-75015-r461902830"
+            }
+        ],
+        "price_per_m2": 11250,
+        "price_vs_market": 0.4,
+        "market_price_ref": 11200,
+        "estimated_monthly_charges": 130,
+        "estimated_annual_tax": 468,
+        "rendement": 5.2,
+        "score": 80
+    },
+    {
+        "id": "pap-462302936",
+        "villes": "Paris",
+        "type": "Paris 19E (75019)",
+        "prix": 360000,
+        "surface": 38.0,
+        "dpe": "D",
+        "defects": [],
+        "map_query": "Métro Bolivar Paris",
+        "location": {
+            "address": "Square Bolivar 75019 Paris",
+            "lat": 48.875562,
+            "lng": 2.383055
+        },
+        "url": "https://www.pap.fr/annonces/appartement-paris-19e-75019-r462302936",
+        "description": "**Ancien deux pièces de 38 m2 transformé en grand studio**, au 5ème et dernier étage sans ascenseur d'un immeuble ancien, au niveau du métro Bolivar (ligne 7bis), à proximité des métros Jaurès...",
+        "photos": [
+            "https://cdn.pap.fr/photos/pap/2c/c1/2cc1f7bd6a77062b2037ed4ff9fffc75/2-p2.webp",
+            "https://cdn.pap.fr/photos/pap/11/c8/11c80e2dba276ef41f21e730f71b3c84/1-p2.webp",
+            "https://cdn.pap.fr/photos/pap/36/5b/365bbbf7d2e746389d6890dfb8ea9b6a/3-p2.webp",
+            "https://cdn.pap.fr/photos/pap/76/b5/76b519f46ed29133545499884351d244/7-p2.webp",
+            "https://cdn.pap.fr/photos/pap/07/d1/07d10e9147bd8e3e6657cb3a81d63061/0-p2.webp",
+            "https://cdn.pap.fr/photos/pap/2c/e5/2ce5a47bd6f1634ecf9cc2a7ab131509/2-p2.webp",
+            "https://cdn.pap.fr/photos/pap/77/d9/77d9dde75bb3f4841c1ec12e34b429d6/7-p2.webp",
+            "https://cdn.pap.fr/photos/pap/92/b5/92b5c9188765a3f59e0563d6765a2df2/9-p2.webp",
+            "https://cdn.pap.fr/photos/pap/f7/c2/f7c254d3c2127643a459df05dce164aa/f-p2.webp",
+            "https://cdn.pap.fr/photos/pap/88/7e/887e2115074dae3c5c4b7d67115e073f/8-p2.webp",
+            "https://cdn.pap.fr/photos/pap/3e/92/3e92a9216f18343c2e991bf3347cb13c/3-p2.webp",
+            "https://cdn.pap.fr/photos/pap/2c/c1/2cc1f7bd6a77062b2037ed4ff9fffc75/2-p2.webp",
+            "https://cdn.pap.fr/photos/pap/11/c8/11c80e2dba276ef41f21e730f71b3c84/1-p2.webp",
+            "https://cdn.pap.fr/photos/pap/36/5b/365bbbf7d2e746389d6890dfb8ea9b6a/3-p2.webp",
+            "https://cdn.pap.fr/photos/pap/76/b5/76b519f46ed29133545499884351d244/7-p2.webp",
+            "https://cdn.pap.fr/photos/pap/07/d1/07d10e9147bd8e3e6657cb3a81d63061/0-p2.webp",
+            "https://cdn.pap.fr/photos/pap/2c/e5/2ce5a47bd6f1634ecf9cc2a7ab131509/2-p2.webp",
+            "https://cdn.pap.fr/photos/pap/77/d9/77d9dde75bb3f4841c1ec12e34b429d6/7-p2.webp",
+            "https://cdn.pap.fr/photos/pap/92/b5/92b5c9188765a3f59e0563d6765a2df2/9-p2.webp",
+            "https://cdn.pap.fr/photos/pap/f7/c2/f7c254d3c2127643a459df05dce164aa/f-p2.webp",
+            "https://cdn.pap.fr/photos/pap/88/7e/887e2115074dae3c5c4b7d67115e073f/8-p2.webp",
+            "https://cdn.pap.fr/photos/pap/3e/92/3e92a9216f18343c2e991bf3347cb13c/3-p2.webp",
+            "https://cdn.pap.fr/photos/pap/2c/c1/2cc1f7bd6a77062b2037ed4ff9fffc75/2-p2.webp"
+        ],
+        "source": "PAP.fr",
+        "sources": [
+            {
+                "name": "PAP.fr",
+                "url": "https://www.pap.fr/annonces/appartement-paris-19e-75019-r462302936"
+            }
+        ],
+        "price_per_m2": 9474,
+        "price_vs_market": 7.7,
+        "market_price_ref": 8800,
+        "estimated_monthly_charges": 95,
+        "estimated_annual_tax": 342,
+        "rendement": 5.2,
+        "score": 80
+    },
+    {
+        "id": "pap-462503096",
+        "villes": "Paris",
+        "type": "Paris 7E (75007)",
+        "prix": 240000,
+        "surface": 12.0,
+        "dpe": "D",
+        "defects": [],
+        "map_query": "boulevard St Paris 75007",
+        "location": {
+            "address": "Boulevard Raspail 75007 Paris",
+            "lat": 48.853794,
+            "lng": 2.326134
+        },
+        "url": "https://www.pap.fr/annonces/appartement-paris-7e-75007-r462503096",
+        "description": "Rare - Studio étudiant au calme, boulevard St-Germain, à deux pas de Sciences-Po, des Beaux-Arts, de Penninghen ou La Sorbonne. Emplacement exceptionnel au coeur de la vie parisienne, boulevard...",
+        "photos": [
+            "https://cdn.pap.fr/photos/pap/39/cf/39cff78e8e54c1b4db4d988ce7a00283/3-p2.webp",
+            "https://cdn.pap.fr/photos/pap/78/b9/78b9a3f2c6d23a3f5bb9b63367a8da74/7-p2.webp",
+            "https://cdn.pap.fr/photos/pap/b2/50/b250c84223a5060c2cef08988c1e7f96/b-p2.webp",
+            "https://cdn.pap.fr/photos/pap/c9/9f/c99fdf44246a426d1f121e3c46427b81/c-p2.webp",
+            "https://cdn.pap.fr/photos/pap/45/46/45460c8b74f986b7770a34cdf04ba15d/4-p2.webp",
+            "https://cdn.pap.fr/photos/pap/13/da/13daea7076269e0d4726e04b640a2754/1-p2.webp",
+            "https://cdn.pap.fr/photos/pap/39/02/390256e38bd468b98f190ec74ab0866a/3-p2.webp",
+            "https://cdn.pap.fr/photos/pap/29/dd/29dd873e904525f3db8fa6002e18e7c5/2-p2.webp",
+            "https://cdn.pap.fr/photos/pap/dc/1a/dc1ae2a07707c3e5d89c024f6992c363/d-p2.webp",
+            "https://cdn.pap.fr/photos/pap/62/f8/62f841c1216566710edbfa984a2be72c/6-p2.webp",
+            "https://cdn.pap.fr/photos/pap/74/4d/744d3288c5e0ae13c41cc4669284891c/7-p2.webp",
+            "https://cdn.pap.fr/photos/pap/a1/7c/a17c658499456ceddc65e76504f9efb7/a-p2.webp",
+            "https://cdn.pap.fr/photos/pap/39/cf/39cff78e8e54c1b4db4d988ce7a00283/3-p2.webp",
+            "https://cdn.pap.fr/photos/pap/78/b9/78b9a3f2c6d23a3f5bb9b63367a8da74/7-p2.webp",
+            "https://cdn.pap.fr/photos/pap/b2/50/b250c84223a5060c2cef08988c1e7f96/b-p2.webp",
+            "https://cdn.pap.fr/photos/pap/c9/9f/c99fdf44246a426d1f121e3c46427b81/c-p2.webp",
+            "https://cdn.pap.fr/photos/pap/45/46/45460c8b74f986b7770a34cdf04ba15d/4-p2.webp",
+            "https://cdn.pap.fr/photos/pap/13/da/13daea7076269e0d4726e04b640a2754/1-p2.webp",
+            "https://cdn.pap.fr/photos/pap/39/02/390256e38bd468b98f190ec74ab0866a/3-p2.webp",
+            "https://cdn.pap.fr/photos/pap/29/dd/29dd873e904525f3db8fa6002e18e7c5/2-p2.webp",
+            "https://cdn.pap.fr/photos/pap/dc/1a/dc1ae2a07707c3e5d89c024f6992c363/d-p2.webp",
+            "https://cdn.pap.fr/photos/pap/62/f8/62f841c1216566710edbfa984a2be72c/6-p2.webp",
+            "https://cdn.pap.fr/photos/pap/74/4d/744d3288c5e0ae13c41cc4669284891c/7-p2.webp",
+            "https://cdn.pap.fr/photos/pap/a1/7c/a17c658499456ceddc65e76504f9efb7/a-p2.webp"
+        ],
+        "source": "PAP.fr",
+        "sources": [
+            {
+                "name": "PAP.fr",
+                "url": "https://www.pap.fr/annonces/appartement-paris-7e-75007-r462503096"
+            }
+        ],
+        "price_per_m2": 20000,
+        "price_vs_market": 29.0,
+        "market_price_ref": 15500,
+        "estimated_monthly_charges": 30,
+        "estimated_annual_tax": 108,
+        "rendement": 5.2,
+        "score": 80
+    },
+    {
+        "id": "hash-3571831151996097920",
+        "villes": "Paris",
+        "type": "Appartement neuf à Paris 4e",
+        "prix": 630000,
+        "surface": 35.0,
+        "dpe": "D",
+        "defects": [],
+        "map_query": "Rue Saint Paris",
+        "location": {
+            "address": "Rue Saint-Luc 75018 Paris",
+            "lat": 48.886065,
+            "lng": 2.354211
+        },
+        "url": "https://www.pap.frhttps://www.immoneuf.com/programme/annonce-immobilier-neuf/paris-4e-g37771/p418467?origine=annonce-pap&utm_source=pap&utm_medium=link&utm_campaign=pap_annonces&typelot=",
+        "description": "16 Saint-Antoine. Paris 4 - Rue Saint-Antoine | Résidence confidentielle aux standards du neuf.Dans un parking historique au coeur du Marais, intégralement transformé avec le plus grand soin, cet appartement...",
+        "photos": [
+            "https://cdn.pap.fr/visuels/immoneuf/ca/66/ca6624c06b284f76730aaf5535097ad5/c-i5.jpg"
+        ],
+        "source": "PAP.fr",
+        "sources": [
+            {
+                "name": "PAP.fr",
+                "url": "https://www.pap.frhttps://www.immoneuf.com/programme/annonce-immobilier-neuf/paris-4e-g37771/p418467?origine=annonce-pap&utm_source=pap&utm_medium=link&utm_campaign=pap_annonces&typelot="
+            }
+        ],
+        "price_per_m2": 18000,
+        "price_vs_market": 60.7,
+        "market_price_ref": 11200,
+        "estimated_monthly_charges": 88,
+        "estimated_annual_tax": 315,
+        "rendement": 5.2,
+        "score": 80
+    },
+    {
+        "id": "pap-462402809",
+        "villes": "Paris",
+        "type": "Paris 16E (75016)",
+        "prix": 995000,
+        "surface": 83.0,
+        "dpe": "D",
+        "defects": [],
+        "map_query": "place du Trocadéro et la place Victor Hugo Paris 75016",
+        "location": {
+            "address": "Place Victor Hugo 75016 Paris",
+            "lat": 48.869315,
+            "lng": 2.284912
+        },
+        "url": "https://www.pap.fr/annonces/appartement-paris-16e-75016-r462402809",
+        "description": "Entre la place du Trocadéro et la place Victor Hugo, découvrez cet appartement de 3 pièces et 83m2 **en parfait état et totalement climatisé**. Situé au premier étage d'une copropriété de standing...",
+        "photos": [
+            "https://cdn.pap.fr/photos/pap/11/5d/115d84d09e1f0fbd61016c9c97bc8fdd/1-p2.webp",
+            "https://cdn.pap.fr/photos/pap/42/78/42782fc5a4eccfcae2d7e42307621620/4-p2.webp",
+            "https://cdn.pap.fr/photos/pap/ce/5f/ce5fc2c1973c51d95ffe47eb840369fb/c-p2.webp",
+            "https://cdn.pap.fr/photos/pap/fd/19/fd194d33860bca176431f069d5b0e09d/f-p2.webp",
+            "https://cdn.pap.fr/photos/pap/b3/b7/b3b7856a8423d9c593e6884733c07db1/b-p2.webp",
+            "https://cdn.pap.fr/photos/pap/07/37/0737f1b06254403d4a151dc0da80bb56/0-p2.webp",
+            "https://cdn.pap.fr/photos/pap/7a/b4/7ab46ae58e5c4d08e18beb594c732b24/7-p2.webp",
+            "https://cdn.pap.fr/photos/pap/00/e1/00e133e91a7392ca4100b5649d1f7afa/0-p2.webp",
+            "https://cdn.pap.fr/photos/pap/68/f2/68f24adee7f0c555f84f22f15bde8929/6-p2.webp",
+            "https://cdn.pap.fr/photos/pap/0b/f7/0bf791ddb97e770c92a35d340cdddd7d/0-p2.webp",
+            "https://cdn.pap.fr/photos/pap/f7/81/f781e4188b33fe298d7686f22cc49c67/f-p2.webp",
+            "https://cdn.pap.fr/photos/pap/6a/21/6a21c3dd0bcc6b87a9ed1928238032af/6-p2.webp",
+            "https://cdn.pap.fr/photos/pap/11/5d/115d84d09e1f0fbd61016c9c97bc8fdd/1-p2.webp",
+            "https://cdn.pap.fr/photos/pap/42/78/42782fc5a4eccfcae2d7e42307621620/4-p2.webp",
+            "https://cdn.pap.fr/photos/pap/ce/5f/ce5fc2c1973c51d95ffe47eb840369fb/c-p2.webp",
+            "https://cdn.pap.fr/photos/pap/fd/19/fd194d33860bca176431f069d5b0e09d/f-p2.webp",
+            "https://cdn.pap.fr/photos/pap/b3/b7/b3b7856a8423d9c593e6884733c07db1/b-p2.webp",
+            "https://cdn.pap.fr/photos/pap/07/37/0737f1b06254403d4a151dc0da80bb56/0-p2.webp",
+            "https://cdn.pap.fr/photos/pap/7a/b4/7ab46ae58e5c4d08e18beb594c732b24/7-p2.webp",
+            "https://cdn.pap.fr/photos/pap/00/e1/00e133e91a7392ca4100b5649d1f7afa/0-p2.webp",
+            "https://cdn.pap.fr/photos/pap/68/f2/68f24adee7f0c555f84f22f15bde8929/6-p2.webp",
+            "https://cdn.pap.fr/photos/pap/0b/f7/0bf791ddb97e770c92a35d340cdddd7d/0-p2.webp",
+            "https://cdn.pap.fr/photos/pap/f7/81/f781e4188b33fe298d7686f22cc49c67/f-p2.webp",
+            "https://cdn.pap.fr/photos/pap/6a/21/6a21c3dd0bcc6b87a9ed1928238032af/6-p2.webp"
+        ],
+        "source": "PAP.fr",
+        "sources": [
+            {
+                "name": "PAP.fr",
+                "url": "https://www.pap.fr/annonces/appartement-paris-16e-75016-r462402809"
+            }
+        ],
+        "price_per_m2": 11988,
+        "price_vs_market": -0.1,
+        "market_price_ref": 12000,
+        "estimated_monthly_charges": 208,
+        "estimated_annual_tax": 747,
+        "rendement": 5.2,
+        "score": 80
+    },
+    {
+        "id": "pap-459003242",
+        "villes": "Paris",
+        "type": "Paris 20E (75020)",
+        "prix": 210000,
+        "surface": 22.0,
+        "dpe": "D",
+        "defects": [],
+        "map_query": "Métro Saint Paris",
+        "location": null,
+        "url": "https://www.pap.fr/annonces/appartement-paris-20e-75020-r459003242",
+        "description": "**Proximité métro Saint-Fargeau/Porte de Bagnolet** Charmant appartement de type studio, situé au 2e étage et d'une surface habitable de 22m2, il se compose d'une entrée principale, bel espace de...",
+        "photos": [
+            "https://cdn.pap.fr/photos/pap/f7/38/f7384dd3b7dc9bcb96d66493d4f97802/f-p2.webp",
+            "https://cdn.pap.fr/photos/pap/67/51/67512ff9f668dc25d390bfa36c2d0752/6-p2.webp",
+            "https://cdn.pap.fr/photos/pap/de/eb/deeb3344a707854704b7cbf424b27e9d/d-p2.webp",
+            "https://cdn.pap.fr/photos/pap/c0/d8/c0d85fe49d6d350dc7e203274cc2abd5/c-p2.webp",
+            "https://cdn.pap.fr/photos/pap/b3/e6/b3e6227fad7df48ad2970001c53dfb21/b-p2.webp",
+            "https://cdn.pap.fr/photos/pap/2f/4f/2f4f279307a0c613de2603476cbecd4f/2-p2.webp",
+            "https://cdn.pap.fr/photos/pap/e3/0f/e30f9b545a68e34bb91ea6a3e649d25f/e-p2.webp",
+            "https://cdn.pap.fr/photos/pap/bc/08/bc085969cfd380635cf12fd354f1c177/b-p2.webp",
+            "https://cdn.pap.fr/photos/pap/ff/f1/fff15c7a57938fdf0c148a367fa39881/f-p2.webp",
+            "https://cdn.pap.fr/photos/pap/4e/16/4e160b94353abfa91e6942a00605ad40/4-p2.webp",
+            "https://cdn.pap.fr/photos/pap/e2/6a/e26af6ad257f52244162933037466d08/e-p2.webp",
+            "https://cdn.pap.fr/photos/pap/b3/ef/b3efe8ba9385ea7f6a498c863778e829/b-p2.webp",
+            "https://cdn.pap.fr/photos/pap/62/62/6262fd7724d3eabcc15ab5ca8b9a1a3a/6-p2.webp",
+            "https://cdn.pap.fr/photos/pap/e6/d7/e6d700cf799f0e1c480cc994df4c9787/e-p2.webp",
+            "https://cdn.pap.fr/photos/pap/47/18/4718354a3d67d81dfc84755de36a7fb5/4-p2.webp",
+            "https://cdn.pap.fr/photos/pap/b8/bc/b8bc01ebddc264ca87cbbca32f361519/b-p2.webp",
+            "https://cdn.pap.fr/photos/pap/75/20/75206f0a856c809c2edf60d5453e6d5b/7-p2.webp",
+            "https://cdn.pap.fr/photos/pap/44/5d/445d9de0d0150480036b29d968ab56f6/4-p2.webp",
+            "https://cdn.pap.fr/photos/pap/62/b2/62b2c0e85ff5e32d5ec7f291e16fbd50/6-p2.webp",
+            "https://cdn.pap.fr/photos/pap/8c/65/8c654c61ffbfeb2f4189df933d714902/8-p2.webp",
+            "https://cdn.pap.fr/photos/pap/0b/b5/0bb5845e728cfd2469dd70aaf1ee5e2d/0-p2.webp",
+            "https://cdn.pap.fr/photos/pap/32/ad/32ad768ceeb553bb8a565492909fd208/3-p2.webp",
+            "https://cdn.pap.fr/photos/pap/29/7f/297f94eedad7f7390f13f3ca411e9bde/2-p2.webp",
+            "https://cdn.pap.fr/photos/pap/79/92/799236ed97515600866bc9bfa8facadb/7-p2.webp",
+            "https://cdn.pap.fr/photos/pap/56/06/560604c934b6cf70f9390bebcc44cf99/5-p2.webp",
+            "https://cdn.pap.fr/photos/pap/44/e6/44e60e5d690259f5bd018aba15fbdb3e/4-p2.webp",
+            "https://cdn.pap.fr/photos/pap/e3/be/e3beb49f2a99ac9a48cac08b50b24045/e-p2.webp",
+            "https://cdn.pap.fr/photos/pap/4c/f1/4cf1a224cc1fc9e9c74a711166ca208a/4-p2.webp",
+            "https://cdn.pap.fr/photos/pap/f7/38/f7384dd3b7dc9bcb96d66493d4f97802/f-p2.webp",
+            "https://cdn.pap.fr/photos/pap/67/51/67512ff9f668dc25d390bfa36c2d0752/6-p2.webp",
+            "https://cdn.pap.fr/photos/pap/de/eb/deeb3344a707854704b7cbf424b27e9d/d-p2.webp",
+            "https://cdn.pap.fr/photos/pap/c0/d8/c0d85fe49d6d350dc7e203274cc2abd5/c-p2.webp",
+            "https://cdn.pap.fr/photos/pap/b3/e6/b3e6227fad7df48ad2970001c53dfb21/b-p2.webp",
+            "https://cdn.pap.fr/photos/pap/2f/4f/2f4f279307a0c613de2603476cbecd4f/2-p2.webp",
+            "https://cdn.pap.fr/photos/pap/e3/0f/e30f9b545a68e34bb91ea6a3e649d25f/e-p2.webp",
+            "https://cdn.pap.fr/photos/pap/bc/08/bc085969cfd380635cf12fd354f1c177/b-p2.webp",
+            "https://cdn.pap.fr/photos/pap/ff/f1/fff15c7a57938fdf0c148a367fa39881/f-p2.webp",
+            "https://cdn.pap.fr/photos/pap/4e/16/4e160b94353abfa91e6942a00605ad40/4-p2.webp",
+            "https://cdn.pap.fr/photos/pap/e2/6a/e26af6ad257f52244162933037466d08/e-p2.webp",
+            "https://cdn.pap.fr/photos/pap/b3/ef/b3efe8ba9385ea7f6a498c863778e829/b-p2.webp",
+            "https://cdn.pap.fr/photos/pap/62/62/6262fd7724d3eabcc15ab5ca8b9a1a3a/6-p2.webp",
+            "https://cdn.pap.fr/photos/pap/e6/d7/e6d700cf799f0e1c480cc994df4c9787/e-p2.webp",
+            "https://cdn.pap.fr/photos/pap/47/18/4718354a3d67d81dfc84755de36a7fb5/4-p2.webp",
+            "https://cdn.pap.fr/photos/pap/b8/bc/b8bc01ebddc264ca87cbbca32f361519/b-p2.webp",
+            "https://cdn.pap.fr/photos/pap/75/20/75206f0a856c809c2edf60d5453e6d5b/7-p2.webp",
+            "https://cdn.pap.fr/photos/pap/44/5d/445d9de0d0150480036b29d968ab56f6/4-p2.webp",
+            "https://cdn.pap.fr/photos/pap/62/b2/62b2c0e85ff5e32d5ec7f291e16fbd50/6-p2.webp",
+            "https://cdn.pap.fr/photos/pap/8c/65/8c654c61ffbfeb2f4189df933d714902/8-p2.webp",
+            "https://cdn.pap.fr/photos/pap/0b/b5/0bb5845e728cfd2469dd70aaf1ee5e2d/0-p2.webp",
+            "https://cdn.pap.fr/photos/pap/32/ad/32ad768ceeb553bb8a565492909fd208/3-p2.webp",
+            "https://cdn.pap.fr/photos/pap/29/7f/297f94eedad7f7390f13f3ca411e9bde/2-p2.webp",
+            "https://cdn.pap.fr/photos/pap/79/92/799236ed97515600866bc9bfa8facadb/7-p2.webp",
+            "https://cdn.pap.fr/photos/pap/56/06/560604c934b6cf70f9390bebcc44cf99/5-p2.webp",
+            "https://cdn.pap.fr/photos/pap/44/e6/44e60e5d690259f5bd018aba15fbdb3e/4-p2.webp",
+            "https://cdn.pap.fr/photos/pap/e3/be/e3beb49f2a99ac9a48cac08b50b24045/e-p2.webp",
+            "https://cdn.pap.fr/photos/pap/4c/f1/4cf1a224cc1fc9e9c74a711166ca208a/4-p2.webp"
+        ],
+        "source": "PAP.fr",
+        "sources": [
+            {
+                "name": "PAP.fr",
+                "url": "https://www.pap.fr/annonces/appartement-paris-20e-75020-r459003242"
+            }
+        ],
+        "price_per_m2": 9545,
+        "price_vs_market": 3.8,
+        "market_price_ref": 9200,
+        "estimated_monthly_charges": 55,
+        "estimated_annual_tax": 198,
+        "rendement": 5.2,
+        "score": 80
+    },
+    {
+        "id": "pap-461302214",
+        "villes": "Paris",
+        "type": "Paris 13E (75013)",
+        "prix": 539000,
+        "surface": 83.0,
+        "dpe": "D",
+        "defects": [],
+        "map_query": "Métro Tolbiac Paris",
+        "location": {
+            "address": "Villa Tolbiac 75013 Paris",
+            "lat": 48.826813,
+            "lng": 2.369685
+        },
+        "url": "https://www.pap.fr/annonces/appartement-paris-13e-75013-r461302214",
+        "description": "Bel appartement traversant Sud-Ouest de 83 m2 situé au 17ᵉ étage dans le quartier des Olympiades côté rue de Tolbiac. Situé au pied du métro 14, et à 5 minutes à pied du métro Tolbiac (métro 7), bus...",
+        "photos": [
+            "https://cdn.pap.fr/photos/pap/5f/d6/5fd6aa1d13b10bb133da6f113c9811f5/5-p2.webp",
+            "https://cdn.pap.fr/photos/pap/7e/b7/7eb7439bcb53f0a6dcb667b2d4f9832b/7-p2.webp",
+            "https://cdn.pap.fr/photos/pap/3e/92/3e92e944a4622baa7a780ec04e76af92/3-p2.webp",
+            "https://cdn.pap.fr/photos/pap/4a/ff/4aff0d4e919f2f9653c170ea1c1cea14/4-p2.webp",
+            "https://cdn.pap.fr/photos/pap/48/f8/48f8fadb136df3bbfeb2a6998dd407a5/4-p2.webp",
+            "https://cdn.pap.fr/photos/pap/c7/8b/c78b89acefb27b20b43adf6da637e89a/c-p2.webp",
+            "https://cdn.pap.fr/photos/pap/9f/d6/9fd630712811ab809fbae1689d567968/9-p2.webp",
+            "https://cdn.pap.fr/photos/pap/96/3e/963e784ecd949c5f7cb78a1c6e4dc50b/9-p2.webp",
+            "https://cdn.pap.fr/photos/pap/9d/78/9d7843226533763d22355b1ad5f29ec9/9-p2.webp",
+            "https://cdn.pap.fr/photos/pap/9e/4e/9e4e5de058d42c9684de73e913a385bb/9-p2.webp",
+            "https://cdn.pap.fr/photos/pap/a6/9a/a69ad70bcd61610a94d5e8b7f2110911/a-p2.webp",
+            "https://cdn.pap.fr/photos/pap/72/56/7256ef4c736d9fcda4f30096664eb104/7-p2.webp",
+            "https://cdn.pap.fr/photos/pap/5f/d6/5fd6aa1d13b10bb133da6f113c9811f5/5-p2.webp",
+            "https://cdn.pap.fr/photos/pap/7e/b7/7eb7439bcb53f0a6dcb667b2d4f9832b/7-p2.webp",
+            "https://cdn.pap.fr/photos/pap/3e/92/3e92e944a4622baa7a780ec04e76af92/3-p2.webp",
+            "https://cdn.pap.fr/photos/pap/4a/ff/4aff0d4e919f2f9653c170ea1c1cea14/4-p2.webp",
+            "https://cdn.pap.fr/photos/pap/48/f8/48f8fadb136df3bbfeb2a6998dd407a5/4-p2.webp",
+            "https://cdn.pap.fr/photos/pap/c7/8b/c78b89acefb27b20b43adf6da637e89a/c-p2.webp",
+            "https://cdn.pap.fr/photos/pap/9f/d6/9fd630712811ab809fbae1689d567968/9-p2.webp",
+            "https://cdn.pap.fr/photos/pap/96/3e/963e784ecd949c5f7cb78a1c6e4dc50b/9-p2.webp",
+            "https://cdn.pap.fr/photos/pap/9d/78/9d7843226533763d22355b1ad5f29ec9/9-p2.webp",
+            "https://cdn.pap.fr/photos/pap/9e/4e/9e4e5de058d42c9684de73e913a385bb/9-p2.webp",
+            "https://cdn.pap.fr/photos/pap/a6/9a/a69ad70bcd61610a94d5e8b7f2110911/a-p2.webp",
+            "https://cdn.pap.fr/photos/pap/72/56/7256ef4c736d9fcda4f30096664eb104/7-p2.webp"
+        ],
+        "source": "PAP.fr",
+        "sources": [
+            {
+                "name": "PAP.fr",
+                "url": "https://www.pap.fr/annonces/appartement-paris-13e-75013-r461302214"
+            }
+        ],
+        "price_per_m2": 6494,
+        "price_vs_market": -33.7,
+        "market_price_ref": 9800,
+        "estimated_monthly_charges": 208,
+        "estimated_annual_tax": 747,
+        "rendement": 5.2,
+        "score": 80
+    },
+    {
+        "id": "pap-436402345",
+        "villes": "Paris",
+        "type": "Paris 18E (75018)",
+        "prix": 195000,
+        "surface": 22.67,
+        "dpe": "D",
+        "defects": [],
+        "map_query": "rue jean cottin idéalement situé dans le Paris 75018",
+        "location": {
+            "address": "Rue Jean Cottin 75018 Paris",
+            "lat": 48.894694,
+            "lng": 2.361955
+        },
+        "url": "https://www.pap.fr/annonces/appartement-paris-18e-75018-r436402345",
+        "description": "Appartement avec cave . Charmant deux pièces de 22,67 m2 rue jean cottin idéalement situé dans le 18iem arrondissement de Paris. dans un quartier vivant en pleine transformation ( quartier des olives...",
+        "photos": [
+            "https://cdn.pap.fr/photos/pap/10/9e/109ed5af833ed5efb1658cac5d850d0c/1-p2.webp",
+            "https://cdn.pap.fr/photos/pap/06/cd/06cd52cb6e93beb068ecb3d23ef674b0/0-p2.webp",
+            "https://cdn.pap.fr/photos/pap/d8/5e/d85e3fc96bc796b2495db3dd40849275/d-p2.webp",
+            "https://cdn.pap.fr/photos/pap/72/f3/72f3569af25a3dbed6df1cf867269888/7-p2.webp",
+            "https://cdn.pap.fr/photos/pap/25/37/2537e5c4dbbf7e838351be96900fbce5/2-p2.webp",
+            "https://cdn.pap.fr/photos/pap/2b/fb/2bfb331c037f81b9c73421ca569d174d/2-p2.webp",
+            "https://cdn.pap.fr/photos/pap/09/b6/09b6729377d73f0c75d3e5f6e55fb72f/0-p2.webp",
+            "https://cdn.pap.fr/photos/pap/1e/47/1e477da85e405b8a340d69d443d433d3/1-p2.webp",
+            "https://cdn.pap.fr/photos/pap/33/7d/337d17699581bd791221253526eb2bdb/3-p2.webp",
+            "https://cdn.pap.fr/photos/pap/37/f6/37f6aea624142562fbf8cdd0badb4693/3-p2.webp",
+            "https://cdn.pap.fr/photos/pap/10/9e/109ed5af833ed5efb1658cac5d850d0c/1-p2.webp",
+            "https://cdn.pap.fr/photos/pap/06/cd/06cd52cb6e93beb068ecb3d23ef674b0/0-p2.webp",
+            "https://cdn.pap.fr/photos/pap/d8/5e/d85e3fc96bc796b2495db3dd40849275/d-p2.webp",
+            "https://cdn.pap.fr/photos/pap/72/f3/72f3569af25a3dbed6df1cf867269888/7-p2.webp",
+            "https://cdn.pap.fr/photos/pap/25/37/2537e5c4dbbf7e838351be96900fbce5/2-p2.webp",
+            "https://cdn.pap.fr/photos/pap/2b/fb/2bfb331c037f81b9c73421ca569d174d/2-p2.webp",
+            "https://cdn.pap.fr/photos/pap/09/b6/09b6729377d73f0c75d3e5f6e55fb72f/0-p2.webp",
+            "https://cdn.pap.fr/photos/pap/1e/47/1e477da85e405b8a340d69d443d433d3/1-p2.webp",
+            "https://cdn.pap.fr/photos/pap/33/7d/337d17699581bd791221253526eb2bdb/3-p2.webp",
+            "https://cdn.pap.fr/photos/pap/37/f6/37f6aea624142562fbf8cdd0badb4693/3-p2.webp"
+        ],
+        "source": "PAP.fr",
+        "sources": [
+            {
+                "name": "PAP.fr",
+                "url": "https://www.pap.fr/annonces/appartement-paris-18e-75018-r436402345"
+            }
+        ],
+        "price_per_m2": 8602,
+        "price_vs_market": -9.5,
+        "market_price_ref": 9500,
+        "estimated_monthly_charges": 57,
+        "estimated_annual_tax": 204,
+        "rendement": 5.2,
+        "score": 80
+    },
+    {
+        "id": "bienici-326889074121685152",
+        "villes": "Paris",
+        "type": "Appartement 75016",
+        "prix": 257000,
+        "surface": 35.0,
+        "dpe": "D",
+        "defects": [],
+        "map_query": "Paris 75016",
+        "location": null,
+        "url": "https://www.bienici.com/annonce/vente/paris-16e/appartement/1piece/century-21-202_470_11074?q=%2Frecherche%2Fachat%2Fparis-75000&depuis-mise-en-avant=oui",
+        "description": "Annonce Bien'ici",
+        "photos": [
+            "https://file.bienici.com/photo/century-21-202_470_11074_images.century21.fr_202_470_c21_202_470_11074_1_6561714D-32A5-4C99-ACE8-696640690D21.jpg?width=300&height=180&fit=cover"
+        ],
+        "source": "Bien'ici",
+        "sources": [
+            {
+                "name": "Bien'ici",
+                "url": "https://www.bienici.com/annonce/vente/paris-16e/appartement/1piece/century-21-202_470_11074?q=%2Frecherche%2Fachat%2Fparis-75000&depuis-mise-en-avant=oui"
+            }
+        ],
+        "price_per_m2": 7343,
+        "price_vs_market": -38.8,
+        "market_price_ref": 12000,
+        "estimated_monthly_charges": 88,
+        "estimated_annual_tax": 315,
+        "rendement": 5.2,
+        "score": 80
+    },
+    {
+        "id": "bienici-3312757263511416128",
+        "villes": "Paris",
+        "type": "Appartement 75014",
+        "prix": 1145000,
+        "surface": 35.0,
+        "dpe": "D",
+        "defects": [],
+        "map_query": "Paris 75014",
+        "location": null,
+        "url": "https://www.bienici.com/annonce/vente/paris-14e/appartement/5pieces/ag750524-519867710?q=%2Frecherche%2Fachat%2Fparis-75000&depuis-mise-en-avant=oui",
+        "description": "Annonce Bien'ici",
+        "photos": [
+            "https://file.bienici.com/photo/ag750524-519867710_photos.ubiflow.net_750524_519867710_photos_1.jpg_INSOON_EB_5512801818_20260321114321?width=300&height=180&fit=cover"
+        ],
+        "source": "Bien'ici",
+        "sources": [
+            {
+                "name": "Bien'ici",
+                "url": "https://www.bienici.com/annonce/vente/paris-14e/appartement/5pieces/ag750524-519867710?q=%2Frecherche%2Fachat%2Fparis-75000&depuis-mise-en-avant=oui"
+            }
+        ],
+        "price_per_m2": 32714,
+        "price_vs_market": 202.9,
+        "market_price_ref": 10800,
+        "estimated_monthly_charges": 88,
+        "estimated_annual_tax": 315,
+        "rendement": 5.2,
+        "score": 80
+    },
+    {
+        "id": "bienici-2344203128986502369",
+        "villes": "Paris",
+        "type": "Appartement 75014",
+        "prix": 510000,
+        "surface": 35.0,
+        "dpe": "D",
+        "defects": [],
+        "map_query": "Paris 75014",
+        "location": null,
+        "url": "https://www.bienici.com/annonce/vente/paris-14e/appartement/3pieces/ag750524-519867680?q=%2Frecherche%2Fachat%2Fparis-75000",
+        "description": "Annonce Bien'ici",
+        "photos": [
+            "https://file.bienici.com/photo/ag750524-519867680_photos.ubiflow.net_750524_519867680_photos_1.jpg_INSOON_EB_5512801818_20260321114317?width=300&height=180&fit=cover"
+        ],
+        "source": "Bien'ici",
+        "sources": [
+            {
+                "name": "Bien'ici",
+                "url": "https://www.bienici.com/annonce/vente/paris-14e/appartement/3pieces/ag750524-519867680?q=%2Frecherche%2Fachat%2Fparis-75000"
+            }
+        ],
+        "price_per_m2": 14571,
+        "price_vs_market": 34.9,
+        "market_price_ref": 10800,
+        "estimated_monthly_charges": 88,
+        "estimated_annual_tax": 315,
+        "rendement": 5.2,
+        "score": 80
+    },
+    {
+        "id": "bienici-8037844260967354715",
+        "villes": "Paris",
+        "type": "Appartement 75014",
+        "prix": 815000,
+        "surface": 35.0,
+        "dpe": "D",
+        "defects": [],
+        "map_query": "Paris 75014",
+        "location": null,
+        "url": "https://www.bienici.com/annonce/vente/paris-14e/appartement/3pieces/ag750524-519867887?q=%2Frecherche%2Fachat%2Fparis-75000",
+        "description": "Annonce Bien'ici",
+        "photos": [
+            "https://file.bienici.com/photo/ag750524-519867887_photos.ubiflow.net_750524_519867887_photos_1.jpg_INSOON_EB_5512801818_20260321114352?width=300&height=180&fit=cover"
+        ],
+        "source": "Bien'ici",
+        "sources": [
+            {
+                "name": "Bien'ici",
+                "url": "https://www.bienici.com/annonce/vente/paris-14e/appartement/3pieces/ag750524-519867887?q=%2Frecherche%2Fachat%2Fparis-75000"
+            }
+        ],
+        "price_per_m2": 23286,
+        "price_vs_market": 115.6,
+        "market_price_ref": 10800,
+        "estimated_monthly_charges": 88,
+        "estimated_annual_tax": 315,
+        "rendement": 5.2,
+        "score": 80
+    },
+    {
+        "id": "bienici-8864967154037635688",
+        "villes": "Paris",
+        "type": "Appartement 75014",
+        "prix": 176000,
+        "surface": 35.0,
+        "dpe": "D",
+        "defects": [],
+        "map_query": "Paris 75014",
+        "location": null,
+        "url": "https://www.bienici.com/annonce/vente/paris-14e/appartement/1piece/ag750524-519867524?q=%2Frecherche%2Fachat%2Fparis-75000",
+        "description": "Annonce Bien'ici",
+        "photos": [
+            "https://file.bienici.com/photo/ag750524-519867524_photos.ubiflow.net_750524_519867524_photos_1.jpg_INSOON_EB_5512801818_20260321114258?width=300&height=180&fit=cover"
+        ],
+        "source": "Bien'ici",
+        "sources": [
+            {
+                "name": "Bien'ici",
+                "url": "https://www.bienici.com/annonce/vente/paris-14e/appartement/1piece/ag750524-519867524?q=%2Frecherche%2Fachat%2Fparis-75000"
+            }
+        ],
+        "price_per_m2": 5029,
+        "price_vs_market": -53.4,
+        "market_price_ref": 10800,
+        "estimated_monthly_charges": 88,
+        "estimated_annual_tax": 315,
+        "rendement": 5.2,
+        "score": 80
+    },
+    {
+        "id": "bienici-8572852453257552614",
+        "villes": "Paris",
+        "type": "Appartement 75014",
+        "prix": 725000,
+        "surface": 35.0,
+        "dpe": "D",
+        "defects": [],
+        "map_query": "Paris 75014",
+        "location": null,
+        "url": "https://www.bienici.com/annonce/vente/paris-14e/appartement/4pieces/ag750524-519868229?q=%2Frecherche%2Fachat%2Fparis-75000",
+        "description": "Annonce Bien'ici",
+        "photos": [
+            "https://file.bienici.com/photo/ag750524-519868229_photos.ubiflow.net_750524_519868229_photos_1.jpg_INSOON_EB_5512801818_20260321114436?width=300&height=180&fit=cover"
+        ],
+        "source": "Bien'ici",
+        "sources": [
+            {
+                "name": "Bien'ici",
+                "url": "https://www.bienici.com/annonce/vente/paris-14e/appartement/4pieces/ag750524-519868229?q=%2Frecherche%2Fachat%2Fparis-75000"
+            }
+        ],
+        "price_per_m2": 20714,
+        "price_vs_market": 91.8,
+        "market_price_ref": 10800,
+        "estimated_monthly_charges": 88,
+        "estimated_annual_tax": 315,
+        "rendement": 5.2,
+        "score": 80
+    },
+    {
+        "id": "bienici-6211257494084541669",
+        "villes": "Paris",
+        "type": "Appartement 75014",
+        "prix": 735000,
+        "surface": 35.0,
+        "dpe": "D",
+        "defects": [],
+        "map_query": "Paris 75014",
+        "location": null,
+        "url": "https://www.bienici.com/annonce/vente/paris-14e/appartement/4pieces/ag750524-519868259?q=%2Frecherche%2Fachat%2Fparis-75000",
+        "description": "Annonce Bien'ici",
+        "photos": [
+            "https://file.bienici.com/photo/ag750524-519868259_photos.ubiflow.net_750524_519868259_photos_1.jpg_INSOON_EB_5512801818_20260321114441?width=300&height=180&fit=cover"
+        ],
+        "source": "Bien'ici",
+        "sources": [
+            {
+                "name": "Bien'ici",
+                "url": "https://www.bienici.com/annonce/vente/paris-14e/appartement/4pieces/ag750524-519868259?q=%2Frecherche%2Fachat%2Fparis-75000"
+            }
+        ],
+        "price_per_m2": 21000,
+        "price_vs_market": 94.4,
+        "market_price_ref": 10800,
+        "estimated_monthly_charges": 88,
+        "estimated_annual_tax": 315,
+        "rendement": 5.2,
+        "score": 80
+    },
+    {
+        "id": "bienici-2059666112979589362",
+        "villes": "Paris",
+        "type": "Appartement 75014",
+        "prix": 530000,
+        "surface": 35.0,
+        "dpe": "D",
+        "defects": [],
+        "map_query": "Paris 75014",
+        "location": null,
+        "url": "https://www.bienici.com/annonce/vente/paris-14e/appartement/4pieces/ag750524-519868184?q=%2Frecherche%2Fachat%2Fparis-75000",
+        "description": "Annonce Bien'ici",
+        "photos": [
+            "https://file.bienici.com/photo/ag750524-519868184_photos.ubiflow.net_750524_519868184_photos_1.jpg_INSOON_EB_5512801818_20260321114426?width=300&height=180&fit=cover"
+        ],
+        "source": "Bien'ici",
+        "sources": [
+            {
+                "name": "Bien'ici",
+                "url": "https://www.bienici.com/annonce/vente/paris-14e/appartement/4pieces/ag750524-519868184?q=%2Frecherche%2Fachat%2Fparis-75000"
+            }
+        ],
+        "price_per_m2": 15143,
+        "price_vs_market": 40.2,
+        "market_price_ref": 10800,
+        "estimated_monthly_charges": 88,
+        "estimated_annual_tax": 315,
+        "rendement": 5.2,
+        "score": 80
+    },
+    {
+        "id": "bienici-4808748796615788647",
+        "villes": "Paris",
+        "type": "Appartement 75014",
+        "prix": 599000,
+        "surface": 35.0,
+        "dpe": "D",
+        "defects": [],
+        "map_query": "Paris 75014",
+        "location": null,
+        "url": "https://www.bienici.com/annonce/vente/paris-14e/appartement/3pieces/ag750524-519868202?q=%2Frecherche%2Fachat%2Fparis-75000",
+        "description": "Annonce Bien'ici",
+        "photos": [
+            "https://file.bienici.com/photo/ag750524-519868202_photos.ubiflow.net_750524_519868202_photos_1.jpg_INSOON_EB_5512801818_20260321114431?width=300&height=180&fit=cover"
+        ],
+        "source": "Bien'ici",
+        "sources": [
+            {
+                "name": "Bien'ici",
+                "url": "https://www.bienici.com/annonce/vente/paris-14e/appartement/3pieces/ag750524-519868202?q=%2Frecherche%2Fachat%2Fparis-75000"
+            }
+        ],
+        "price_per_m2": 17114,
+        "price_vs_market": 58.5,
+        "market_price_ref": 10800,
+        "estimated_monthly_charges": 88,
+        "estimated_annual_tax": 315,
+        "rendement": 5.2,
+        "score": 80
+    },
+    {
+        "id": "bienici-3336500746051594836",
+        "villes": "Paris",
+        "type": "Appartement 75014",
+        "prix": 890000,
+        "surface": 35.0,
+        "dpe": "D",
+        "defects": [],
+        "map_query": "Paris 75014",
+        "location": null,
+        "url": "https://www.bienici.com/annonce/vente/paris-14e/appartement/5pieces/ag750524-519868040?q=%2Frecherche%2Fachat%2Fparis-75000",
+        "description": "Annonce Bien'ici",
+        "photos": [
+            "https://file.bienici.com/photo/ag750524-519868040_photos.ubiflow.net_750524_519868040_photos_1.jpg_INSOON_EB_5512801818_20260321114409?width=300&height=180&fit=cover"
+        ],
+        "source": "Bien'ici",
+        "sources": [
+            {
+                "name": "Bien'ici",
+                "url": "https://www.bienici.com/annonce/vente/paris-14e/appartement/5pieces/ag750524-519868040?q=%2Frecherche%2Fachat%2Fparis-75000"
+            }
+        ],
+        "price_per_m2": 25429,
+        "price_vs_market": 135.5,
+        "market_price_ref": 10800,
+        "estimated_monthly_charges": 88,
+        "estimated_annual_tax": 315,
+        "rendement": 5.2,
+        "score": 80
+    },
+    {
+        "id": "bienici-2860651637579092055",
+        "villes": "Paris",
+        "type": "Appartement 75014",
+        "prix": 1995000,
+        "surface": 35.0,
+        "dpe": "D",
+        "defects": [],
+        "map_query": "Paris 75014",
+        "location": null,
+        "url": "https://www.bienici.com/annonce/vente/paris-14e/appartement/6pieces/ag750524-519867743?q=%2Frecherche%2Fachat%2Fparis-75000",
+        "description": "Annonce Bien'ici",
+        "photos": [
+            "https://file.bienici.com/photo/ag750524-519867743_photos.ubiflow.net_750524_519867743_photos_1.jpg_INSOON_EB_5512801818_20260321114335?width=300&height=180&fit=cover"
+        ],
+        "source": "Bien'ici",
+        "sources": [
+            {
+                "name": "Bien'ici",
+                "url": "https://www.bienici.com/annonce/vente/paris-14e/appartement/6pieces/ag750524-519867743?q=%2Frecherche%2Fachat%2Fparis-75000"
+            }
+        ],
+        "price_per_m2": 57000,
+        "price_vs_market": 427.8,
+        "market_price_ref": 10800,
+        "estimated_monthly_charges": 88,
+        "estimated_annual_tax": 315,
+        "rendement": 5.2,
+        "score": 80
+    },
+    {
+        "id": "bienici-5528613457279653613",
+        "villes": "Paris",
+        "type": "Appartement 75014",
+        "prix": 2484000,
+        "surface": 35.0,
+        "dpe": "D",
+        "defects": [],
+        "map_query": "Paris 75014",
+        "location": null,
+        "url": "https://www.bienici.com/annonce/vente/paris-14e/appartement/7pieces/ag750524-519867836?q=%2Frecherche%2Fachat%2Fparis-75000",
+        "description": "Annonce Bien'ici",
+        "photos": [
+            "https://file.bienici.com/photo/ag750524-519867836_photos.ubiflow.net_750524_519867836_photos_1.jpg_INSOON_EB_5512801818_20260321114337?width=300&height=180&fit=cover"
+        ],
+        "source": "Bien'ici",
+        "sources": [
+            {
+                "name": "Bien'ici",
+                "url": "https://www.bienici.com/annonce/vente/paris-14e/appartement/7pieces/ag750524-519867836?q=%2Frecherche%2Fachat%2Fparis-75000"
+            }
+        ],
+        "price_per_m2": 70971,
+        "price_vs_market": 557.1,
+        "market_price_ref": 10800,
+        "estimated_monthly_charges": 88,
+        "estimated_annual_tax": 315,
+        "rendement": 5.2,
+        "score": 80
+    },
+    {
+        "id": "bienici-2502113452086534598",
+        "villes": "Paris",
+        "type": "Appartement 75012",
+        "prix": 485000,
+        "surface": 35.0,
+        "dpe": "D",
+        "defects": [],
+        "map_query": "Paris 75012",
+        "location": null,
+        "url": "https://www.bienici.com/annonce/vente/paris-12e/appartement/3pieces/ag757613-519726833?q=%2Frecherche%2Fachat%2Fparis-75000",
+        "description": "Annonce Bien'ici",
+        "photos": [
+            "https://file.bienici.com/photo/ag757613-519726833_photos.ubiflow.net_757613_519726833_photos_1.jpg_INSOON_EB_5512801818_20260320155319?width=300&height=180&fit=cover"
+        ],
+        "source": "Bien'ici",
+        "sources": [
+            {
+                "name": "Bien'ici",
+                "url": "https://www.bienici.com/annonce/vente/paris-12e/appartement/3pieces/ag757613-519726833?q=%2Frecherche%2Fachat%2Fparis-75000"
+            }
+        ],
+        "price_per_m2": 13857,
+        "price_vs_market": 35.9,
+        "market_price_ref": 10200,
+        "estimated_monthly_charges": 88,
+        "estimated_annual_tax": 315,
+        "rendement": 5.2,
+        "score": 80
+    }
+]

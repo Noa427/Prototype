@@ -1,0 +1,10 @@
+name: pap
+urls:
+  - https://www.pap.fr/annonce/vente-appartements-maisons-paris-75-g439
+selectors:
+  ad_container: ".search-list-item-alt"
+  title: ".h1"
+  price: ".item-price"
+  surface: ".item-tags"
+  rooms: ".item-tags"
+  address: ".h1"
