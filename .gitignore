@@ -25,3 +25,14 @@ dist-ssr
 *.sw?
 .aider*
 .env
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+venv/
+ENV/
+
+# Project specific
+graphify-out/

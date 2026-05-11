@@ -96,7 +96,7 @@ async def delete_campaign(
     session: Session = Depends(get_session),
     current_user: User = Depends(get_current_user)
 ):
-    if current_user.role not in ("admin", "commercial"):
+    if current_user.role not in ("admin", "gérant"):
         raise HTTPException(status_code=403, detail="Forbidden")
     camp = session.get(Campaign, campaign_id)
     if not camp:

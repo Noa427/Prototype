@@ -23,12 +23,10 @@ async def read_leads(
         logger.info(f"GET /leads/ called by user={current_user.username} role={current_user.role}")
         statement = select(Lead)
 
-        # Isolation : les commerciaux ne voient que leurs leads, les admins voient tout
-        if current_user.role == "commercial":
+        # Isolation par rôle
+        if current_user.role == "agent":
             statement = statement.where(Lead.assigned_to == current_user.id)
-        elif current_user.role == "client":
-            # Les clients ne devraient probablement pas voir les leads CRM,
-            # mais si nécessaire, on filtre par leur agence via le deal
+        elif current_user.role == "gérant":
             statement = statement.join(Deal).where(Deal.agency_id == current_user.agency_id)
 
         if status:
@@ -51,8 +49,7 @@ async def create_lead(
     if not deal:
         raise HTTPException(status_code=404, detail="Deal not found")
     
-    # Attribution automatique au commercial courant si c'est un commercial qui crée
-    if current_user.role == "commercial":
+    if current_user.role == "agent":
         lead.assigned_to = current_user.id
     
     lead.created_at = datetime.utcnow()
@@ -79,7 +76,7 @@ async def update_lead(
         raise HTTPException(status_code=404, detail="Lead not found")
     
     # Vérification des permissions
-    if current_user.role == "commercial" and lead.assigned_to != current_user.id:
+    if current_user.role == "agent" and lead.assigned_to != current_user.id:
         raise HTTPException(status_code=403, detail="Not authorized to update this lead")
     
     for key, value in lead_data.items():
@@ -126,9 +123,9 @@ async def get_leads_stats(
     try:
         logger.info(f"GET /leads/stats called by user={current_user.username} role={current_user.role}")
         base = select(Lead)
-        if current_user.role == "commercial":
+        if current_user.role == "agent":
             base = base.where(Lead.assigned_to == current_user.id)
-        elif current_user.role == "client":
+        elif current_user.role == "gérant":
             base = base.join(Deal).where(Deal.agency_id == current_user.agency_id)
 
         leads = session.exec(base).all()
@@ -157,9 +154,9 @@ async def export_leads_csv(
         import csv, io
         from fastapi.responses import StreamingResponse
         stmt = select(Lead)
-        if current_user.role == "commercial":
+        if current_user.role == "agent":
             stmt = stmt.where(Lead.assigned_to == current_user.id)
-        elif current_user.role == "client":
+        elif current_user.role == "gérant":
             stmt = stmt.join(Deal).where(Deal.agency_id == current_user.agency_id)
         leads = session.exec(stmt).all()
 
