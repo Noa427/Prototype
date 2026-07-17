@@ -12,17 +12,13 @@
 
 ## Aperçu
 
-| Kanban leads | Annonces & scoring |
+| Kanban leads | Dashboard KPIs |
 |---|---|
-| ![Kanban leads](docs/images/kanban-leads.png) | ![Liste annonces avec score](docs/images/annonces-scoring.png) |
+| ![Kanban leads](docs/images/kanban-leads.png) | ![Dashboard KPIs](docs/images/dashboard-kpis.png) |
 
-| Carte des biens | Dashboard KPIs |
-|---|---|
-| ![Carte interactive](docs/images/carte-biens.png) | ![Dashboard KPIs](docs/images/dashboard-kpis.png) |
-
-| Registre des mandats |
+| Reporting mensuel |
 |---|
-| ![Registre mandats](docs/images/mandats.png) |
+| ![Reporting mensuel](docs/images/reporting.png) |
 
 ---
 
