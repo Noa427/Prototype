@@ -1,6 +1,28 @@
 # AEVUM — CRM Immobilier SaaS
 
-CRM multi-tenant pour agences immobilières : scraping automatique des portails, scoring IA des annonces, gestion des leads, mandats Loi Hoguet, gestion locative, signature électronique et messagerie omnicanal.
+> Le CRM tout-en-un pour agences immobilières : scraping des portails, scoring IA des annonces et pilotage complet du cycle de vente, du lead à la signature.
+
+[![FastAPI](https://img.shields.io/badge/FastAPI-0.135-009688?logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
+[![React](https://img.shields.io/badge/React-19.2-61DAFB?logo=react&logoColor=black)](https://react.dev/)
+[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-14%2B-4169E1?logo=postgresql&logoColor=white)](https://www.postgresql.org/)
+
+**Démo en ligne :** <lien>
+
+---
+
+## Aperçu
+
+| Kanban leads | Annonces & scoring |
+|---|---|
+| ![Kanban leads](docs/images/kanban-leads.png) | ![Liste annonces avec score](docs/images/annonces-scoring.png) |
+
+| Carte des biens | Dashboard KPIs |
+|---|---|
+| ![Carte interactive](docs/images/carte-biens.png) | ![Dashboard KPIs](docs/images/dashboard-kpis.png) |
+
+| Registre des mandats |
+|---|
+| ![Registre mandats](docs/images/mandats.png) |
 
 ---
 
@@ -93,7 +115,7 @@ Les agences immobilières passent un temps considérable à surveiller les porta
 
 ```bash
 git clone <url-du-repo>
-cd antigravity-proto
+cd Prototype
 ```
 
 ### 2. Configurer les variables d'environnement

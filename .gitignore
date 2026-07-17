@@ -36,3 +36,12 @@ ENV/
 
 # Project specific
 graphify-out/
+
+# Local DB dump / debug artifacts
+aevum.db
+debug_pap.png
+debug_pap_v2.png
+debug/
+fix_schema.py
+test_db.py
+update_demo.py
